@@ -1,0 +1,10 @@
+{
+    "compilerOptions":{
+        "target" : "es5",
+        "module":"amd",
+        "outDir": "src/modules",
+        "outFile": "src/bundle/gameBundle.js",
+        "sourceMap": true,
+        "lib" : ["es5", "DOM", "ES2015.Collection", "scripthost"]
+    }
+}

@@ -1,0 +1,12 @@
+/**
+   * Remove the margin in all browsers.
+   */
+  
+   body {
+    margin: 0;
+    background-color: black;    
+  }
+
+  main{
+    display: block;
+  }
