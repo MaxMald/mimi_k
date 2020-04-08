@@ -55,6 +55,7 @@ export  class LocalizationScene extends Phaser.Scene
         game_mng.setLocalization(LOCALIZATION.kEnglish);
 
         // TODO: start preload scene.
+        this.scene.start('preloader');
         return;
     }
 
@@ -65,6 +66,7 @@ export  class LocalizationScene extends Phaser.Scene
         game_mng.setLocalization(LOCALIZATION.kSpanish);
 
         // TODO: start preload scene.
+        this.scene.start('preloader');
         return;
     }
 }

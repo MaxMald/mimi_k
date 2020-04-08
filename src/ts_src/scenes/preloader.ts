@@ -30,15 +30,13 @@ export class Preloader extends Phaser.Scene
 
         ///////////////////////////////////
         // Atlas
-
-        /*
+        
         this.load.atlas
         (
-            'touch_ui',
-            'src/assets/images/touch_ui/touch_ui.png',
-            'src/assets/images/touch_ui/touch_ui.js'
+            'main_menu',
+            'src/assets/images/atlas/main_menu.png',
+            'src/assets/images/atlas/main_menu.js'
         );
-        */
 
         ///////////////////////////////////
         // Images
@@ -88,11 +86,12 @@ export class Preloader extends Phaser.Scene
              [2,65,2]
          );
         this.m_loading_bar.setOrigin(0,0.5);
-
+*/
+        
         // Callbacks
         this.load.on('complete', this.onLoadComplete, this);
         this.load.on('progress', this.onProgress, this);      
-        */
+        
 
         return;
     }
@@ -113,9 +112,6 @@ export class Preloader extends Phaser.Scene
     public onLoadComplete()
     : void
     {
-        /**
-         * Starts Main Menu Scene.
-         */
         this.scene.start('mainMenu');        
         return;
     }

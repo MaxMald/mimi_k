@@ -1,46 +1,25 @@
 import { BaseScene } from "../BaseScene";
+import { CloudPopup } from "../../game/ui/cloud_popup";
 
 export class MainMenu extends BaseScene
 {
+    private m_cloud_popup : CloudPopup;
+
     public create ()
     : void
     {
         super.create();
 
-        this.createButton
+        this.m_cloud_popup = new  CloudPopup(this);
+        this.m_cloud_popup.setMaxWidth(800);
+        this.m_cloud_popup.setText('Este es un texto de prueba, que está muy triste porque su vida útil no es muy importante que digamos. A pesar de todo, el sabe que su misión es necesaria para el futuro de las nuevas generaciones de textos.');
+        this.m_cloud_popup.setPosition
         (
-            this.game.canvas.width * 0.25,
-            this.game.canvas.height * 0.5,
-            "Tiled Test",
-            function(){
-                this.m_master.startScene
-                (
-                    this.game,
-                    'test_level_tiled',
-                    this
-                );
-                return;
-            },
-            this
-        )
-
-        this.createButton
-        (
-            this.game.canvas.width * 0.25,
-            this.game.canvas.height * 0.6,
-            "Volcano Test",
-            function(){
-                this.m_master.startScene
-                (
-                    this.game,
-                    'test_level_volcano',
-                    this
-                );
-                return;
-            },
-            this
-        )
-
+            this.game.canvas.width * 0.5,
+            this.game.canvas.height * 0.5
+        );
+        
+        /*
         this.createButton
         (
             this.game.canvas.width * 0.75,
@@ -57,6 +36,7 @@ export class MainMenu extends BaseScene
             },
             this
         );
+        */
         return;
     }
 

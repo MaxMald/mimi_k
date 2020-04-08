@@ -267,14 +267,7 @@ define("scenes/preloader", ["require", "exports"], function (require, exports) {
             */
             ///////////////////////////////////
             // Atlas
-            /*
-            this.load.atlas
-            (
-                'touch_ui',
-                'src/assets/images/touch_ui/touch_ui.png',
-                'src/assets/images/touch_ui/touch_ui.js'
-            );
-            */
+            this.load.atlas('main_menu', 'src/assets/images/atlas/main_menu.png', 'src/assets/images/atlas/main_menu.js');
             ///////////////////////////////////
             // Images
             /*
@@ -320,11 +313,10 @@ define("scenes/preloader", ["require", "exports"], function (require, exports) {
                  [2,65,2]
              );
             this.m_loading_bar.setOrigin(0,0.5);
-    
+    */
             // Callbacks
             this.load.on('complete', this.onLoadComplete, this);
             this.load.on('progress', this.onProgress, this);
-            */
             return;
         };
         Preloader.prototype.onProgress = function (_value) {
@@ -338,9 +330,6 @@ define("scenes/preloader", ["require", "exports"], function (require, exports) {
             return;
         };
         Preloader.prototype.onLoadComplete = function () {
-            /**
-             * Starts Main Menu Scene.
-             */
             this.scene.start('mainMenu');
             return;
         };
@@ -348,7 +337,55 @@ define("scenes/preloader", ["require", "exports"], function (require, exports) {
     }(Phaser.Scene));
     exports.Preloader = Preloader;
 });
-define("scenes/boot", ["require", "exports", "utilities/managers/masterManager"], function (require, exports, masterManager_1) {
+define("game/gameCommons", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var LOCALIZATION;
+    (function (LOCALIZATION) {
+        LOCALIZATION[LOCALIZATION["kEnglish"] = 0] = "kEnglish";
+        LOCALIZATION[LOCALIZATION["kSpanish"] = 1] = "kSpanish";
+    })(LOCALIZATION = exports.LOCALIZATION || (exports.LOCALIZATION = {}));
+    var MANAGER_ID;
+    (function (MANAGER_ID) {
+        MANAGER_ID[MANAGER_ID["kGameManager"] = 0] = "kGameManager";
+    })(MANAGER_ID = exports.MANAGER_ID || (exports.MANAGER_ID = {}));
+});
+define("game/managers/gameManager/gameManager", ["require", "exports", "utilities/managers/manager", "game/gameCommons"], function (require, exports, manager_1, gameCommons_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var GameManager = /** @class */ (function (_super) {
+        __extends(GameManager, _super);
+        function GameManager() {
+            var _this = _super.call(this, gameCommons_1.MANAGER_ID.kGameManager) || this;
+            _this.m_localization = gameCommons_1.LOCALIZATION.kSpanish;
+            return _this;
+        }
+        /**
+         * Gets this game's localization identifer.
+         */
+        GameManager.prototype.getLocalization = function () {
+            return this.m_localization;
+        };
+        /**
+         * Sets the game's localization identifier.
+         *
+         * @param _localization Localization identifier.
+         */
+        GameManager.prototype.setLocalization = function (_localization) {
+            this.m_localization = _localization;
+            return;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        GameManager.prototype.destroy = function () {
+            return;
+        };
+        return GameManager;
+    }(manager_1.Manager));
+    exports.GameManager = GameManager;
+});
+define("scenes/boot", ["require", "exports", "utilities/managers/masterManager", "game/managers/gameManager/gameManager"], function (require, exports, masterManager_1, gameManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Boot = /** @class */ (function (_super) {
@@ -372,6 +409,11 @@ define("scenes/boot", ["require", "exports", "utilities/managers/masterManager"]
              * Prepare Master Manager.
              */
             masterManager_1.MasterManager.Prepare(this.game);
+            var master = masterManager_1.MasterManager.GetInstance();
+            /**
+             * Create GameManager.
+             */
+            master.addManager(new gameManager_1.GameManager());
             /**
              * Start Preloader Sccene.
              */
@@ -405,7 +447,100 @@ define("scenes/BaseScene", ["require", "exports", "utilities/managers/masterMana
     }(Phaser.Scene));
     exports.BaseScene = BaseScene;
 });
-define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene"], function (require, exports, BaseScene_1) {
+define("game/ui/cloud_popup", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var CloudPopup = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function CloudPopup(_scene) {
+            // Get the cloud popup texture from TextureManager
+            var texture = _scene.game.textures.get('main_menu');
+            var cloud_frame = texture.get('msg_cloud.png');
+            // sets the minimum size from the original texture
+            this.m_min_width = cloud_frame.width;
+            this.m_min_height = cloud_frame.height;
+            // Create nineslice cloud texture
+            this.m_cloud = _scene.add.nineslice(0, 0, cloud_frame.width, cloud_frame.height, { key: 'main_menu', frame: 'msg_cloud.png' }, [61, 72, 69, 59]);
+            this.m_cloud.setOrigin(0.5, 0.5);
+            // Create Text
+            this.m_text = _scene.add.text(this.m_cloud.x, this.m_cloud.y, "", { fontFamily: '"Roboto Condensed"' });
+            this.m_text.setFontSize(40);
+            this.m_text.setColor('black');
+            this.m_text.setOrigin(0.5, 0.5);
+            // Text Padding
+            this.m_top_padding = this.m_min_height * 0.25;
+            this.m_bottom_padding = this.m_min_height * 0.25;
+            this.m_left_padding = this.m_min_width * 0.25;
+            this.m_right_padding = this.m_min_height * 0.25;
+            // sets maximum size from the orinal texture
+            this.setMaxWidth(this.m_min_width);
+            this.m_isOpen = false;
+            return;
+        }
+        CloudPopup.prototype.open = function () {
+            if (!this.m_isOpen) {
+                // TODO
+                this.m_isOpen = !this.m_isOpen;
+            }
+            return;
+        };
+        CloudPopup.prototype.close = function () {
+            if (this.m_isOpen) {
+                // TODO
+                this.m_isOpen = !this.m_isOpen;
+            }
+            return;
+        };
+        CloudPopup.prototype.setPosition = function (_x, _y) {
+            this.m_text.setPosition(this.m_text.x + (_x - this.m_cloud.x), this.m_text.y + (_y - this.m_cloud.y));
+            this.m_cloud.setPosition(_x, _y);
+            return;
+        };
+        CloudPopup.prototype.setText = function (_text) {
+            this.m_text.text = _text;
+            this.setSize(this.m_text.width + this.m_left_padding + this.m_right_padding, this.m_text.height + this.m_top_padding + this.m_bottom_padding);
+            return;
+        };
+        CloudPopup.prototype.setMaxWidth = function (_width) {
+            this.m_max_width = this._check_minimum_value(_width, this.m_min_width);
+            this.m_text.setWordWrapWidth(this.m_max_width - this.m_left_padding - this.m_right_padding);
+            return;
+        };
+        CloudPopup.prototype.setSize = function (_width, _height) {
+            this.m_width = this._check_minimum_value(_width, this.m_min_width);
+            this.m_width = this._check_maximum_value(_width, this.m_max_width);
+            this.m_height = this._check_minimum_value(_height, this.m_min_height);
+            this.m_height = _height;
+            this.m_cloud.resize(this.m_width, this.m_height);
+            return;
+        };
+        CloudPopup.prototype.getTextObject = function () {
+            return this.m_text;
+        };
+        CloudPopup.prototype.destroy = function () {
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        CloudPopup.prototype._check_minimum_value = function (_value, _min) {
+            if (_value < _min) {
+                return _min;
+            }
+            return _value;
+        };
+        CloudPopup.prototype._check_maximum_value = function (_value, _max) {
+            if (_value > _max) {
+                return _max;
+            }
+            return _value;
+        };
+        return CloudPopup;
+    }());
+    exports.CloudPopup = CloudPopup;
+});
+define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game/ui/cloud_popup"], function (require, exports, BaseScene_1, cloud_popup_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MainMenu = /** @class */ (function (_super) {
@@ -415,18 +550,28 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene"], func
         }
         MainMenu.prototype.create = function () {
             _super.prototype.create.call(this);
-            this.createButton(this.game.canvas.width * 0.25, this.game.canvas.height * 0.5, "Tiled Test", function () {
-                this.m_master.startScene(this.game, 'test_level_tiled', this);
-                return;
-            }, this);
-            this.createButton(this.game.canvas.width * 0.25, this.game.canvas.height * 0.6, "Volcano Test", function () {
-                this.m_master.startScene(this.game, 'test_level_volcano', this);
-                return;
-            }, this);
-            this.createButton(this.game.canvas.width * 0.75, this.game.canvas.height * 0.5, "Towers Test", function () {
-                this.m_master.startScene(this.game, 'test_level_towers', this);
-                return;
-            }, this);
+            this.m_cloud_popup = new cloud_popup_1.CloudPopup(this);
+            this.m_cloud_popup.setMaxWidth(800);
+            this.m_cloud_popup.setText('Este es un texto de prueba, que está muy triste porque su vida útil no es muy importante que digamos. A pesar de todo, el sabe que su misión es necesaria para el futuro de las nuevas generaciones de textos.');
+            this.m_cloud_popup.setPosition(this.game.canvas.width * 0.5, this.game.canvas.height * 0.5);
+            /*
+            this.createButton
+            (
+                this.game.canvas.width * 0.75,
+                this.game.canvas.height * 0.5,
+                "Towers Test",
+                function(){
+                    this.m_master.startScene
+                    (
+                        this.game,
+                        'test_level_towers',
+                        this
+                    );
+                    return;
+                },
+                this
+            );
+            */
             return;
         };
         MainMenu.prototype.createButton = function (_x, _y, _label, _fn, _context) {
@@ -445,7 +590,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene"], func
     }(BaseScene_1.BaseScene));
     exports.MainMenu = MainMenu;
 });
-define("scenes/localization", ["require", "exports"], function (require, exports) {
+define("scenes/localization", ["require", "exports", "utilities/managers/masterManager", "game/gameCommons"], function (require, exports, masterManager_3, gameCommons_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var LocalizationScene = /** @class */ (function (_super) {
@@ -466,7 +611,7 @@ define("scenes/localization", ["require", "exports"], function (require, exports
             english_button.setInteractive();
             english_button.on('pointerup', this._onClick_english, this);
             /**
-             * Latin Amercia.
+             * Latin America map.
             */
             var latin_button = this.add.sprite(width * 0.5, height * 0.75, 'preloader', 'latino_map.png');
             latin_button.setInteractive();
@@ -477,11 +622,17 @@ define("scenes/localization", ["require", "exports"], function (require, exports
         /* Private                                          */
         /****************************************************/
         LocalizationScene.prototype._onClick_english = function () {
-            console.log('english');
+            var game_mng = masterManager_3.MasterManager.GetInstance().getManager(gameCommons_2.MANAGER_ID.kGameManager);
+            game_mng.setLocalization(gameCommons_2.LOCALIZATION.kEnglish);
+            // TODO: start preload scene.
+            this.scene.start('preloader');
             return;
         };
         LocalizationScene.prototype._onClick_spanish = function () {
-            console.log('spanish');
+            var game_mng = masterManager_3.MasterManager.GetInstance().getManager(gameCommons_2.MANAGER_ID.kGameManager);
+            game_mng.setLocalization(gameCommons_2.LOCALIZATION.kSpanish);
+            // TODO: start preload scene.
+            this.scene.start('preloader');
             return;
         };
         return LocalizationScene;
