@@ -6,5 +6,6 @@ export enum LOCALIZATION
 
 export enum MANAGER_ID
 {
-    kGameManager
+    kGameManager,
+    kDataManager
 }

@@ -1,4 +1,10 @@
 import { MasterManager } from "../utilities/managers/masterManager";
+import CSVReader = require("../utilities/fs/csv_reader");
+import CSVFile = require("../utilities/fs/csv_file");
+import CSVRow = require("../utilities/fs/csv_row");
+import { GameManager } from "../game/managers/gameManager/gameManager";
+import { MANAGER_ID, LOCALIZATION } from "../game/gameCommons";
+import { DataManager } from "../game/managers/dataManager/dataManager";
 
 export class Preloader extends Phaser.Scene
 {
@@ -7,7 +13,33 @@ export class Preloader extends Phaser.Scene
 
     public preload ()
     : void
-    {   
+    {
+        ///////////////////////////////////
+        // CSV Data
+        
+        let game_mng : GameManager
+            = MasterManager.GetInstance().getManager<GameManager>(MANAGER_ID.kGameManager);
+
+        let data_mng : DataManager
+            = game_mng.getDataManager();
+
+        let csv_file : CSVFile 
+            = CSVReader.LoadFromFile('src/assets/csv_files/Mimi_k_data - game_texts.tsv', true);
+        
+        let num_rows : number = csv_file.rows.length;
+        let row : CSVRow;
+
+        // Sets the column that has the text.
+        // 1 : Spanish
+        // 2 : English
+        let text_column_index 
+            = (game_mng.getLocalization() == LOCALIZATION.kSpanish ? 1 : 2); 
+        
+        for(let index = 0; index < num_rows; ++index) {
+            row = csv_file.rows[index];
+            data_mng.add(row.cells[0], row.cells[text_column_index]);
+        }
+
         ///////////////////////////////////
         // TiledMap
 
@@ -114,5 +146,10 @@ export class Preloader extends Phaser.Scene
     {
         this.scene.start('mainMenu');        
         return;
+    }
+
+    public loadCSVFile(_file : string)
+    : void {
+
     }
 }

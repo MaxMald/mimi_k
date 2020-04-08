@@ -1,5 +1,6 @@
 import { Manager } from "../../../utilities/managers/manager";
 import { MANAGER_ID, LOCALIZATION } from "../../gameCommons";
+import { DataManager } from "../dataManager/dataManager";
 
 export class GameManager extends Manager
 {
@@ -8,11 +9,29 @@ export class GameManager extends Manager
      */
     private m_localization : LOCALIZATION;
 
+    /**
+     * Reference to the DataManager.
+     */
+    private readonly m_data_mng : DataManager;
+
     public constructor(){
         super(MANAGER_ID.kGameManager);
 
+        // sets the default language.
         this.m_localization = LOCALIZATION.kSpanish;
+
+        // create DataManager instance.
+        this.m_data_mng = new DataManager();
+
         return;
+    }
+
+    /**
+     * Gets a reference to the game's dataManager.
+     */
+    public getDataManager()
+    : DataManager {
+        return this.m_data_mng;
     }
 
     /**
@@ -39,6 +58,7 @@ export class GameManager extends Manager
     */
     public destroy()
     : void {
+        this.m_data_mng.destroy();
         return;
     }
 }

@@ -240,7 +240,205 @@ define("utilities/managers/masterManager", ["require", "exports"], function (req
     }());
     exports.MasterManager = MasterManager;
 });
-define("scenes/preloader", ["require", "exports"], function (require, exports) {
+define("utilities/fs/fs", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var fs = /** @class */ (function () {
+        function fs() {
+        }
+        fs.loadFile = function (filePath) {
+            var result = null;
+            var xmlhttp = new XMLHttpRequest();
+            xmlhttp.open("GET", filePath, false);
+            xmlhttp.send();
+            if (xmlhttp.status == 200) {
+                result = xmlhttp.responseText;
+            }
+            return result;
+        };
+        return fs;
+    }());
+    return fs;
+});
+define("utilities/fs/csv_row", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var CSVRow = /** @class */ (function () {
+        function CSVRow() {
+            this.cells = new Array(0);
+            return;
+        }
+        return CSVRow;
+    }());
+    return CSVRow;
+});
+define("utilities/fs/csv_file", ["require", "exports", "utilities/fs/csv_row"], function (require, exports, CSVRow) {
+    "use strict";
+    var CSVFile = /** @class */ (function () {
+        function CSVFile() {
+            this.headers = new CSVRow;
+            this.rows = new Array(0);
+            return;
+        }
+        CSVFile.prototype.getHeaderIdx = function (_header) {
+            var idx = 0;
+            var size = this.headers.cells.length;
+            for (idx = 0; idx < size; idx++) {
+                if (this.headers.cells[idx] === _header) {
+                    return idx;
+                }
+            }
+            return null;
+        };
+        CSVFile.prototype.print = function () {
+            console.log("Headers: ");
+            var size = this.headers.cells.length;
+            for (var idx = 0; idx < size; ++idx) {
+                console.log(idx + " : " + this.headers.cells[idx]);
+            }
+            console.log("Data: ");
+            size = this.rows.length;
+            for (var idx = 0; idx < size; ++idx) {
+                var row_size = this.headers.cells.length;
+                console.log(" ----- Row: " + idx + " -----");
+                for (var r_idx = 0; r_idx < row_size; ++r_idx) {
+                    console.log(r_idx + " : " + this.rows[idx].cells[r_idx]);
+                }
+            }
+            return;
+        };
+        return CSVFile;
+    }());
+    return CSVFile;
+});
+define("utilities/fs/csv_reader", ["require", "exports", "utilities/fs/fs", "utilities/fs/csv_row", "utilities/fs/csv_file"], function (require, exports, fs, CSVRow, CSVFile) {
+    "use strict";
+    var CSVReader = /** @class */ (function () {
+        function CSVReader() {
+        }
+        CSVReader.LoadFromFile = function (_path, _tsv) {
+            if (_tsv === void 0) { _tsv = false; }
+            var file_data = fs.loadFile(_path);
+            if (file_data) {
+                return this.GetCSV(file_data, _tsv);
+            }
+            return null;
+        };
+        CSVReader.GetCSV = function (data, _tsv) {
+            if (_tsv === void 0) { _tsv = false; }
+            var split_char = (_tsv ? '\t' : ',');
+            var rows_raw_data = data.split('\r\n');
+            var csv_file = new CSVFile();
+            var r_raw_idx = rows_raw_data.length;
+            for (var idx = 0; idx < r_raw_idx; ++idx) {
+                var row = new CSVRow();
+                row.cells = rows_raw_data[idx].split(split_char);
+                if (idx != 0) {
+                    csv_file.rows.push(row);
+                }
+                else {
+                    csv_file.headers = row;
+                }
+            }
+            return csv_file;
+        };
+        return CSVReader;
+    }());
+    return CSVReader;
+});
+define("game/gameCommons", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var LOCALIZATION;
+    (function (LOCALIZATION) {
+        LOCALIZATION[LOCALIZATION["kEnglish"] = 0] = "kEnglish";
+        LOCALIZATION[LOCALIZATION["kSpanish"] = 1] = "kSpanish";
+    })(LOCALIZATION = exports.LOCALIZATION || (exports.LOCALIZATION = {}));
+    var MANAGER_ID;
+    (function (MANAGER_ID) {
+        MANAGER_ID[MANAGER_ID["kGameManager"] = 0] = "kGameManager";
+        MANAGER_ID[MANAGER_ID["kDataManager"] = 1] = "kDataManager";
+    })(MANAGER_ID = exports.MANAGER_ID || (exports.MANAGER_ID = {}));
+});
+define("game/managers/dataManager/dataManager", ["require", "exports", "utilities/managers/manager", "game/gameCommons"], function (require, exports, manager_1, gameCommons_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var DataManager = /** @class */ (function (_super) {
+        __extends(DataManager, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function DataManager() {
+            var _this = _super.call(this, gameCommons_1.MANAGER_ID.kDataManager) || this;
+            _this._string_map = new Map();
+            return _this;
+        }
+        DataManager.prototype.add = function (_key, _value) {
+            this._string_map.set(_key, _value);
+        };
+        DataManager.prototype.getString = function (_key) {
+            if (this._string_map.has(_key)) {
+                return this._string_map.get(_key);
+            }
+            return "NOT_FOUND!";
+        };
+        DataManager.prototype.clear = function () {
+            this._string_map.clear();
+            return;
+        };
+        DataManager.prototype.destroy = function () {
+            this._string_map.clear();
+            this._string_map = null;
+            return;
+        };
+        return DataManager;
+    }(manager_1.Manager));
+    exports.DataManager = DataManager;
+});
+define("game/managers/gameManager/gameManager", ["require", "exports", "utilities/managers/manager", "game/gameCommons", "game/managers/dataManager/dataManager"], function (require, exports, manager_2, gameCommons_2, dataManager_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var GameManager = /** @class */ (function (_super) {
+        __extends(GameManager, _super);
+        function GameManager() {
+            var _this = _super.call(this, gameCommons_2.MANAGER_ID.kGameManager) || this;
+            // sets the default language.
+            _this.m_localization = gameCommons_2.LOCALIZATION.kSpanish;
+            // create DataManager instance.
+            _this.m_data_mng = new dataManager_1.DataManager();
+            return _this;
+        }
+        /**
+         * Gets a reference to the game's dataManager.
+         */
+        GameManager.prototype.getDataManager = function () {
+            return this.m_data_mng;
+        };
+        /**
+         * Gets this game's localization identifer.
+         */
+        GameManager.prototype.getLocalization = function () {
+            return this.m_localization;
+        };
+        /**
+         * Sets the game's localization identifier.
+         *
+         * @param _localization Localization identifier.
+         */
+        GameManager.prototype.setLocalization = function (_localization) {
+            this.m_localization = _localization;
+            return;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        GameManager.prototype.destroy = function () {
+            this.m_data_mng.destroy();
+            return;
+        };
+        return GameManager;
+    }(manager_2.Manager));
+    exports.GameManager = GameManager;
+});
+define("scenes/preloader", ["require", "exports", "utilities/managers/masterManager", "utilities/fs/csv_reader", "game/gameCommons"], function (require, exports, masterManager_1, CSVReader, gameCommons_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Preloader = /** @class */ (function (_super) {
@@ -249,6 +447,21 @@ define("scenes/preloader", ["require", "exports"], function (require, exports) {
             return _super !== null && _super.apply(this, arguments) || this;
         }
         Preloader.prototype.preload = function () {
+            ///////////////////////////////////
+            // CSV Data
+            var game_mng = masterManager_1.MasterManager.GetInstance().getManager(gameCommons_3.MANAGER_ID.kGameManager);
+            var data_mng = game_mng.getDataManager();
+            var csv_file = CSVReader.LoadFromFile('src/assets/csv_files/Mimi_k_data - game_texts.tsv', true);
+            var num_rows = csv_file.rows.length;
+            var row;
+            // Sets the column that has the text.
+            // 1 : Spanish
+            // 2 : English
+            var text_column_index = (game_mng.getLocalization() == gameCommons_3.LOCALIZATION.kSpanish ? 1 : 2);
+            for (var index = 0; index < num_rows; ++index) {
+                row = csv_file.rows[index];
+                data_mng.add(row.cells[0], row.cells[text_column_index]);
+            }
             ///////////////////////////////////
             // TiledMap
             //this.load.tilemapTiledJSON('level_01', 'src/assets/maps/level_01.json');
@@ -333,59 +546,13 @@ define("scenes/preloader", ["require", "exports"], function (require, exports) {
             this.scene.start('mainMenu');
             return;
         };
+        Preloader.prototype.loadCSVFile = function (_file) {
+        };
         return Preloader;
     }(Phaser.Scene));
     exports.Preloader = Preloader;
 });
-define("game/gameCommons", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var LOCALIZATION;
-    (function (LOCALIZATION) {
-        LOCALIZATION[LOCALIZATION["kEnglish"] = 0] = "kEnglish";
-        LOCALIZATION[LOCALIZATION["kSpanish"] = 1] = "kSpanish";
-    })(LOCALIZATION = exports.LOCALIZATION || (exports.LOCALIZATION = {}));
-    var MANAGER_ID;
-    (function (MANAGER_ID) {
-        MANAGER_ID[MANAGER_ID["kGameManager"] = 0] = "kGameManager";
-    })(MANAGER_ID = exports.MANAGER_ID || (exports.MANAGER_ID = {}));
-});
-define("game/managers/gameManager/gameManager", ["require", "exports", "utilities/managers/manager", "game/gameCommons"], function (require, exports, manager_1, gameCommons_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var GameManager = /** @class */ (function (_super) {
-        __extends(GameManager, _super);
-        function GameManager() {
-            var _this = _super.call(this, gameCommons_1.MANAGER_ID.kGameManager) || this;
-            _this.m_localization = gameCommons_1.LOCALIZATION.kSpanish;
-            return _this;
-        }
-        /**
-         * Gets this game's localization identifer.
-         */
-        GameManager.prototype.getLocalization = function () {
-            return this.m_localization;
-        };
-        /**
-         * Sets the game's localization identifier.
-         *
-         * @param _localization Localization identifier.
-         */
-        GameManager.prototype.setLocalization = function (_localization) {
-            this.m_localization = _localization;
-            return;
-        };
-        /**
-        * Safely destroys the object.
-        */
-        GameManager.prototype.destroy = function () {
-            return;
-        };
-        return GameManager;
-    }(manager_1.Manager));
-    exports.GameManager = GameManager;
-});
-define("scenes/boot", ["require", "exports", "utilities/managers/masterManager", "game/managers/gameManager/gameManager"], function (require, exports, masterManager_1, gameManager_1) {
+define("scenes/boot", ["require", "exports", "utilities/managers/masterManager", "game/managers/gameManager/gameManager"], function (require, exports, masterManager_2, gameManager_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Boot = /** @class */ (function (_super) {
@@ -408,8 +575,8 @@ define("scenes/boot", ["require", "exports", "utilities/managers/masterManager",
             /**
              * Prepare Master Manager.
              */
-            masterManager_1.MasterManager.Prepare(this.game);
-            var master = masterManager_1.MasterManager.GetInstance();
+            masterManager_2.MasterManager.Prepare(this.game);
+            var master = masterManager_2.MasterManager.GetInstance();
             /**
              * Create GameManager.
              */
@@ -424,7 +591,7 @@ define("scenes/boot", ["require", "exports", "utilities/managers/masterManager",
     }(Phaser.Scene));
     exports.Boot = Boot;
 });
-define("scenes/BaseScene", ["require", "exports", "utilities/managers/masterManager"], function (require, exports, masterManager_2) {
+define("scenes/BaseScene", ["require", "exports", "utilities/managers/masterManager"], function (require, exports, masterManager_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var BaseScene = /** @class */ (function (_super) {
@@ -433,7 +600,7 @@ define("scenes/BaseScene", ["require", "exports", "utilities/managers/masterMana
             return _super !== null && _super.apply(this, arguments) || this;
         }
         BaseScene.prototype.create = function () {
-            this.m_master = masterManager_2.MasterManager.GetInstance();
+            this.m_master = masterManager_3.MasterManager.GetInstance();
             return;
         };
         BaseScene.prototype.update = function (_step, _dt) {
@@ -455,6 +622,7 @@ define("game/ui/cloud_popup", ["require", "exports"], function (require, exports
         /* Public                                           */
         /****************************************************/
         function CloudPopup(_scene) {
+            this.m_scene = _scene;
             // Get the cloud popup texture from TextureManager
             var texture = _scene.game.textures.get('main_menu');
             var cloud_frame = texture.get('msg_cloud.png');
@@ -466,7 +634,7 @@ define("game/ui/cloud_popup", ["require", "exports"], function (require, exports
             this.m_cloud.setOrigin(0.5, 0.5);
             // Create Text
             this.m_text = _scene.add.text(this.m_cloud.x, this.m_cloud.y, "", { fontFamily: '"Roboto Condensed"' });
-            this.m_text.setFontSize(40);
+            this.m_text.setFontSize(50);
             this.m_text.setColor('black');
             this.m_text.setOrigin(0.5, 0.5);
             // Text Padding
@@ -482,6 +650,20 @@ define("game/ui/cloud_popup", ["require", "exports"], function (require, exports
         CloudPopup.prototype.open = function () {
             if (!this.m_isOpen) {
                 // TODO
+                this.m_cloud.setScale(0, 0);
+                this.m_cloud_tween = this.m_scene.tweens.add({
+                    targets: this.m_cloud,
+                    scale: 1,
+                    duration: 400,
+                    ease: 'Bounce'
+                });
+                this.m_text.setScale(0, 0);
+                this.m_text_tween = this.m_scene.tweens.add({
+                    targets: this.m_text,
+                    scale: 1,
+                    duration: 400,
+                    ease: 'Bounce'
+                });
                 this.m_isOpen = !this.m_isOpen;
             }
             return;
@@ -489,6 +671,12 @@ define("game/ui/cloud_popup", ["require", "exports"], function (require, exports
         CloudPopup.prototype.close = function () {
             if (this.m_isOpen) {
                 // TODO
+                if (this.m_cloud_tween.isPlaying()) {
+                    this.m_cloud_tween.stop();
+                }
+                if (this.m_text_tween.isPlaying()) {
+                    this.m_text_tween.stop();
+                }
                 this.m_isOpen = !this.m_isOpen;
             }
             return;
@@ -520,6 +708,7 @@ define("game/ui/cloud_popup", ["require", "exports"], function (require, exports
             return this.m_text;
         };
         CloudPopup.prototype.destroy = function () {
+            return;
         };
         /****************************************************/
         /* Private                                          */
@@ -540,7 +729,7 @@ define("game/ui/cloud_popup", ["require", "exports"], function (require, exports
     }());
     exports.CloudPopup = CloudPopup;
 });
-define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game/ui/cloud_popup"], function (require, exports, BaseScene_1, cloud_popup_1) {
+define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game/ui/cloud_popup", "game/gameCommons"], function (require, exports, BaseScene_1, cloud_popup_1, gameCommons_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MainMenu = /** @class */ (function (_super) {
@@ -550,29 +739,31 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game
         }
         MainMenu.prototype.create = function () {
             _super.prototype.create.call(this);
+            // gets the Game Manager.
+            this.m_game_manager
+                = this.m_master.getManager(gameCommons_4.MANAGER_ID.kGameManager);
+            // gets the DataManager from GameManager.
+            this.m_data_mng = this.m_game_manager.getDataManager();
+            // Create the cloud poupup.
             this.m_cloud_popup = new cloud_popup_1.CloudPopup(this);
             this.m_cloud_popup.setMaxWidth(800);
-            this.m_cloud_popup.setText('Este es un texto de prueba, que está muy triste porque su vida útil no es muy importante que digamos. A pesar de todo, el sabe que su misión es necesaria para el futuro de las nuevas generaciones de textos.');
             this.m_cloud_popup.setPosition(this.game.canvas.width * 0.5, this.game.canvas.height * 0.5);
-            /*
-            this.createButton
-            (
-                this.game.canvas.width * 0.75,
-                this.game.canvas.height * 0.5,
-                "Towers Test",
-                function(){
-                    this.m_master.startScene
-                    (
-                        this.game,
-                        'test_level_towers',
-                        this
-                    );
-                    return;
-                },
-                this
-            );
-            */
+            // display first tip.
+            this.m_tip_num = 0;
+            this.nextTip();
+            // Tip Testing button.
+            this.createButton(this.game.canvas.width * 0.5, this.game.canvas.height * 0.2, "Next Tip", this.nextTip, this);
             return;
+        };
+        MainMenu.prototype.nextTip = function () {
+            this.m_cloud_popup.setText(this.m_data_mng.getString('menu_tip_0' + this.m_tip_num));
+            this.m_cloud_popup.close();
+            this.m_cloud_popup.open();
+            // iterate over tips.
+            this.m_tip_num++;
+            if (this.m_tip_num > 5) {
+                this.m_tip_num = 0;
+            }
         };
         MainMenu.prototype.createButton = function (_x, _y, _label, _fn, _context) {
             var button = this.add.nineslice(_x, _y, 145, 145, { key: 'main_menu', frame: 'button_bg.png' }, [70, 70, 70, 70]);
@@ -590,7 +781,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game
     }(BaseScene_1.BaseScene));
     exports.MainMenu = MainMenu;
 });
-define("scenes/localization", ["require", "exports", "utilities/managers/masterManager", "game/gameCommons"], function (require, exports, masterManager_3, gameCommons_2) {
+define("scenes/localization", ["require", "exports", "utilities/managers/masterManager", "game/gameCommons"], function (require, exports, masterManager_4, gameCommons_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var LocalizationScene = /** @class */ (function (_super) {
@@ -622,15 +813,15 @@ define("scenes/localization", ["require", "exports", "utilities/managers/masterM
         /* Private                                          */
         /****************************************************/
         LocalizationScene.prototype._onClick_english = function () {
-            var game_mng = masterManager_3.MasterManager.GetInstance().getManager(gameCommons_2.MANAGER_ID.kGameManager);
-            game_mng.setLocalization(gameCommons_2.LOCALIZATION.kEnglish);
+            var game_mng = masterManager_4.MasterManager.GetInstance().getManager(gameCommons_5.MANAGER_ID.kGameManager);
+            game_mng.setLocalization(gameCommons_5.LOCALIZATION.kEnglish);
             // TODO: start preload scene.
             this.scene.start('preloader');
             return;
         };
         LocalizationScene.prototype._onClick_spanish = function () {
-            var game_mng = masterManager_3.MasterManager.GetInstance().getManager(gameCommons_2.MANAGER_ID.kGameManager);
-            game_mng.setLocalization(gameCommons_2.LOCALIZATION.kSpanish);
+            var game_mng = masterManager_4.MasterManager.GetInstance().getManager(gameCommons_5.MANAGER_ID.kGameManager);
+            game_mng.setLocalization(gameCommons_5.LOCALIZATION.kSpanish);
             // TODO: start preload scene.
             this.scene.start('preloader');
             return;
@@ -1171,107 +1362,6 @@ define("utilities/component/mxActor", ["require", "exports", "utilities/componen
         return MxActor;
     }());
     exports.MxActor = MxActor;
-});
-define("utilities/fs/csv_row", ["require", "exports"], function (require, exports) {
-    "use strict";
-    var CSVRow = /** @class */ (function () {
-        function CSVRow() {
-            this.cells = new Array(0);
-            return;
-        }
-        return CSVRow;
-    }());
-    return CSVRow;
-});
-define("utilities/fs/csv_file", ["require", "exports", "utilities/fs/csv_row"], function (require, exports, CSVRow) {
-    "use strict";
-    var CSVFile = /** @class */ (function () {
-        function CSVFile() {
-            this.headers = new CSVRow;
-            this.rows = new Array(0);
-            return;
-        }
-        CSVFile.prototype.getHeaderIdx = function (_header) {
-            var idx = 0;
-            var size = this.headers.cells.length;
-            for (idx = 0; idx < size; idx++) {
-                if (this.headers.cells[idx] === _header) {
-                    return idx;
-                }
-            }
-            return null;
-        };
-        CSVFile.prototype.print = function () {
-            console.log("Headers: ");
-            var size = this.headers.cells.length;
-            for (var idx = 0; idx < size; ++idx) {
-                console.log(idx + " : " + this.headers.cells[idx]);
-            }
-            console.log("Data: ");
-            size = this.rows.length;
-            for (var idx = 0; idx < size; ++idx) {
-                var row_size = this.headers.cells.length;
-                console.log(" ----- Row: " + idx + " -----");
-                for (var r_idx = 0; r_idx < row_size; ++r_idx) {
-                    console.log(r_idx + " : " + this.rows[idx].cells[r_idx]);
-                }
-            }
-            return;
-        };
-        return CSVFile;
-    }());
-    return CSVFile;
-});
-define("utilities/fs/fs", ["require", "exports"], function (require, exports) {
-    "use strict";
-    var fs = /** @class */ (function () {
-        function fs() {
-        }
-        fs.loadFile = function (filePath) {
-            var result = null;
-            var xmlhttp = new XMLHttpRequest();
-            xmlhttp.open("GET", filePath, false);
-            xmlhttp.send();
-            if (xmlhttp.status == 200) {
-                result = xmlhttp.responseText;
-            }
-            return result;
-        };
-        return fs;
-    }());
-    return fs;
-});
-define("utilities/fs/csv_reader", ["require", "exports", "utilities/fs/fs", "utilities/fs/csv_row", "utilities/fs/csv_file"], function (require, exports, fs, CSVRow, CSVFile) {
-    "use strict";
-    var CSVReader = /** @class */ (function () {
-        function CSVReader() {
-        }
-        CSVReader.LoadFromFile = function (_path) {
-            var file_data = fs.loadFile(_path);
-            if (file_data) {
-                return this.GetCSV(file_data);
-            }
-            return null;
-        };
-        CSVReader.GetCSV = function (data) {
-            var rows_raw_data = data.split('\r\n');
-            var csv_file = new CSVFile();
-            var r_raw_idx = rows_raw_data.length;
-            for (var idx = 0; idx < r_raw_idx; ++idx) {
-                var row = new CSVRow();
-                row.cells = rows_raw_data[idx].split(',');
-                if (idx != 0) {
-                    csv_file.rows.push(row);
-                }
-                else {
-                    csv_file.headers = row;
-                }
-            }
-            return csv_file;
-        };
-        return CSVReader;
-    }());
-    return CSVReader;
 });
 define("utilities/nodeMaps/nodeMap", ["require", "exports"], function (require, exports) {
     "use strict";

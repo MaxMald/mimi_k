@@ -1,6 +1,11 @@
 export class CloudPopup
 {
     /**
+     * Reference to the Phaser.Scene.
+     */
+    private m_scene : Phaser.Scene;
+
+    /**
      * Cloud nineslice texture
      */
     private m_cloud : Phaser.GameObjects.RenderTexture;
@@ -45,11 +50,23 @@ export class CloudPopup
      */
     private m_isOpen : boolean;
 
+    /**
+     * Reference to the cloud tween object.
+     */
+    private m_cloud_tween : Phaser.Tweens.Tween;
+
+    /**
+     * Reference to the text tween object.
+     */
+    private m_text_tween : Phaser.Tweens.Tween;
+
     /****************************************************/
     /* Public                                           */
     /****************************************************/
     
     public constructor(_scene : Phaser.Scene) {
+
+        this.m_scene = _scene;
 
         // Get the cloud popup texture from TextureManager
         let texture : Phaser.Textures.Texture = _scene.game.textures.get('main_menu');
@@ -80,7 +97,7 @@ export class CloudPopup
             { fontFamily: '"Roboto Condensed"' }
         );
         
-        this.m_text.setFontSize(40);
+        this.m_text.setFontSize(50);
         this.m_text.setColor('black');
         this.m_text.setOrigin(0.5,0.5);
 
@@ -101,6 +118,22 @@ export class CloudPopup
     : void {
         if(!this.m_isOpen) {
             // TODO
+            this.m_cloud.setScale(0,0);
+            this.m_cloud_tween = this.m_scene.tweens.add({
+                targets: this.m_cloud,
+                scale: 1,
+                duration: 400,
+                ease: 'Bounce'
+            });
+
+            this.m_text.setScale(0,0);
+            this.m_text_tween = this.m_scene.tweens.add({
+                targets: this.m_text,
+                scale: 1,
+                duration: 400,
+                ease: 'Bounce'
+            });
+
             this.m_isOpen = !this.m_isOpen;
         }
         return;
@@ -110,6 +143,13 @@ export class CloudPopup
     : void {
         if(this.m_isOpen) {
             // TODO
+            if(this.m_cloud_tween.isPlaying()) {
+                this.m_cloud_tween.stop();
+            }
+
+            if(this.m_text_tween.isPlaying()) {
+                this.m_text_tween.stop();
+            }
             this.m_isOpen = !this.m_isOpen;
         }
         return;
@@ -163,7 +203,7 @@ export class CloudPopup
 
     public destroy()
     : void {
-
+        return;
     }
 
     /****************************************************/
