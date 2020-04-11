@@ -3,18 +3,7 @@ import CSVRow = require("./csv_row");
 import CSVFile = require("./csv_file");
 
 class CSVReader
-{
-    static LoadFromFile( _path : string, _tsv : boolean = false)
-    : CSVFile
-    {
-        let file_data : string = fs.loadFile(_path);
-        if(file_data)
-        {
-            return this.GetCSV(file_data, _tsv);
-        }        
-        return null;
-    }
-
+{  
     static GetCSV(data: string, _tsv : boolean = false)
     : CSVFile
     {

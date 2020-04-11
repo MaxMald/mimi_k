@@ -1,6 +1,7 @@
 import { Preloader } from "./scenes/preloader";
 import { Boot } from "./scenes/boot";
 import { MainMenu } from "./scenes/menus/mainMenu";
+import { MainGame } from "./scenes/levels/game_level";
 import { Plugin } from "phaser3-nineslice";
 import { LocalizationScene } from "./scenes/localization";
 
@@ -47,6 +48,7 @@ class GameInit
         this.m_game.scene.add('preloader',Preloader);
         this.m_game.scene.add('mainMenu', MainMenu);
         this.m_game.scene.add('localization', LocalizationScene);
+        this.m_game.scene.add('mainGame', MainGame);
 
         ///////////////////////////////////
         // Start BOOT        

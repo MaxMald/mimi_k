@@ -15,6 +15,7 @@ export class BaseScene extends Phaser.Scene
     
     public update(_step : number , _dt : number)
     : void {
+        this.m_master.update(_dt / 1000);
         return;
     }
 

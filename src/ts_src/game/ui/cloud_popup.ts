@@ -116,8 +116,7 @@ export class CloudPopup
 
     public open()
     : void {
-        if(!this.m_isOpen) {
-            // TODO
+        if(!this.m_isOpen) {            
             this.m_cloud.setScale(0,0);
             this.m_cloud_tween = this.m_scene.tweens.add({
                 targets: this.m_cloud,
@@ -204,7 +203,7 @@ export class CloudPopup
     public destroy()
     : void {
         return;
-    }
+    }    
 
     /****************************************************/
     /* Private                                          */

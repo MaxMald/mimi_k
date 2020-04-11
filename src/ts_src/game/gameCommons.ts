@@ -4,8 +4,17 @@ export enum LOCALIZATION
     kSpanish
 }
 
+export enum CLOCK_STYLE
+{
+    kSand = 0,
+    kDigital = 1,
+    kAnalog = 2,
+    kCount
+}
+
 export enum MANAGER_ID
 {
     kGameManager,
-    kDataManager
+    kDataManager,
+    kChronoManager
 }
