@@ -1,14 +1,10 @@
-import { BaseScene } from "../../BaseScene";
-
-
-export class Test_Level_Tiled extends BaseScene
+export class Test_Level_Tiled extends Phaser.Scene
 { 
     private bckg_layer : Phaser.Tilemaps.StaticTilemapLayer; 
     private terrain_layer : Phaser.Tilemaps.StaticTilemapLayer;
 
     public create ()
     : void {
-        super.create();
 
         /****************************************************/
         /* Scene                                            */

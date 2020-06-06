@@ -11,50 +11,70 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-define("utilities/managers/manager", ["require", "exports"], function (require, exports) {
+define("utilities/mxUUID", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var Manager = /** @class */ (function () {
-        /**
-         * Creates a manager and assigns it an identifier number.
-         *
-         * @param _id {number} Manager's identifier number.
-         */
-        function Manager(_id) {
-            this.m_id = _id;
+    var MxUUID = /** @class */ (function () {
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        function MxUUID() {
+            this.m_id = "";
+            return;
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        MxUUID.Create = function () {
+            var id = new MxUUID();
+            id.m_id = Phaser.Utils.String.UUID();
+            return id;
+        };
+        MxUUID.CreateFrom = function (_mxid) {
+            var id = new MxUUID();
+            id.m_id = _mxid.m_id;
+            return id;
+        };
+        MxUUID.prototype.get_uuid_string = function () {
+            return this.m_id;
+        };
+        MxUUID.prototype.compare = function (_id) {
+            return this.m_id == _id.m_id;
+        };
+        return MxUUID;
+    }());
+    exports.MxUUID = MxUUID;
+});
+define("utilities/gameObjects/mxUObject", ["require", "exports", "utilities/mxUUID"], function (require, exports, mxUUID_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxUObject = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MxUObject() {
+            this._m_uuid = mxUUID_1.MxUUID.Create();
             return;
         }
         /**
-         * Sets the MasterManager of this Manager.
-         *
-         * @param _master {MasterManager} MasterManager.
+         * Gets this object's unique identifier object.
          */
-        Manager.prototype.setMasterManager = function (_master) {
-            this.m_master_mng = _master;
-            return;
+        MxUObject.prototype.getUUID = function () {
+            return this._m_uuid;
+        };
+        MxUObject.prototype.get_uuid_string = function () {
+            return this._m_uuid.get_uuid_string();
         };
         /**
-         * Update method.
-         */
-        Manager.prototype.update = function () {
+        * Safely destroys the object.
+        */
+        MxUObject.prototype.destroy = function () {
+            this._m_uuid = null;
             return;
         };
-        /**
-         * Safely destroys this Manager.
-         */
-        Manager.prototype.destroy = function () {
-            this.m_master_mng = null;
-            return;
-        };
-        /**
-         * Gets this Manager identifier number.
-         */
-        Manager.prototype.getID = function () {
-            return this.m_id;
-        };
-        return Manager;
+        return MxUObject;
     }());
-    exports.Manager = Manager;
+    exports.MxUObject = MxUObject;
 });
 define("utilities/asserts", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -80,673 +100,1216 @@ define("utilities/asserts", ["require", "exports"], function (require, exports) 
             throw new Error('Input must be a number.');
     }
     exports.AssertNumber = AssertNumber;
-});
-define("utilities/listeners/mxListener", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxListener = /** @class */ (function () {
-        function MxListener(_listener, _context) {
-            asserts_1.AssertFunction(_listener);
-            this.m_listener = _listener;
-            if (_context) {
-                this.m_context = _context;
-            }
+    function AssertObject(_input) {
+        if (typeof _input === 'object')
             return;
+        else
+            throw new Error('Input must be an object.');
+    }
+    exports.AssertObject = AssertObject;
+    function AssertBoolean(_input) {
+        if (typeof _input === 'boolean')
+            return;
+        else
+            throw new Error('Input must be a boolean.');
+    }
+    exports.AssertBoolean = AssertBoolean;
+    function AssertPositiveNoNZeroNumber(_number) {
+        if (_number <= 0) {
+            throw new Error('Number cant has a negative or zero value');
         }
-        MxListener.prototype.call = function () {
-            if (this.m_context) {
-                this.m_listener.call(this.m_context);
-            }
-            else {
-                this.m_listener();
-            }
-            return;
-        };
-        MxListener.prototype.destroy = function () {
-            this.m_listener = null;
-            this.m_context = null;
-            return;
-        };
-        return MxListener;
-    }());
-    exports.MxListener = MxListener;
+        return;
+    }
+    exports.AssertPositiveNoNZeroNumber = AssertPositiveNoNZeroNumber;
 });
-/// <reference path="../../../libs/tsDefinitions/phaser.d.ts">
-define("utilities/managers/masterManager", ["require", "exports"], function (require, exports) {
+define("utilities/fs/csv_row", ["require", "exports", "utilities/gameObjects/mxUObject", "utilities/fs/csv_file", "utilities/asserts"], function (require, exports, mxUObject_1, csv_file_1, asserts_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var MasterManager = /** @class */ (function () {
-        function MasterManager() {
-            /****************************************************/
-            /* Private                                          */
-            /****************************************************/
-            /****************************************************/
-            /* Public                                           */
-            /****************************************************/
-            /**
-             * Update's delta time value.
-             */
-            this.m_dt = 0;
+    var CSVRow = /** @class */ (function (_super) {
+        __extends(CSVRow, _super);
+        function CSVRow(_csv_file) {
+            var _this = _super.call(this) || this;
+            _this._m_a_cells = new Array();
+            _this._m_a_csv_file = _csv_file;
+            return _this;
         }
         /****************************************************/
         /* Public                                           */
         /****************************************************/
-        /**
-         *
-         * @param _phaser_game
-         */
-        MasterManager.Prepare = function (_phaser_game) {
-            if (this.m_singleton == null) {
-                this.m_singleton = new MasterManager();
-                this.m_singleton.m_phaser_game = _phaser_game;
-                this.m_singleton.onPrepare();
+        CSVRow.GetNull = function () {
+            if (CSVRow._NULL_OBJ == null || CSVRow === undefined) {
+                CSVRow._NULL_OBJ = new CSVRow(csv_file_1.CSVFile.GetNull());
             }
+            return CSVRow._NULL_OBJ;
+        };
+        CSVRow.IsNull = function (_row) {
+            var null_id = CSVRow.GetNull().getUUID();
+            var param_id = _row.getUUID();
+            return param_id.compare(null_id);
+        };
+        /**
+         * Gets the value of one of this Row's cell.
+         * Returns an empty string if it doesn't has the required cell.
+         *
+         * @param _index {string | number} Index can be the header's name or the cell's index.
+         */
+        CSVRow.prototype.getCell = function (_index) {
+            if (_index === undefined || _index == null) {
+                console.warn("CSVRow: null or undefined parameter.");
+                return "";
+            }
+            if (typeof _index === 'number') {
+                if (this._validate_idx(_index)) {
+                    return this._m_a_cells[_index];
+                }
+            }
+            else if (typeof _index === 'string') {
+                var array_index = this._m_a_csv_file.getHeaderIdx(_index);
+                if (this._validate_idx(array_index)) {
+                    return this._m_a_cells[array_index];
+                }
+            }
+            return "";
+        };
+        /**
+         * Adds a new cell to this row.
+         * @param _data {string} New cell's data.
+         */
+        CSVRow.prototype.addCell = function (_data) {
+            this._m_a_cells.push(_data);
             return;
         };
         /**
+         * Adds multiple cells from raw data.
          *
+         * @param _data {string} cells raw data.
+         * @param _delimiter {char} Delimiter character for cells. i.e. ',' for CSV or '\t' for TSV.
          */
-        MasterManager.ShutDown = function () {
-            if (this.m_singleton != null) {
-                this.m_singleton.onShutDown();
-                this.m_singleton = null;
+        CSVRow.prototype.addCellsFromRaw = function (_data, _delimiter) {
+            if (_delimiter === void 0) { _delimiter = ','; }
+            asserts_1.AssertString(_data);
+            asserts_1.AssertString(_delimiter);
+            var a_cells_data = _data.split(_delimiter);
+            for (var index = 0; index < a_cells_data.length; ++index) {
+                this._m_a_cells.push(a_cells_data[index]);
             }
             return;
         };
-        /**
-         *
-         */
-        MasterManager.GetInstance = function () {
-            return this.m_singleton;
+        CSVRow.prototype.getRowSize = function () {
+            return this._m_a_cells.length;
         };
         /**
-         * Get the Phaser Game.
-         */
-        MasterManager.prototype.getGame = function () {
-            return this.m_phaser_game;
-        };
-        /**
-         * @brief updates each game manager.
-         *
-         * @param _dt delta time value.
-         */
-        MasterManager.prototype.update = function (_dt) {
-            this.m_dt = _dt;
-            this.m_manager_map.forEach(function (_mng) {
-                _mng.update();
-                return;
-            }),
-                this;
-        };
-        /**
-         * @brief Adds a new Manager to the master manager.
-         *
-         * @param _mng Manager.
-         */
-        MasterManager.prototype.addManager = function (_mng) {
-            _mng.setMasterManager(this);
-            this.m_manager_map.set(_mng.getID(), _mng);
+        * Safely destroys the object.
+        */
+        CSVRow.prototype.destroy = function () {
+            _super.prototype.destroy.call(this);
+            this._m_a_cells = null;
+            this._m_a_csv_file = null;
             return;
-        };
-        /**
-         *
-         * @param _id
-         */
-        MasterManager.prototype.destroyManager = function (_id) {
-            if (this.m_manager_map.has(_id)) {
-                var mng = this.m_manager_map.get(_id);
-                mng.destroy();
-                this.m_manager_map.delete(_id);
-            }
-            return;
-        };
-        /**
-         * @brief Gets a manager from the MasterManager.
-         *
-         * @param _id Manager's ID.
-         */
-        MasterManager.prototype.getManager = function (_id) {
-            if (this.m_manager_map.has(_id)) {
-                return this.m_manager_map.get(_id);
-            }
-            else {
-                return null;
-            }
         };
         /****************************************************/
         /* Private                                          */
         /****************************************************/
-        MasterManager.prototype.onPrepare = function () {
-            ///////////////////////////////////
-            // Listeners
-            this.m_listeners_map = new Map();
-            this.m_listeners_map.set('pause', new Array());
-            ///////////////////////////////////
-            // Managers
-            this.m_manager_map = new Map();
-            return;
+        CSVRow.prototype._validate_idx = function (_index) {
+            return (0 <= _index && _index < this._m_a_cells.length);
         };
-        MasterManager.prototype.onShutDown = function () {
-            this.m_manager_map.forEach(function (_mng) {
-                _mng.destroy();
-            }, this);
-            this.m_manager_map.clear();
-            this.m_manager_map = null;
-            this.m_listeners_map.clear();
-            this.m_listeners_map = null;
-            return;
-        };
-        return MasterManager;
-    }());
-    exports.MasterManager = MasterManager;
+        return CSVRow;
+    }(mxUObject_1.MxUObject));
+    exports.CSVRow = CSVRow;
 });
-define("utilities/listeners/mxListenerManager", ["require", "exports"], function (require, exports) {
+define("utilities/fs/csv_file", ["require", "exports", "utilities/fs/csv_row", "utilities/gameObjects/mxUObject", "utilities/asserts"], function (require, exports, csv_row_1, mxUObject_2, asserts_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var MxListenerManager = /** @class */ (function () {
+    var CSVFile = /** @class */ (function (_super) {
+        __extends(CSVFile, _super);
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        function CSVFile() {
+            var _this = _super.call(this) || this;
+            _this._m_a_headers = new Array();
+            _this._m_a_rows = new Array();
+            return _this;
+        }
         /****************************************************/
         /* Public                                           */
         /****************************************************/
-        function MxListenerManager() {
-            this.m_listener_map = new Map();
+        CSVFile.GetNull = function () {
+            if (CSVFile._NULL_OBJ == null || CSVFile._NULL_OBJ === undefined) {
+                CSVFile._NULL_OBJ = new CSVFile();
+            }
+            return CSVFile._NULL_OBJ;
+        };
+        CSVFile.IsNull = function (_csv_file) {
+            var null_id = this.GetNull().getUUID();
+            var obj_id = _csv_file.getUUID();
+            return obj_id.compare(null_id);
+        };
+        /**
+         * Creates an useful CSVFile object to handle a raw csv data.
+         *
+         * @param _csv_data {string} Raw CSV data.
+         * @param _has_header_row {boolean} Does data has a header row? It takes the first row as headers.
+         * @param _cell_delimiter {char} Delimiter character for cells. i.e. ',' for CSV or '\t' for TSV.
+         * @param _row_delimiter {char} Delimiter character for rows, usually it is the line break ('\n') character.
+         */
+        CSVFile.Create = function (_csv_data, _has_header_row, _cell_delimiter, _row_delimiter) {
+            if (_has_header_row === void 0) { _has_header_row = true; }
+            if (_cell_delimiter === void 0) { _cell_delimiter = ','; }
+            if (_row_delimiter === void 0) { _row_delimiter = '\n'; }
+            var csv_file = new CSVFile();
+            asserts_2.AssertString(_csv_data);
+            asserts_2.AssertString(_cell_delimiter);
+            asserts_2.AssertString(_row_delimiter);
+            if (_csv_data == "") {
+                return csv_file;
+            }
+            // Remove any Carriage Character
+            _csv_data = _csv_data.replace('\r', '');
+            var row;
+            var a_row_raw_data = _csv_data.split(_row_delimiter);
+            var rows_start_position = 0;
+            // Get the headers from the csv file.
+            if (_has_header_row) {
+                if (a_row_raw_data.length > 0) {
+                    var a_cell_data = a_row_raw_data[0].split(_cell_delimiter);
+                    var value = void 0;
+                    for (var index = 0; index < a_cell_data.length; ++index) {
+                        csv_file._m_a_headers.push(a_cell_data[index]);
+                    }
+                    rows_start_position++;
+                }
+            }
+            // Get rows data.
+            for (var index = rows_start_position; index < a_row_raw_data.length; ++index) {
+                row = new csv_row_1.CSVRow(csv_file);
+                csv_file._m_a_rows.push(row);
+                row.addCellsFromRaw(a_row_raw_data[index], _cell_delimiter);
+            }
+            return csv_file;
+        };
+        /**
+         * Gets a row from the CSVFile. If the row_index is out of range, it will returns
+         * a Null Object.
+         *
+         * @param _row_index
+         */
+        CSVFile.prototype.getRow = function (_row_index) {
+            if (0 <= _row_index && _row_index < this._m_a_rows.length) {
+                return this._m_a_rows[_row_index];
+            }
+            console.warn("Can't get the row from the CSVFile: Index out of range.");
+            return csv_row_1.CSVRow.GetNull();
+        };
+        /**
+         * Gets the first Row with given value in a specific header column. Return a
+         * Null Object if doesn't found a row with the given specifications.
+         *
+         * @param _key_header {string} key header's name
+         * @param _value {string} value.
+         */
+        CSVFile.prototype.getRowByKey = function (_key_header, _value) {
+            asserts_2.AssertString(_key_header);
+            asserts_2.AssertString(_value);
+            var header_idx = this.getHeaderIdx(_key_header);
+            if (header_idx < 0) {
+                console.warn("Can't get the row from the CSVFile: Header doesn't exists: " + _key_header);
+                return csv_row_1.CSVRow.GetNull();
+            }
+            for (var index = 0; index < this._m_a_rows.length; ++index) {
+                if (this._m_a_rows[index].getCell(header_idx) == _value) {
+                    return this._m_a_rows[index];
+                }
+            }
+            return csv_row_1.CSVRow.GetNull();
+        };
+        /**
+         * Returns the header column position (0 based). Returns -1 if the header
+         * doesn't exists.
+         *
+         * @param _header
+         */
+        CSVFile.prototype.getHeaderIdx = function (_header_name) {
+            var value;
+            for (var index = 0; index < this._m_a_headers.length; ++index) {
+                value = this._m_a_headers[index];
+                if (value === _header_name) {
+                    return index;
+                }
+            }
+            console.warn("Can't get the Header Index:" + _header_name + " Header doesn't exists in the CSVFile.");
+            return -1;
+        };
+        /**
+         * Check if the header exists in the CSVFile. Returns true if it does.
+         *
+         * @param _header_name
+         */
+        CSVFile.prototype.hasHeader = function (_header_name) {
+            for (var index = 0; index < this._m_a_headers.length; ++index) {
+                if (this._m_a_headers[index] == _header_name) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        CSVFile.prototype.getNumberHeaders = function () {
+            return this._m_a_headers.length;
+        };
+        CSVFile.prototype.getNumberRows = function () {
+            return this._m_a_rows.length;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        CSVFile.prototype.destroy = function () {
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        return CSVFile;
+    }(mxUObject_2.MxUObject));
+    exports.CSVFile = CSVFile;
+});
+define("utilities/component/mxComponent", ["require", "exports", "utilities/gameObjects/mxUObject"], function (require, exports, mxUObject_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxComponent = /** @class */ (function (_super) {
+        __extends(MxComponent, _super);
+        function MxComponent(_id) {
+            var _this = _super.call(this) || this;
+            _this._m_id = _id;
+            return _this;
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        MxComponent.Prepare = function () {
+            if (MxComponent._NULL_OBJECT == null
+                || MxComponent._NULL_OBJECT == undefined) {
+                this._NULL_OBJECT = new MxComponent(-1);
+            }
+            return;
+        };
+        MxComponent.Shutdown = function () {
+            if (typeof MxComponent._NULL_OBJECT == 'object') {
+                this._NULL_OBJECT.destroy();
+                this._NULL_OBJECT = null;
+            }
+            return;
+        };
+        MxComponent.IsNull = function (_object) {
+            var uuid = _object.getUUID();
+            return uuid.compare(MxComponent._NULL_OBJECT.getUUID());
+        };
+        MxComponent.GetNull = function () {
+            return this._NULL_OBJECT;
+        };
+        MxComponent.prototype.get_id = function () {
+            return this._m_id;
+        };
+        MxComponent.prototype.init = function (_actor) {
+            return;
+        };
+        MxComponent.prototype.update = function (_actor) {
+            return;
+        };
+        MxComponent.prototype.receive = function (_id, _data) {
+            return;
+        };
+        MxComponent.prototype.destroy = function () {
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        return MxComponent;
+    }(mxUObject_3.MxUObject));
+    exports.MxComponent = MxComponent;
+});
+define("utilities/enum_commons", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var OPRESULT;
+    (function (OPRESULT) {
+        OPRESULT[OPRESULT["kUndefined"] = -1] = "kUndefined";
+        OPRESULT[OPRESULT["kFail"] = 0] = "kFail";
+        OPRESULT[OPRESULT["kOk"] = 1] = "kOk";
+        OPRESULT[OPRESULT["kFile_not_found"] = 2] = "kFile_not_found";
+        OPRESULT[OPRESULT["kObject_not_found"] = 3] = "kObject_not_found";
+        OPRESULT[OPRESULT["kIncompatible_format"] = 4] = "kIncompatible_format";
+        OPRESULT[OPRESULT["kNull_Object"] = 5] = "kNull_Object";
+        OPRESULT[OPRESULT["kInvalid_parameter"] = 6] = "kInvalid_parameter";
+        OPRESULT[OPRESULT["kObject_already_exists"] = 7] = "kObject_already_exists";
+        OPRESULT[OPRESULT["kCount"] = 8] = "kCount";
+    })(OPRESULT = exports.OPRESULT || (exports.OPRESULT = {}));
+});
+define("utilities/component/mxComponentMng", ["require", "exports", "utilities/component/mxComponent", "utilities/asserts", "utilities/enum_commons"], function (require, exports, mxComponent_1, asserts_3, enum_commons_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxComponentMng = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        /**
+         * Creates a MxComponentMng with no MxComponent and a Null Object of MxActor.
+         */
+        function MxComponentMng() {
+            this.m_component_map = new Map();
+            this._m_actor = null;
             return;
         }
-        MxListenerManager.prototype.call = function (_event) {
-            if (this.m_listener_map.has(_event)) {
-                var event_1 = this.m_listener_map.get(_event);
-                var size = event_1.length;
-                for (var index = 0; index < size; ++index) {
-                    event_1[index].call();
+        /**
+         * Sets the MxActor who this MxComponentMng belongs.
+         *
+         * @param _actor {MxActor} MxActor who this MxComponent belongs.
+         */
+        MxComponentMng.prototype.setActor = function (_actor) {
+            this._m_actor = _actor;
+            return;
+        };
+        /**
+         * Initialize each MxComponent that this MxComponent has.
+         */
+        MxComponentMng.prototype.init = function () {
+            this.m_component_map.forEach(function (_component) {
+                _component.init(this._m_actor);
+                return;
+            }, this);
+            return;
+        };
+        /**
+         * Update each MxComponent that this MxComponentMng has.
+         */
+        MxComponentMng.prototype.update = function () {
+            this.m_component_map.forEach(function (_component) {
+                _component.update(this._m_actor);
+                return;
+            }, this);
+            return;
+        };
+        MxComponentMng.prototype.sendMessage = function (_id, _data) {
+            this.m_component_map.forEach(function (_component) {
+                _component.receive(_id, _data);
+                return;
+            }, this);
+            return;
+        };
+        /**
+         * Adds a MxComponent to this MxComponentMng.
+         *
+         * @param _component
+         */
+        MxComponentMng.prototype.addComponent = function (_component) {
+            if (this.m_component_map.has(_component.get_id())) {
+                return enum_commons_1.OPRESULT.kObject_already_exists;
+            }
+            this.m_component_map.set(_component.get_id(), _component);
+            return enum_commons_1.OPRESULT.kOk;
+        };
+        /**
+         * Remove a MxComponent from this MxComponentMng by its identifier.
+         *
+         * @param _id
+         */
+        MxComponentMng.prototype.removeComponent = function (_id) {
+            this.m_component_map.delete(_id);
+            return;
+        };
+        MxComponentMng.prototype.getComponentsWithTag = function (_tag) {
+            asserts_3.AssertNumber(_tag);
+            var a_cmp = new Array();
+            this.m_component_map.forEach(function (_component) {
+                if (_component.m_tag == null || _component.m_tag === undefined) {
+                    return;
                 }
-            }
-            return;
-        };
-        MxListenerManager.prototype.addEvent = function (_event) {
-            if (!this.m_listener_map.has(_event)) {
-                this.m_listener_map.set(_event, new Array());
-            }
-            return;
-        };
-        MxListenerManager.prototype.addListener = function (_event, _listener) {
-            if (this.m_listener_map.has(_event)) {
-                var event_2 = this.m_listener_map.get(_event);
-                event_2.push(_listener);
-            }
-            return;
-        };
-        MxListenerManager.prototype.clearEvent = function (_event) {
-            if (this.m_listener_map.has(_event)) {
-                var event_3 = this.m_listener_map.get(_event);
-                while (event_3.length) {
-                    var listener = event_3.pop();
-                    listener.destroy();
+                if (_component.m_tag == _tag) {
+                    a_cmp.push(_component);
                 }
+                return;
+            }, this);
+            return a_cmp;
+        };
+        MxComponentMng.prototype.removeComponentsWithTag = function (_tag) {
+            var a_toRemove = this.getComponentsWithTag(_tag);
+            while (a_toRemove.length) {
+                this.removeComponent(a_toRemove.pop().get_id());
             }
+            return;
+        };
+        /**
+         * Check if this MxComponentMng has a MxComponent by its identifier.
+         *
+         * @param _id
+         */
+        MxComponentMng.prototype.hasComponent = function (_id) {
+            return this.m_component_map.has(_id);
+        };
+        /**
+         * Gets a MxComponent from this manager. The template feature allows to
+         * get the component to a specific MxComponent subclass.
+         *
+         * @param _id MxComponent's identifier.
+         */
+        MxComponentMng.prototype.getComponent = function (_id) {
+            if (this.m_component_map.has(_id)) {
+                return this.m_component_map.get(_id);
+            }
+            else {
+                return mxComponent_1.MxComponent.GetNull();
+            }
+        };
+        /**
+         * Removes all the components from this MxComponentManager.
+         */
+        MxComponentMng.prototype.clear = function () {
+            this.m_component_map.clear();
+            return;
+        };
+        /**
+         * Safely destroys this object.
+         */
+        MxComponentMng.prototype.destroy = function () {
+            this.m_component_map.forEach(function (_component) {
+                _component.destroy();
+            });
+            this.m_component_map.clear();
+            this.m_component_map = null;
+            return;
+        };
+        return MxComponentMng;
+    }());
+    exports.MxComponentMng = MxComponentMng;
+});
+define("utilities/data/mxChildrenManager", ["require", "exports", "utilities/enum_commons"], function (require, exports, enum_commons_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * This class manage a group of objects, basically is a
+     * Map with the object's uuid as its key value.
+     */
+    var MxChildrenManager = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        /**
+         * Creates a new MxChildrenManager with no children.
+         */
+        function MxChildrenManager() {
+            this._children_map = new Map();
+            return;
+        }
+        /**
+         *
+         * @param _fn
+         * @param _context
+         */
+        MxChildrenManager.prototype.forEach = function (_fn, _context) {
+            this._children_map.forEach(_fn, _context);
+            return;
+        };
+        /**
+         * Adds a new child to this MxChildrenManager.
+         *
+         * @param _child {T} Child to be added.
+         *
+         * @returns {OPRESULT}
+         */
+        MxChildrenManager.prototype.add = function (_child) {
+            if (this._children_map.has(_child.get_id())) {
+                return enum_commons_2.OPRESULT.kObject_already_exists;
+            }
+            this._children_map.set(_child.get_id(), _child);
+            return enum_commons_2.OPRESULT.kOk;
+        };
+        /**
+         * Check if an object already exists in this MxChildrenManager.
+         */
+        MxChildrenManager.prototype.exists = function (_id) {
+            return this._children_map.has(_id);
+        };
+        /**
+         * Gets a child from this MxChildrenManager.
+         *
+         * @param _id
+         */
+        MxChildrenManager.prototype.getChild = function (_id) {
+            return this._children_map.get(_id);
+        };
+        /**
+         * Remove a children from this MxChildrenManager. This method
+         * doesn't destroy the children.
+         *
+         * @param _child
+         */
+        MxChildrenManager.prototype.remove = function (_child) {
+            ///////////////////////////////////
+            // Remove from the ID's Map
+            var id = _child.get_id();
+            if (this._children_map.has(id)) {
+                this._children_map.delete(id);
+            }
+            return;
+        };
+        /**
+         * Removes a child by its id.
+         * @param _id
+         */
+        MxChildrenManager.prototype.remove_by_id = function (_id) {
+            var to_remove = null;
+            if (this._children_map.has(_id)) {
+                to_remove = this._children_map.get(_id);
+                this._children_map.delete(_id);
+            }
+            return to_remove;
+        };
+        /**
+         * Clear this MxChildrenManager. This method doesn't destroy the
+         * children.
+         */
+        MxChildrenManager.prototype.clear = function () {
+            this._children_map.clear();
+            return;
+        };
+        /**
+         * Destroys the MxChildrenManager's children.
+         */
+        MxChildrenManager.prototype.destroyChildren = function () {
+            this._children_map.forEach(this._destroyChild, this);
+            this.clear();
             return;
         };
         /**
         * Safely destroys the object.
         */
-        MxListenerManager.prototype.destroy = function () {
-            this.m_listener_map.forEach(function (_a_listeners, _key) {
-                this.clearEvent(_key);
-                return;
-            }, this);
-            this.m_listener_map.clear();
+        MxChildrenManager.prototype.destroy = function () {
+            this.destroyChildren();
+            this.clear();
             return;
         };
-        return MxListenerManager;
-    }());
-    exports.MxListenerManager = MxListenerManager;
-});
-define("utilities/fs/fs", ["require", "exports", "utilities/asserts", "utilities/listeners/mxListenerManager", "utilities/listeners/mxListener"], function (require, exports, asserts_2, mxListenerManager_1, mxListener_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var FileItem = /** @class */ (function () {
-        function FileItem(_key, _path) {
-            this.m_key = _key;
-            this.m_path = _path;
-            return;
-        }
-        return FileItem;
-    }());
-    exports.FileItem = FileItem;
-    var FileLoader = /** @class */ (function () {
         /****************************************************/
         /* Private                                          */
         /****************************************************/
-        function FileLoader() {
+        MxChildrenManager.prototype._destroyChild = function (_child) {
+            _child.destroy();
+            return;
+        };
+        return MxChildrenManager;
+    }());
+    exports.MxChildrenManager = MxChildrenManager;
+});
+define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_4) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var OBJECT_POOL_TYPE;
+    (function (OBJECT_POOL_TYPE) {
+        OBJECT_POOL_TYPE[OBJECT_POOL_TYPE["kStatic"] = 0] = "kStatic";
+        OBJECT_POOL_TYPE[OBJECT_POOL_TYPE["kDynamic"] = 1] = "kDynamic";
+    })(OBJECT_POOL_TYPE = exports.OBJECT_POOL_TYPE || (exports.OBJECT_POOL_TYPE = {}));
+    var ObjectPool = /** @class */ (function () {
+        /**
+         * Private constructor. Object Pool must be created with its Create static
+         * methods.
+         */
+        function ObjectPool() {
+            return;
         }
-        /****************************************************/
-        /* Static                                           */
-        /****************************************************/
-        /** */
-        FileLoader.Prepare = function () {
-            if (this.m_singleton == null) {
-                this.m_singleton = new FileLoader();
-                this.m_singleton.onPrepare();
-            }
-            return;
-        };
-        /**
-         *
-         */
-        FileLoader.ShutDown = function () {
-            if (this.m_singleton != null) {
-                this.m_singleton.onShutDown();
-                this.m_singleton = null;
-            }
-            return;
-        };
-        /**
-         *
-         */
-        FileLoader.GetInstance = function () {
-            return this.m_singleton;
-        };
-        FileLoader.LoadFile = function (_key, _filePath) {
-            if (this.m_singleton == null) {
-                console.error("FileLoader is not initialized.");
-                return;
-            }
-            this.m_singleton.loadFile(_key, _filePath);
-            return;
-        };
-        FileLoader.Load = function () {
-            if (this.m_singleton == null) {
-                console.error("FileLoader is not initialized.");
-                return;
-            }
-            this.m_singleton.load();
-            return;
-        };
-        FileLoader.IsLoading = function () {
-            if (this.m_singleton == null) {
-                console.error("FileLoader is not initialized.");
-                return;
-            }
-            return this.m_singleton.m_isLoading;
-        };
         /****************************************************/
         /* Public                                           */
         /****************************************************/
-        FileLoader.prototype.clearData = function () {
-            this.m_data.clear();
-            return;
-        };
-        FileLoader.prototype.loadFile = function (_key, _filePath) {
-            asserts_2.AssertString(_key);
-            asserts_2.AssertString(_filePath);
-            if (this.m_isLoading) {
-                // TODO
-                return;
+        /**
+         * Creates an ObjectPool wich creates elements if it doesn't has
+         * any active element available. The user can specify the maximum
+         * of elements that this pool can store, the pool will not create
+         * an element if the maximum number of elements is reached.
+         *
+         * @param _max Maximum of elements that this container can store.
+         * @param _create_fn Fuction used to create a new element, this should return an element.
+         */
+        ObjectPool.CreateDynamic = function (_max, _create_fn, _context) {
+            asserts_4.AssertFunction(_create_fn);
+            asserts_4.AssertNumber(_max);
+            var pool = new ObjectPool();
+            pool.m_a_active = new Array();
+            pool.m_a_desactive = new Array();
+            pool.m_type = OBJECT_POOL_TYPE.kDynamic;
+            pool.m_max_size = _max;
+            pool.m_size = 0;
+            pool.m_create_fn = _create_fn;
+            if (_context) {
+                pool.m_fn_create_context = _context;
             }
-            this.m_a_files.push(new FileItem(_key, _filePath));
-            return;
-        };
-        FileLoader.prototype.load = function () {
-            if (!this.m_isLoading) {
-                // Flag
-                this.m_isLoading = !this.m_isLoading;
-                // Trigger Event
-                this.m_events.call('onLoadStart');
-                // Start loading process.
-                this._load_next_file();
-            }
-            return;
-        };
-        FileLoader.prototype.getFile = function (_key) {
-            if (this.m_data.has(_key)) {
-                return this.m_data.get(_key);
-            }
-            return "";
-        };
-        FileLoader.prototype.isLoading = function () {
-            return this.m_isLoading;
-        };
-        FileLoader.prototype.getConnection = function () {
-            return this.m_connection;
+            pool.m_on_active_context = undefined;
+            pool.m_on_active = undefined;
+            pool.m_on_desactive = undefined;
+            pool.m_on_desactive_context = undefined;
+            return pool;
         };
         /**
-         * I) 'onLoadEnd' : trigger when all files in queue are loaded.
-         * II) 'onLoadStart' : start the loading process.
+         * Creates an ObjectPool that already has the elements needed and will
+         * recycle them. The user need to give an array of elements.
          *
-         * @param _event
-         * @param _fn
-         * @param _context
+         * @param _a_elements Array of elements that belong to thes ObjectPool.
          */
-        FileLoader.prototype.addListener = function (_event, _fn, _context) {
-            this.m_events.addListener(_event, new mxListener_1.MxListener(_fn, _context));
-            return;
-        };
-        FileLoader.prototype.onPrepare = function () {
-            this.m_isLoading = false;
-            this.m_data = new Map();
-            // Events
-            this.m_events = new mxListenerManager_1.MxListenerManager();
-            this.m_events.addEvent('onLoadEnd');
-            this.m_events.addEvent('onLoadStart');
-            // Array of items
-            this.m_a_files = new Array();
-            // XMLHTTP Connection
-            this.m_connection = new XMLHttpRequest();
-            this.m_connection.onload = this._onload;
-            return;
-        };
-        FileLoader.prototype.onShutDown = function () {
-            this.clearData();
-            this.m_data = null;
-            // Events
-            this.m_events.destroy();
-            this.m_events = null;
-            // Items
-            while (this.m_a_files.length) {
-                this.m_a_files.pop();
+        ObjectPool.CreateStatic = function (_a_elements, _init_fn, _context) {
+            var pool = new ObjectPool();
+            pool.m_a_active = new Array();
+            pool.m_a_desactive = new Array();
+            pool.m_type = OBJECT_POOL_TYPE.kStatic;
+            pool.m_max_size = _a_elements.length;
+            pool.m_size = _a_elements.length;
+            for (var index = 0; index < pool.m_size; ++index) {
+                pool.desactive(_a_elements[index]);
+                _init_fn(_a_elements[index], pool);
             }
-            // XMLHTTP Connection
-            this.m_connection.abort();
-            this.m_connection = null;
-            return;
+            pool.m_create_fn = undefined;
+            pool.m_fn_create_context = undefined;
+            pool.m_on_active_context = undefined;
+            pool.m_on_active = undefined;
+            pool.m_on_desactive = undefined;
+            pool.m_on_desactive_context = undefined;
+            return pool;
         };
-        FileLoader.prototype._load_next_file = function () {
-            if (this.m_a_files.length) {
-                this.m_current_file
-                    = this.m_a_files.pop();
-                this.m_connection.open("GET", this.m_current_file.m_path, true);
-                this.m_connection.send(null);
-            }
-            else {
-                this.m_isLoading = false;
-                this.m_events.call('onLoadEnd');
+        ObjectPool.prototype.update = function () {
+            for (var index = 0; index < this.m_a_active.length; ++index) {
+                this.m_a_active[index].update();
             }
             return;
         };
-        FileLoader.prototype._onload = function () {
-            var file_loader = FileLoader.GetInstance();
-            var connection = file_loader.getConnection();
-            if (connection.readyState === 4) {
-                if (connection.status === 200) {
-                    file_loader.m_data.set(file_loader.m_current_file.m_key, connection.responseText);
-                    file_loader.m_current_file = null;
-                    file_loader._load_next_file();
+        ObjectPool.prototype.setOnActiveFn = function (_fn, _context) {
+            asserts_4.AssertFunction(_fn);
+            this.m_on_active = _fn;
+            if (_context != undefined) {
+                this.m_on_active_context = _context;
+            }
+            return;
+        };
+        ObjectPool.prototype.setOnDesactiveFn = function (_fn, _context) {
+            asserts_4.AssertFunction(_fn);
+            this.m_on_desactive = _fn;
+            if (_context != undefined) {
+                this.m_on_desactive_context = _context;
+            }
+            return;
+        };
+        ObjectPool.prototype.get = function () {
+            var element = null;
+            if (this.hasDesactive()) {
+                element = this.m_a_desactive[0];
+                this._active(element);
+                return element;
+            }
+            if (this.isFull()) {
+                return element;
+            }
+            switch (this.m_type) {
+                case OBJECT_POOL_TYPE.kDynamic:
+                    element = this._create_element();
+                    this._active(element);
+                    return element;
+                default:
+                    return element;
+            }
+        };
+        ObjectPool.prototype.desactive = function (_element) {
+            var active_size = this.m_a_active.length;
+            for (var index = 0; index < active_size; ++index) {
+                if (this.m_a_active[index] == _element) {
+                    this.m_a_active.splice(index, 1);
+                    break;
                 }
-                else {
-                    console.error(connection.statusText);
-                }
+            }
+            this.m_a_desactive.push(_element);
+            _element.m_mx_active = false;
+            _element.mxDesactive();
+            if (this.m_on_desactive != undefined) {
+                this.m_on_desactive.call(this.m_on_desactive_context, _element);
             }
             return;
         };
-        return FileLoader;
+        ObjectPool.prototype.fill = function () {
+            var element;
+            while (!this.isFull()) {
+                element = this._create_element();
+                this.desactive(element);
+            }
+            return;
+        };
+        ObjectPool.prototype.hasDesactive = function () {
+            return this.m_a_desactive.length > 0;
+        };
+        ObjectPool.prototype.isFull = function () {
+            return this.m_size >= this.m_max_size;
+        };
+        ObjectPool.prototype.getSize = function () {
+            return this.m_size;
+        };
+        ObjectPool.prototype.getMaxSize = function () {
+            return this.m_max_size;
+        };
+        ObjectPool.prototype.getType = function () {
+            return this.m_type;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        ObjectPool.prototype.destroy = function () {
+            var obj;
+            while (this.m_a_active.length) {
+                obj = this.m_a_active.pop();
+                obj.destroy();
+            }
+            this.m_a_active = null;
+            while (this.m_a_desactive.length) {
+                obj = this.m_a_desactive.pop();
+                obj.destroy();
+            }
+            this.m_a_desactive = null;
+            this.m_create_fn = null;
+            this.m_fn_create_context = null;
+            this.m_on_active = null;
+            this.m_on_active_context = null;
+            this.m_on_desactive = null;
+            this.m_on_desactive_context = null;
+            return;
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        ObjectPool.prototype._active = function (_element) {
+            var desactive_size = this.m_a_desactive.length;
+            for (var index = 0; index < desactive_size; ++index) {
+                if (this.m_a_desactive[index] == _element) {
+                    this.m_a_desactive.splice(index, 1);
+                    break;
+                }
+            }
+            this.m_a_active.push(_element);
+            _element.m_mx_active = true;
+            _element.mxActive();
+            if (this.m_on_active != undefined) {
+                this.m_on_active.call(this.m_on_active_context, _element);
+            }
+            return;
+        };
+        ObjectPool.prototype._create_element = function () {
+            asserts_4.AssertFunction(this.m_create_fn);
+            var element = this.m_create_fn.call(this.m_fn_create_context, this);
+            this.m_size++;
+            return element;
+        };
+        return ObjectPool;
     }());
-    exports.FileLoader = FileLoader;
-});
-define("utilities/fs/csv_row", ["require", "exports"], function (require, exports) {
-    "use strict";
-    var CSVRow = /** @class */ (function () {
-        function CSVRow() {
-            this.cells = new Array(0);
-            return;
-        }
-        return CSVRow;
-    }());
-    return CSVRow;
-});
-define("utilities/fs/csv_file", ["require", "exports", "utilities/fs/csv_row"], function (require, exports, CSVRow) {
-    "use strict";
-    var CSVFile = /** @class */ (function () {
-        function CSVFile() {
-            this.headers = new CSVRow;
-            this.rows = new Array(0);
-            return;
-        }
-        CSVFile.prototype.getHeaderIdx = function (_header) {
-            var idx = 0;
-            var size = this.headers.cells.length;
-            for (idx = 0; idx < size; idx++) {
-                if (this.headers.cells[idx] === _header) {
-                    return idx;
-                }
-            }
-            return null;
-        };
-        CSVFile.prototype.print = function () {
-            console.log("Headers: ");
-            var size = this.headers.cells.length;
-            for (var idx = 0; idx < size; ++idx) {
-                console.log(idx + " : " + this.headers.cells[idx]);
-            }
-            console.log("Data: ");
-            size = this.rows.length;
-            for (var idx = 0; idx < size; ++idx) {
-                var row_size = this.headers.cells.length;
-                console.log(" ----- Row: " + idx + " -----");
-                for (var r_idx = 0; r_idx < row_size; ++r_idx) {
-                    console.log(r_idx + " : " + this.rows[idx].cells[r_idx]);
-                }
-            }
-            return;
-        };
-        return CSVFile;
-    }());
-    return CSVFile;
-});
-define("utilities/fs/csv_reader", ["require", "exports", "utilities/fs/csv_row", "utilities/fs/csv_file"], function (require, exports, CSVRow, CSVFile) {
-    "use strict";
-    var CSVReader = /** @class */ (function () {
-        function CSVReader() {
-        }
-        CSVReader.GetCSV = function (data, _tsv) {
-            if (_tsv === void 0) { _tsv = false; }
-            var split_char = (_tsv ? '\t' : ',');
-            var rows_raw_data = data.split('\r\n');
-            var csv_file = new CSVFile();
-            var r_raw_idx = rows_raw_data.length;
-            for (var idx = 0; idx < r_raw_idx; ++idx) {
-                var row = new CSVRow();
-                row.cells = rows_raw_data[idx].split(split_char);
-                if (idx != 0) {
-                    csv_file.rows.push(row);
-                }
-                else {
-                    csv_file.headers = row;
-                }
-            }
-            return csv_file;
-        };
-        return CSVReader;
-    }());
-    return CSVReader;
+    exports.ObjectPool = ObjectPool;
 });
 define("game/gameCommons", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var LOCALIZATION;
-    (function (LOCALIZATION) {
-        LOCALIZATION[LOCALIZATION["kEnglish"] = 0] = "kEnglish";
-        LOCALIZATION[LOCALIZATION["kSpanish"] = 1] = "kSpanish";
-    })(LOCALIZATION = exports.LOCALIZATION || (exports.LOCALIZATION = {}));
-    var CLOCK_STYLE;
-    (function (CLOCK_STYLE) {
-        CLOCK_STYLE[CLOCK_STYLE["kSand"] = 0] = "kSand";
-        CLOCK_STYLE[CLOCK_STYLE["kDigital"] = 1] = "kDigital";
-        CLOCK_STYLE[CLOCK_STYLE["kAnalog"] = 2] = "kAnalog";
-        CLOCK_STYLE[CLOCK_STYLE["kCount"] = 3] = "kCount";
-    })(CLOCK_STYLE = exports.CLOCK_STYLE || (exports.CLOCK_STYLE = {}));
-    var MANAGER_ID;
-    (function (MANAGER_ID) {
-        MANAGER_ID[MANAGER_ID["kGameManager"] = 0] = "kGameManager";
-        MANAGER_ID[MANAGER_ID["kDataManager"] = 1] = "kDataManager";
-        MANAGER_ID[MANAGER_ID["kChronoManager"] = 2] = "kChronoManager";
-    })(MANAGER_ID = exports.MANAGER_ID || (exports.MANAGER_ID = {}));
+    exports.MANAGER_ID = Object.freeze({
+        kMaster: 1,
+        kGameManager: 2,
+        kDataManager: 3,
+        kChronoManager: 4
+    });
+    exports.LOCALIZATION = Object.freeze({
+        KSpanish: 1,
+        kEnglish: 2
+    });
+    exports.CLOCK_STYLE = Object.freeze({
+        kSand: 1,
+        kDigital: 2,
+        kAnalog: 3,
+        kCount: 4
+    });
+    exports.COMPONENT_ID = Object.freeze({
+        kChronoController: 1,
+        kMasterController: 2,
+        kGameController: 3,
+        kDataController: 4
+    });
+    exports.MESSAGE_ID = Object.freeze({
+        kOnAgentActive: 1,
+        kOnAgentDesactive: 2,
+        kGameController: 3,
+        kDataController: 4
+    });
 });
-define("game/managers/dataManager/dataManager", ["require", "exports", "utilities/managers/manager", "game/gameCommons"], function (require, exports, manager_1, gameCommons_1) {
+define("utilities/component/mxActor", ["require", "exports", "utilities/component/mxComponentMng", "utilities/gameObjects/mxUObject", "utilities/data/mxChildrenManager", "utilities/enum_commons", "game/gameCommons"], function (require, exports, mxComponentMng_1, mxUObject_4, mxChildrenManager_1, enum_commons_3, gameCommons_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var DataManager = /** @class */ (function (_super) {
-        __extends(DataManager, _super);
+    var MxActor = /** @class */ (function (_super) {
+        __extends(MxActor, _super);
+        /****************************************************/
+        /* Protected                                        */
+        /****************************************************/
+        function MxActor() {
+            var _this = _super.call(this) || this;
+            _this.m_position = new Phaser.Geom.Point(0.0, 0.0);
+            _this.m_direction = new Phaser.Math.Vector2(1.0, 0.0);
+            _this._m_component_mg = new mxComponentMng_1.MxComponentMng();
+            _this._m_component_mg.setActor(_this);
+            return _this;
+        }
         /****************************************************/
         /* Public                                           */
         /****************************************************/
-        function DataManager() {
-            var _this = _super.call(this, gameCommons_1.MANAGER_ID.kDataManager) || this;
-            _this._string_map = new Map();
-            return _this;
-        }
-        DataManager.prototype.add = function (_key, _value) {
-            this._string_map.set(_key, _value);
-        };
-        DataManager.prototype.getString = function (_key) {
-            if (this._string_map.has(_key)) {
-                return this._string_map.get(_key);
-            }
-            return "NOT_FOUND!";
-        };
-        DataManager.prototype.clear = function () {
-            this._string_map.clear();
-            return;
-        };
-        DataManager.prototype.destroy = function () {
-            this._string_map.clear();
-            this._string_map = null;
-            return;
-        };
-        return DataManager;
-    }(manager_1.Manager));
-    exports.DataManager = DataManager;
-});
-define("game/managers/chronoManager/chronoManager", ["require", "exports", "utilities/managers/manager", "game/gameCommons", "utilities/asserts", "utilities/listeners/mxListener"], function (require, exports, manager_2, gameCommons_2, asserts_3, mxListener_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var ChronoManager = /** @class */ (function (_super) {
-        __extends(ChronoManager, _super);
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function ChronoManager() {
-            var _this = _super.call(this, gameCommons_2.MANAGER_ID.kChronoManager) || this;
-            _this.m_listener_map = new Map();
-            _this.m_listener_map.set('on_mark', new Array());
-            _this.m_listener_map.set('on_finish', new Array());
-            // Init values
-            _this.m_isRunning = false;
-            _this.reset(5, 1);
-            return _this;
-        }
         /**
-         * Update method.
+         * Prepare the Master Manager and NullObject.
          */
-        ChronoManager.prototype.update = function () {
-            if (this.m_isRunning) {
-                this.m_chrono_current -= this.m_master_mng.m_dt;
+        MxActor.Prepare = function () {
+            if (MxActor._NULL_OBJECT === undefined
+                || MxActor._NULL_OBJECT == null) {
+                ///////////////////////////////////
+                // Null Object
+                MxActor._NULL_OBJECT = new MxActor();
+                MxActor._NULL_OBJECT._m_id = -1;
+                MxActor._NULL_OBJECT._m_tag = -1;
+                MxActor._NULL_OBJECT._m_parent = MxActor._NULL_OBJECT;
+            }
+            return;
+        };
+        /**
+         * Shutdown Null Object.
+         */
+        MxActor.Shutdown = function () {
+            if (typeof MxActor._NULL_OBJECT == 'object') {
+                this._NULL_OBJECT.destroy();
+                this._NULL_OBJECT = null;
+            }
+            return;
+        };
+        /**
+        * Check if the given object is the Null Object.
+        */
+        MxActor.IsNull = function (_obj) {
+            var _obj_uuid = _obj.getUUID();
+            return this._NULL_OBJECT.getUUID().compare(_obj_uuid);
+        };
+        /**
+         * Get Object Null.
+         */
+        MxActor.GetNull = function () {
+            return this._NULL_OBJECT;
+        };
+        /**
+         * Creates a new MxActors.
+         *
+         * @param _id MxActor identifier.
+         * @param _m_parent MxActor's parent.
+         */
+        MxActor.Create = function (_id, _m_parent) {
+            var actor = new MxActor();
+            actor._m_children_manager = new mxChildrenManager_1.MxChildrenManager();
+            actor._m_id = _id;
+            actor._m_tag = -1;
+            actor._m_parent
+                = (typeof _m_parent == 'object' ? _m_parent : MxActor.GetNull());
+            return actor;
+        };
+        /**
+         * Creates a child of this MxActor. This method will returns
+         * a Null Object if the parent already has a MxActor with the same
+         * identifier.
+         *
+         * @param _id {number} MxManager identifier.
+         */
+        MxActor.prototype.create = function (_id) {
+            var actor = MxActor.Create(_id, this);
+            if (this._m_children_manager.add(actor) != enum_commons_3.OPRESULT.kOk) {
+                actor.destroy();
+                return MxActor.GetNull();
+            }
+            return actor;
+        };
+        MxActor.prototype.addChild = function (_child) {
+            if (this._m_children_manager.exists(_child.get_id())) {
+                return enum_commons_3.OPRESULT.kObject_already_exists;
+            }
+            return this._m_children_manager.add(_child);
+        };
+        MxActor.prototype.init = function () {
+            this._m_component_mg.init();
+            this._m_children_manager.forEach(function (_actor) {
+                _actor.init();
+            });
+            return;
+        };
+        /**
+         * Update MxActor's components.
+         */
+        MxActor.prototype.update = function () {
+            this._m_component_mg.update();
+            this._m_children_manager.forEach(this._update_child);
+            return;
+        };
+        /**
+         * Get this MxActor's MxComponentManager.
+         */
+        MxActor.prototype.getComponentMng = function () {
+            return this._m_component_mg;
+        };
+        MxActor.prototype.addComponent = function (_component) {
+            return this._m_component_mg.addComponent(_component);
+        };
+        /**
+         * Get this MxActor's MxComponent.
+         * @param _id
+         */
+        MxActor.prototype.getComponent = function (_id) {
+            return this._m_component_mg.getComponent(_id);
+        };
+        /**
+         * Clears de MxComponentManager.
+         */
+        MxActor.prototype.clearComponentManager = function () {
+            this._m_component_mg.clear();
+            return;
+        };
+        /**
+         * Sends a message to this MxActor's component.
+         *
+         * @param _id Message identifier.
+         * @param _data Message data.
+         * @param _recursive Send the message to the the MxActor's childrens.
+         */
+        MxActor.prototype.sendMessage = function (_id, _data, _recursive) {
+            if (_recursive === void 0) { _recursive = false; }
+            this._m_component_mg.sendMessage(_id, _data);
+            if (_recursive) {
+                this.sendMessage_to_children(_id, _data);
+            }
+            return;
+        };
+        /**
+         * Sends a message to this MxActor's children.
+         *
+         * @param _id Message identifier.
+         * @param _data Message data.
+         */
+        MxActor.prototype.sendMessage_to_children = function (_id, _data) {
+            this._m_children_manager.forEach(function (_child) {
+                _child.sendMessage(_id, _data, true);
+            });
+            return;
+        };
+        /**
+         * Safely destroys this MxActor, children will be destroyed too.
+         */
+        MxActor.prototype.destroy = function () {
+            this._m_children_manager.destroy();
+            this._m_component_mg.destroy();
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        /**
+         * Removes a child by its identifier.
+         *
+         * @param _id MxManager identifier.
+         */
+        MxActor.prototype.remove_child_by_id = function (_id) {
+            var to_remove = this._m_children_manager.remove_by_id(_id);
+            if (to_remove == null) {
+                to_remove = MxActor.GetNull();
+            }
+            return to_remove;
+        };
+        /**
+         * Removes a child from this MxManager.
+         *
+         * @param _manager
+         */
+        MxActor.prototype.remove_child = function (_manager) {
+            this._m_children_manager.remove(_manager);
+            return;
+        };
+        /**
+         * Gets a child by its identifier.
+         *
+         * @param _id MxManager identifier.
+         */
+        MxActor.prototype.get_child = function (_id) {
+            if (typeof this._m_children_manager == 'object') {
+                if (this._m_children_manager.exists(_id)) {
+                    return this._m_children_manager.getChild(_id);
+                }
+            }
+            return MxActor.GetNull();
+        };
+        /**
+         * Gets this actor's identifier.
+         */
+        MxActor.prototype.get_id = function () {
+            return this._m_id;
+        };
+        MxActor.prototype.mxActive = function () {
+            this.sendMessage(gameCommons_1.MESSAGE_ID.kOnAgentActive, null, true);
+            return;
+        };
+        MxActor.prototype.mxDesactive = function () {
+            this.sendMessage(gameCommons_1.MESSAGE_ID.kOnAgentDesactive, null, true);
+            return;
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        MxActor.prototype._update_child = function (_actor) {
+            _actor.update();
+            return;
+        };
+        return MxActor;
+    }(mxUObject_4.MxUObject));
+    exports.MxActor = MxActor;
+});
+define("game/managers/masteManager/masterManager", ["require", "exports", "utilities/component/mxActor", "game/gameCommons"], function (require, exports, mxActor_1, gameCommons_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MasterManager = /** @class */ (function () {
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        function MasterManager() {
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        MasterManager.Prepare = function () {
+            if (this._INSTANCE != null) {
+                return;
+            }
+            this._INSTANCE = mxActor_1.MxActor.Create(gameCommons_2.MANAGER_ID.kMaster);
+            // TODO
+            return;
+        };
+        MasterManager.ShutDown = function () {
+            if (this._INSTANCE != null) {
+                this._INSTANCE.destroy();
+                this._INSTANCE = null;
+            }
+            return;
+        };
+        MasterManager.GetInstance = function () {
+            return this._INSTANCE;
+        };
+        MasterManager._INSTANCE = null;
+        return MasterManager;
+    }());
+    exports.MasterManager = MasterManager;
+});
+define("game/managers/masteManager/components/MasterController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_2, gameCommons_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MasterController = /** @class */ (function (_super) {
+        __extends(MasterController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MasterController() {
+            var _this = _super.call(this, gameCommons_3.COMPONENT_ID.kMasterController) || this;
+            return _this;
+        }
+        MasterController.prototype.init = function (_actor) {
+            this.m_dt = 0.0;
+            return;
+        };
+        MasterController.prototype.update = function (_actor) {
+            return;
+        };
+        return MasterController;
+    }(mxComponent_2.MxComponent));
+    exports.MasterController = MasterController;
+});
+define("game/managers/gameManager/components/chronoController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager", "utilities/asserts"], function (require, exports, mxComponent_3, gameCommons_4, masterManager_1, asserts_5) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var ChronoController = /** @class */ (function (_super) {
+        __extends(ChronoController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function ChronoController() {
+            var _this = _super.call(this, gameCommons_4.COMPONENT_ID.kChronoController) || this;
+            return _this;
+        }
+        ChronoController.prototype.init = function (_actor) {
+            var master = masterManager_1.MasterManager.GetInstance();
+            this._m_master_controller
+                = master.getComponent(gameCommons_4.COMPONENT_ID.kMasterController);
+            if (mxComponent_3.MxComponent.IsNull(this._m_master_controller)) {
+                throw new Error('MasterController not founded!.');
+            }
+            this._m_isRunning = false;
+            this.reset(5, 1);
+            return;
+        };
+        ChronoController.prototype.update = function (_actor) {
+            if (this._m_isRunning) {
+                this._m_chrono_current -= this._m_master_controller.m_dt;
                 // check if the chrono reach the mark
-                if (!this.m_reach_mark) {
-                    if (this.m_chrono_current <= this.m_chrono_mark) {
-                        // call listeners
-                        var a_listeners = this.m_listener_map.get('on_mark');
-                        a_listeners.forEach(function (_listener) {
-                            _listener.call();
-                        });
-                        this.m_reach_mark = !this.m_reach_mark;
+                if (!this._m_reach_mark) {
+                    if (this._m_chrono_current <= this._m_chrono_mark) {
+                        // TODO
+                        this._m_reach_mark = !this._m_reach_mark;
                     }
                 }
                 // check if chrono reach zero.
-                if (this.m_chrono_current <= 0) {
-                    this.m_chrono_current = 0;
+                if (this._m_chrono_current <= 0) {
+                    this._m_chrono_current = 0;
                     this.pause();
-                    // call listeners
-                    var a_listeners = this.m_listener_map.get('on_finish');
-                    a_listeners.forEach(function (_listener) {
-                        _listener.call();
-                    });
                 }
             }
             return;
         };
-        ChronoManager.prototype.reset = function (_chrono_value, _chrono_mark) {
-            asserts_3.AssertNumber(_chrono_value);
-            this.m_chrono = _chrono_value;
-            this.m_chrono_current = this.m_chrono;
-            asserts_3.AssertNumber(_chrono_mark);
-            this.m_chrono_mark = _chrono_mark;
-            this.m_reach_mark = false;
+        ChronoController.prototype.destroy = function () {
+            this._m_master_controller = null;
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        ChronoController.prototype.reset = function (_chrono_value, _chrono_mark) {
+            asserts_5.AssertNumber(_chrono_value);
+            this._m_chrono = _chrono_value;
+            this._m_chrono_current = this._m_chrono;
+            asserts_5.AssertNumber(_chrono_mark);
+            this._m_chrono_mark = _chrono_mark;
+            this._m_reach_mark = false;
             this.pause();
             return;
         };
-        ChronoManager.prototype.start = function () {
-            if (!this.m_isRunning) {
-                this.m_isRunning = !this.m_isRunning;
+        ChronoController.prototype.start = function () {
+            if (!this._m_isRunning) {
+                this._m_isRunning = !this._m_isRunning;
             }
             return;
         };
-        ChronoManager.prototype.pause = function () {
-            if (this.m_isRunning) {
-                this.m_isRunning = !this.m_isRunning;
+        ChronoController.prototype.pause = function () {
+            if (this._m_isRunning) {
+                this._m_isRunning = !this._m_isRunning;
             }
             return;
         };
-        ChronoManager.prototype.getCurrentTime = function () {
-            return this.m_chrono_current;
+        ChronoController.prototype.getCurrentTime = function () {
+            return this._m_chrono_current;
         };
-        ChronoManager.prototype.getCurrentTimeNorm = function () {
-            return this.m_chrono_current / this.m_chrono;
+        ChronoController.prototype.getCurrentTimeNorm = function () {
+            return this._m_chrono_current / this._m_chrono;
         };
-        ChronoManager.prototype.isRunning = function () {
-            return this.m_isRunning;
+        ChronoController.prototype.isRunning = function () {
+            return this._m_isRunning;
         };
-        /**
-         *
-         * I) 'on_mark' : trigger when chrono reach the mark for the first time.
-         * II) 'on_finish' : trigger when time reach zero.
-         *
-         * @param _listener
-         * @param _fn
-         * @param _context
-         */
-        ChronoManager.prototype.addListener = function (_listener, _fn, _context) {
-            if (this.m_listener_map.has(_listener)) {
-                var a_listeners = this.m_listener_map.get(_listener);
-                a_listeners.push(new mxListener_2.MxListener(_fn, _context));
-            }
-            return;
-        };
-        ChronoManager.prototype.clearListeners = function () {
-            this.m_listener_map.forEach(function (_a_listener) {
-                var listener;
-                while (_a_listener.length) {
-                    listener = _a_listener.pop();
-                    listener.destroy();
-                }
-            });
-        };
-        /**
-         * Safely destroys this Manager.
-         */
-        ChronoManager.prototype.destroy = function () {
-            _super.prototype.destroy.call(this);
-            this.clearListeners();
-            this.m_listener_map.clear();
-            this.m_listener_map = null;
-            return;
-        };
-        return ChronoManager;
-    }(manager_2.Manager));
-    exports.ChronoManager = ChronoManager;
+        return ChronoController;
+    }(mxComponent_3.MxComponent));
+    exports.ChronoController = ChronoController;
 });
-define("game/managers/userPreferences/userPreferences", ["require", "exports", "game/gameCommons"], function (require, exports, gameCommons_3) {
+define("game/managers/userPreferences/userPreferences", ["require", "exports", "game/gameCommons"], function (require, exports, gameCommons_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
-     *
+     * This class is only for
      */
     var UserPreferences = /** @class */ (function () {
         /****************************************************/
         /* Public                                           */
         /****************************************************/
         function UserPreferences() {
-            // sets default values
-            this.m_localization = gameCommons_3.LOCALIZATION.kSpanish;
+            this.m_localization = gameCommons_5.LOCALIZATION.KSpanish;
+            this.m_clock_style = gameCommons_5.CLOCK_STYLE.kSand;
             this.chrono_value = 1;
-            this.m_clock_style = gameCommons_3.CLOCK_STYLE.kSand;
             return;
         }
         UserPreferences.prototype.setLocalization = function (_localization) {
@@ -770,115 +1333,111 @@ define("game/managers/userPreferences/userPreferences", ["require", "exports", "
     }());
     exports.UserPreferences = UserPreferences;
 });
-define("game/managers/gameManager/gameManager", ["require", "exports", "utilities/managers/manager", "game/gameCommons", "game/managers/dataManager/dataManager", "game/managers/chronoManager/chronoManager", "game/managers/userPreferences/userPreferences"], function (require, exports, manager_3, gameCommons_4, dataManager_1, chronoManager_1, userPreferences_1) {
+define("game/managers/gameManager/components/gameController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/userPreferences/userPreferences"], function (require, exports, mxComponent_4, gameCommons_6, userPreferences_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    /**
-     *
-     */
-    var GameManager = /** @class */ (function (_super) {
-        __extends(GameManager, _super);
-        /**
-         *
-         */
-        function GameManager() {
-            var _this = _super.call(this, gameCommons_4.MANAGER_ID.kGameManager) || this;
-            // create user preferences.
-            _this.m_user_preferences = new userPreferences_1.UserPreferences();
-            // create DataManager instance.
-            _this.m_data_mng = new dataManager_1.DataManager();
-            // Gameplay always starts at false.
-            _this.m_inGameplay = false;
+    var GameController = /** @class */ (function (_super) {
+        __extends(GameController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function GameController() {
+            var _this = _super.call(this, gameCommons_6.COMPONENT_ID.kGameController) || this;
             return _this;
         }
-        /**
-         *
-         */
-        GameManager.prototype.update = function () {
-            if (this.m_inGameplay) {
-                this.m_chrono_mng.update();
+        GameController.prototype.init = function (_actor) {
+            this._m_chronoController = _actor.getComponent(gameCommons_6.COMPONENT_ID.kChronoController);
+            if (mxComponent_4.MxComponent.IsNull(this._m_chronoController)) {
+                throw new Error('ChronoController not founded!.');
+            }
+            this._m_user_preferences = new userPreferences_1.UserPreferences();
+            return;
+        };
+        GameController.prototype.update = function (_actor) {
+            return;
+        };
+        GameController.prototype.destroy = function () {
+            this._m_user_preferences.destroy();
+            return;
+        };
+        GameController.prototype.initGamePlay = function () {
+            if (!this._m_inGameplay) {
             }
             return;
         };
         /**
-         * Get a reference to the game's user Reference.
-         */
-        GameManager.prototype.getUserPreference = function () {
-            return this.m_user_preferences;
-        };
-        /**
-         * Gets a reference to the game's dataManager.
-         */
-        GameManager.prototype.getDataManager = function () {
-            return this.m_data_mng;
-        };
-        /**
-         * Get a reference of the ChronoManager.
-         */
-        GameManager.prototype.getChronoManager = function () {
-            return this.m_chrono_mng;
-        };
-        /**
-         * Initialize the Gameplay
-         */
-        GameManager.prototype.initGamePlay = function () {
-            if (!this.m_inGameplay) {
-                this.m_chrono_mng = new chronoManager_1.ChronoManager();
-                this.m_chrono_mng.setMasterManager(this.m_master_mng);
-                this.m_inGameplay = !this.m_inGameplay;
-            }
-            return;
-        };
-        /**
-         * Reset the Gameplay
-         */
-        GameManager.prototype.resetGameplay = function () {
-            if (this.m_inGameplay) {
-                this.m_chrono_mng.reset(this.m_user_preferences.chrono_value, this.m_user_preferences.chrono_value * 0.1);
+        * Reset the Gameplay
+        */
+        GameController.prototype.resetGameplay = function () {
+            if (this._m_inGameplay) {
+                this._m_chronoController.reset(this._m_user_preferences.chrono_value, this._m_user_preferences.chrono_value * 0.1);
             }
             return;
         };
         /**
          * Shutdown Gameplay
          */
-        GameManager.prototype.shutdownGameplay = function () {
-            if (this.m_inGameplay) {
-                this.m_chrono_mng.destroy();
-                this.m_chrono_mng = null;
-                this.m_inGameplay = !this.m_inGameplay;
+        GameController.prototype.shutdownGameplay = function () {
+            if (this._m_inGameplay) {
+                this._m_inGameplay = !this._m_inGameplay;
             }
             return;
         };
         /**
          * Gets this game's localization identifer.
          */
-        GameManager.prototype.getLocalization = function () {
-            return this.m_user_preferences.getLocalization();
+        GameController.prototype.getLocalization = function () {
+            return this._m_user_preferences.getLocalization();
         };
         /**
          * Sets the game's localization identifier.
          *
          * @param _localization Localization identifier.
          */
-        GameManager.prototype.setLocalization = function (_localization) {
-            this.m_user_preferences.setLocalization(_localization);
+        GameController.prototype.setLocalization = function (_localization) {
+            this._m_user_preferences.setLocalization(_localization);
             return;
         };
-        /**
-        * Safely destroys the object.
-        */
-        GameManager.prototype.destroy = function () {
-            this.m_data_mng.destroy();
-            this.m_data_mng = null;
-            this.m_user_preferences.destroy();
-            this.m_user_preferences = null;
-            return;
-        };
-        return GameManager;
-    }(manager_3.Manager));
-    exports.GameManager = GameManager;
+        return GameController;
+    }(mxComponent_4.MxComponent));
+    exports.GameController = GameController;
 });
-define("scenes/preloader", ["require", "exports", "utilities/managers/masterManager", "utilities/fs/csv_reader", "game/gameCommons", "utilities/fs/fs"], function (require, exports, masterManager_1, CSVReader, gameCommons_5, fs_1) {
+define("game/managers/gameManager/components/dataController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_5, gameCommons_7) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var DataController = /** @class */ (function (_super) {
+        __extends(DataController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function DataController() {
+            var _this = _super.call(this, gameCommons_7.COMPONENT_ID.kDataController) || this;
+            _this._string_map = new Map();
+            return _this;
+        }
+        DataController.prototype.add = function (_key, _value) {
+            this._string_map.set(_key, _value);
+        };
+        DataController.prototype.getString = function (_key) {
+            if (this._string_map.has(_key)) {
+                return this._string_map.get(_key);
+            }
+            return "NOT_FOUND!";
+        };
+        DataController.prototype.clear = function () {
+            this._string_map.clear();
+            return;
+        };
+        DataController.prototype.destroy = function () {
+            this._string_map.clear();
+            this._string_map = null;
+            return;
+        };
+        return DataController;
+    }(mxComponent_5.MxComponent));
+    exports.DataController = DataController;
+});
+define("scenes/preloader", ["require", "exports", "utilities/fs/csv_file", "game/managers/masteManager/masterManager", "game/gameCommons", "utilities/fs/csv_row"], function (require, exports, csv_file_2, masterManager_2, gameCommons_8, csv_row_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Preloader = /** @class */ (function (_super) {
@@ -890,37 +1449,12 @@ define("scenes/preloader", ["require", "exports", "utilities/managers/masterMana
         /* Public                                           */
         /****************************************************/
         Preloader.prototype.preload = function () {
-            this.m_phaser_loader_ready = false;
-            ///////////////////////////////////
-            // CSV Data
-            var game_mng = masterManager_1.MasterManager.GetInstance().getManager(gameCommons_5.MANAGER_ID.kGameManager);
-            this.m_file_loader = fs_1.FileLoader.GetInstance();
-            this.m_file_loader.loadFile('game_text', 'src/assets/csv_files/Mimi_k_data - game_texts.tsv');
-            this.m_file_loader.addListener('onLoadEnd', this._on_file_load, this);
-            ///////////////////////////////////
-            // TiledMap
-            //this.load.tilemapTiledJSON('level_01', 'src/assets/maps/level_01.json');
-            ///////////////////////////////////
-            // SpriteSheets
-            /*
-            this.load.spritesheet
-            (
-                'dragon',
-                'src/assets/images/player/dragon.png',
-                {
-                    frameWidth: 128,
-                    frameHeight: 128,
-                }
-            );
-            */
             ///////////////////////////////////
             // Atlas
             this.load.atlas('main_menu', 'src/assets/images/atlas/main_menu.png', 'src/assets/images/atlas/main_menu.js');
             ///////////////////////////////////
-            // Images
-            /*
-            this.load.image('main_menu_bckg', 'src/assets/images/main_menu/background.png');
-            */
+            // Text
+            this.load.text('game_text', 'src/assets/csv_files/Mimi_k_data - game_texts.tsv');
             /****************************************************/
             /* Metta Puzzle Loader                              */
             /****************************************************/
@@ -943,73 +1477,68 @@ define("scenes/preloader", ["require", "exports", "utilities/managers/masterMana
             // Puzzle Base
             obj_layer = this._get_object_layer(puzzle_map, 'puzzle_base');
             this._create_sprites_from(this, obj_layer, 'metta_puzzle_loader', img_names, first_gid);
-            // Puzzle Pieces
-            this.m_a_puzzle_pieces = new Array();
-            this.m_a_pieces_position = new Array();
+            // Puzzle Pieces        
+            this._m_a_puzzle_pieces = new Array();
+            this._m_a_pieces_position = new Array();
             obj_layer = this._get_object_layer(puzzle_map, 'puzzle_pieces');
-            this.m_a_puzzle_pieces = this._create_sprites_from(this, obj_layer, 'metta_puzzle_loader', img_names, first_gid);
+            this._m_a_puzzle_pieces = this._create_sprites_from(this, obj_layer, 'metta_puzzle_loader', img_names, first_gid);
             obj_layer = this._get_object_layer(puzzle_map, 'puzzle_pieces_start_point');
-            var pieces_size = this.m_a_puzzle_pieces.length;
+            var pieces_size = this._m_a_puzzle_pieces.length;
             var object;
             var piece;
             for (var index = 0; index < pieces_size; ++index) {
                 object = obj_layer[index];
-                piece = this.m_a_puzzle_pieces[index];
-                this.m_a_pieces_position.push(new Phaser.Geom.Point(piece.x, piece.y));
+                piece = this._m_a_puzzle_pieces[index];
+                this._m_a_pieces_position.push(new Phaser.Geom.Point(piece.x, piece.y));
                 piece.setPosition(object.x, object.y);
             }
             // Index
-            this.m_indexes = new Int8Array(pieces_size);
+            this._m_indexes = new Int8Array(pieces_size);
             for (var index = 0; index < pieces_size; ++index) {
-                this.m_indexes[index] = index;
+                this._m_indexes[index] = index;
             }
-            this.m_active_idx = 0;
-            this._shuffle(this.m_indexes);
+            this._m_active_idx = 0;
+            this._shuffle(this._m_indexes);
             // Callbacks
-            this.load.on('complete', this.onLoadComplete, this);
-            this.load.on('progress', this.onProgress, this);
-            this.m_file_loader.load();
+            this.load.on('progress', this._onProgress, this);
+            this.load.on('complete', this._onLoadComplete, this);
             return;
-        };
-        Preloader.prototype.onProgress = function (_value) {
-            var target_idx = Math.floor(this.m_indexes.length * _value);
-            while (this.m_active_idx < target_idx) {
-                var piece = void 0;
-                var position = void 0;
-                piece = this.m_a_puzzle_pieces[this.m_indexes[this.m_active_idx]];
-                position = this.m_a_pieces_position[this.m_indexes[this.m_active_idx]];
-                piece.setPosition(position.x, position.y);
-                ++this.m_active_idx;
-            }
-            return;
-        };
-        Preloader.prototype.onLoadComplete = function () {
-            //this.m_phaser_loader_ready = true;
-            return;
-        };
-        Preloader.prototype.update = function () {
-            if (this.load.progress >= 1
-                && !this.m_file_loader.isLoading()) {
-                this.scene.start('mainMenu');
-            }
         };
         /****************************************************/
         /* Private                                          */
         /****************************************************/
-        Preloader.prototype._on_file_load = function () {
-            var game_mng = masterManager_1.MasterManager.GetInstance().getManager(gameCommons_5.MANAGER_ID.kGameManager);
-            var data_mng = game_mng.getDataManager();
-            var csv_file = CSVReader.GetCSV(this.m_file_loader.getFile('game_text'), true);
-            var num_rows = csv_file.rows.length;
-            var row;
+        Preloader.prototype._onProgress = function (_value) {
+            var target_idx = Math.floor(this._m_indexes.length * _value);
+            while (this._m_active_idx < target_idx) {
+                var piece = void 0;
+                var position = void 0;
+                piece = this._m_a_puzzle_pieces[this._m_indexes[this._m_active_idx]];
+                position = this._m_a_pieces_position[this._m_indexes[this._m_active_idx]];
+                piece.setPosition(position.x, position.y);
+                ++this._m_active_idx;
+            }
+            return;
+        };
+        Preloader.prototype._onLoadComplete = function () {
+            var csv_file = csv_file_2.CSVFile.Create(this.game.cache.text.get('game_text'), true, '\t');
             // Sets the column that has the text.
             // 1 : Spanish
-            // 2 : English
-            var text_column_index = (game_mng.getLocalization() == gameCommons_5.LOCALIZATION.kSpanish ? 1 : 2);
+            // 2 : English    
+            var master = masterManager_2.MasterManager.GetInstance();
+            var gameManger = master.get_child(gameCommons_8.MANAGER_ID.kGameManager);
+            var gameController = gameManger.getComponent(gameCommons_8.COMPONENT_ID.kGameController);
+            var dataController = gameManger.getComponent(gameCommons_8.COMPONENT_ID.kDataController);
+            var text_column_index = (gameController.getLocalization() == gameCommons_8.LOCALIZATION.KSpanish ? 1 : 2);
+            var num_rows = csv_file.getNumberRows();
+            var row = null;
             for (var index = 0; index < num_rows; ++index) {
-                row = csv_file.rows[index];
-                data_mng.add(row.cells[0], row.cells[text_column_index]);
+                row = csv_file.getRow(index);
+                if (csv_row_2.CSVRow.IsNull(row)) {
+                    break;
+                }
+                dataController.add(row.getCell(0), row.getCell(text_column_index));
             }
+            csv_file.destroy();
             return;
         };
         Preloader.prototype._get_object_layer = function (_map, _layer) {
@@ -1056,32 +1585,67 @@ define("scenes/preloader", ["require", "exports", "utilities/managers/masterMana
             }
             return a_sprites;
         };
-        Preloader.prototype._shuffle = function (a) {
-            var j, x, i;
-            for (i = a.length - 1; i > 0; i--) {
+        Preloader.prototype._shuffle = function (_a) {
+            var j;
+            var x;
+            var i;
+            for (i = _a.length - 1; i > 0; i--) {
                 j = Math.floor(Math.random() * (i + 1));
-                x = a[i];
-                a[i] = a[j];
-                a[j] = x;
+                x = _a[i];
+                _a[i] = _a[j];
+                _a[j] = x;
             }
-            return a;
+            return _a;
         };
         return Preloader;
     }(Phaser.Scene));
     exports.Preloader = Preloader;
 });
-define("scenes/boot", ["require", "exports", "utilities/managers/masterManager", "game/managers/gameManager/gameManager", "utilities/fs/fs"], function (require, exports, masterManager_2, gameManager_1, fs_2) {
+define("game/managers/gameManager/gameManager", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/gameManager/components/gameController", "game/managers/gameManager/components/chronoController", "game/managers/gameManager/components/dataController"], function (require, exports, gameCommons_9, mxActor_2, gameController_1, chronoController_1, dataController_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Administrador del juego. Responsable de los siguientes controladores:
+     *
+     * - DataController
+     * - ChronoController
+     *
+     * Éste MxManager se crea en el Boot.
+     */
+    var GameManager = /** @class */ (function () {
+        function GameManager() {
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        GameManager.Create = function () {
+            var manager = mxActor_2.MxActor.Create(gameCommons_9.MANAGER_ID.kGameManager);
+            ///////////////////////////////////
+            // Components
+            manager.addComponent(new gameController_1.GameController());
+            manager.addComponent(new chronoController_1.ChronoController());
+            manager.addComponent(new dataController_1.DataController());
+            return manager;
+        };
+        return GameManager;
+    }());
+    exports.GameManager = GameManager;
+});
+define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/managers/gameManager/gameManager", "game/managers/masteManager/components/MasterController"], function (require, exports, mxComponent_6, mxActor_3, masterManager_3, gameManager_1, MasterController_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Creates modules and load assets for the preload scene.
+     */
     var Boot = /** @class */ (function (_super) {
         __extends(Boot, _super);
         function Boot() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
         Boot.prototype.preload = function () {
-            /**
-             * Loads preloader assets. This file must be light.
-             */
             this.load.atlas('preloader', 'src/assets/images/atlas/preloader.png', 'src/assets/images/atlas/preloader.js');
             ///////////////////////////////////
             // Metta Puzzle Preloader
@@ -1092,56 +1656,26 @@ define("scenes/boot", ["require", "exports", "utilities/managers/masterManager",
             return;
         };
         Boot.prototype.create = function () {
-            /**
-             * Fit the game canvas to parent container.
-             */
+            // Fit the game canvas to parent container
             this.game.scale.scaleMode = Phaser.Scale.ScaleModes.FIT;
-            /**
-             * Prepare FileLoader
-             */
-            fs_2.FileLoader.Prepare();
-            /**
-             * Prepare Master Manager.
-             */
-            masterManager_2.MasterManager.Prepare(this.game);
-            var master = masterManager_2.MasterManager.GetInstance();
-            /**
-             * Create GameManager.
-             */
-            master.addManager(new gameManager_1.GameManager());
-            /**
-             * Start Preloader Sccene.
-             */
+            // prepare modules
+            mxComponent_6.MxComponent.Prepare();
+            mxActor_3.MxActor.Prepare();
+            // Master Manager
+            masterManager_3.MasterManager.Prepare();
+            var master = masterManager_3.MasterManager.GetInstance();
+            // Master Manager Components
+            master.addComponent(new MasterController_1.MasterController());
+            // Master Manager Children
+            master.addChild(gameManager_1.GameManager.Create());
+            master.init();
+            // next scene
             this.scene.start('localization');
             return;
         };
         return Boot;
     }(Phaser.Scene));
     exports.Boot = Boot;
-});
-define("scenes/BaseScene", ["require", "exports", "utilities/managers/masterManager"], function (require, exports, masterManager_3) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var BaseScene = /** @class */ (function (_super) {
-        __extends(BaseScene, _super);
-        function BaseScene() {
-            return _super !== null && _super.apply(this, arguments) || this;
-        }
-        BaseScene.prototype.create = function () {
-            this.m_master = masterManager_3.MasterManager.GetInstance();
-            return;
-        };
-        BaseScene.prototype.update = function (_step, _dt) {
-            this.m_master.update(_dt / 1000);
-            return;
-        };
-        BaseScene.prototype.destroy = function () {
-            this.m_master = null;
-            return;
-        };
-        return BaseScene;
-    }(Phaser.Scene));
-    exports.BaseScene = BaseScene;
 });
 define("game/ui/cloud_popup", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -1447,7 +1981,96 @@ define("game/ui/buttons/imgButton", ["require", "exports", "game/ui/buttons/butt
     }(button_2.Button));
     exports.ImgButton = ImgButton;
 });
-define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgButton", "utilities/listeners/mxListenerManager", "utilities/listeners/mxListener"], function (require, exports, imgButton_1, mxListenerManager_2, mxListener_3) {
+define("utilities/listeners/mxListener", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_6) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxListener = /** @class */ (function () {
+        function MxListener(_listener, _context) {
+            asserts_6.AssertFunction(_listener);
+            this.m_listener = _listener;
+            if (_context) {
+                this.m_context = _context;
+            }
+            return;
+        }
+        MxListener.prototype.call = function () {
+            if (this.m_context) {
+                this.m_listener.call(this.m_context);
+            }
+            else {
+                this.m_listener();
+            }
+            return;
+        };
+        MxListener.prototype.destroy = function () {
+            this.m_listener = null;
+            this.m_context = null;
+            return;
+        };
+        return MxListener;
+    }());
+    exports.MxListener = MxListener;
+});
+define("utilities/listeners/mxListenerManager", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxListenerManager = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MxListenerManager() {
+            this.m_listener_map = new Map();
+            return;
+        }
+        MxListenerManager.prototype.call = function (_event) {
+            if (this.m_listener_map.has(_event)) {
+                var event_1 = this.m_listener_map.get(_event);
+                var size = event_1.length;
+                for (var index = 0; index < size; ++index) {
+                    event_1[index].call();
+                }
+            }
+            return;
+        };
+        MxListenerManager.prototype.addEvent = function (_event) {
+            if (!this.m_listener_map.has(_event)) {
+                this.m_listener_map.set(_event, new Array());
+            }
+            return;
+        };
+        MxListenerManager.prototype.addListener = function (_event, _listener) {
+            if (this.m_listener_map.has(_event)) {
+                var event_2 = this.m_listener_map.get(_event);
+                event_2.push(_listener);
+            }
+            return;
+        };
+        MxListenerManager.prototype.clearEvent = function (_event) {
+            if (this.m_listener_map.has(_event)) {
+                var event_3 = this.m_listener_map.get(_event);
+                while (event_3.length) {
+                    var listener = event_3.pop();
+                    listener.destroy();
+                }
+            }
+            return;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        MxListenerManager.prototype.destroy = function () {
+            this.m_listener_map.forEach(function (_a_listeners, _key) {
+                this.clearEvent(_key);
+                return;
+            }, this);
+            this.m_listener_map.clear();
+            return;
+        };
+        return MxListenerManager;
+    }());
+    exports.MxListenerManager = MxListenerManager;
+});
+define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgButton", "utilities/listeners/mxListenerManager", "utilities/listeners/mxListener"], function (require, exports, imgButton_1, mxListenerManager_1, mxListener_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Carousel = /** @class */ (function () {
@@ -1472,7 +2095,7 @@ define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgB
             spr.setFlipX(true);
             ///////////////////////////////////
             // Event Manager
-            this.m_events = new mxListenerManager_2.MxListenerManager();
+            this.m_events = new mxListenerManager_1.MxListenerManager();
             this.m_events.addEvent('active_changed');
             // display first element.
             this.m_current_item = null;
@@ -1511,7 +2134,7 @@ define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgB
          * @param _context
          */
         Carousel.prototype.addListener = function (_event, _fn, _context) {
-            this.m_events.addListener(_event, new mxListener_3.MxListener(_fn, _context));
+            this.m_events.addListener(_event, new mxListener_1.MxListener(_fn, _context));
             return;
         };
         /**
@@ -1567,7 +2190,7 @@ define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgB
     }());
     exports.Carousel = Carousel;
 });
-define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game/ui/cloud_popup", "game/gameCommons", "game/ui/buttons/nineButton", "game/ui/carousel/carousel"], function (require, exports, BaseScene_1, cloud_popup_1, gameCommons_6, nineButton_1, carousel_1) {
+define("scenes/menus/mainMenu", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -1579,60 +2202,133 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game
             return _super !== null && _super.apply(this, arguments) || this;
         }
         MainMenu.prototype.create = function () {
-            _super.prototype.create.call(this);
+            /*
             // gameCommons
-            var half_width = this.game.canvas.width * 0.5;
+            let half_width : number = this.game.canvas.width * 0.5;
+    
             // gets the Game Manager.
             this.m_game_manager
-                = this.m_master.getManager(gameCommons_6.MANAGER_ID.kGameManager);
+                = this.m_master.getManager<GameManager>(MANAGER_ID.kGameManager);
+            
             // gets the DataManager from GameManager.
             this.m_data_mng = this.m_game_manager.getDataManager();
+    
             // Create the cloud poupup.
-            this.m_cloud_popup = new cloud_popup_1.CloudPopup(this);
+            this.m_cloud_popup = new  CloudPopup(this);
             this.m_cloud_popup.setMaxWidth(800);
-            this.m_cloud_popup.setPosition(half_width, this.game.canvas.height * 0.9);
+            this.m_cloud_popup.setPosition
+            (
+                half_width,
+                this.game.canvas.height * 0.9
+            );
+    
             // display first tip.
             this.m_tip_num = 0;
             this.nextTip();
+            
             ///////////////////////////////////
             // Buttons
+    
             // Time Preferences Buttons
-            this.m_pref_buttons = new Array();
-            var but_pos = new Phaser.Geom.Point(half_width, this.game.canvas.height * 0.1);
-            var button;
-            var a_times = [5, 3, 1];
-            var _loop_1 = function (index) {
-                button = nineButton_1.NineButton.CreateDefault(this_1, but_pos.x, but_pos.y, '' + a_times[index] + ' minutes', function () {
-                    this._onClick_minute_button(a_times[index] * 60);
-                }, this_1);
-                this_1.m_pref_buttons.push(button);
+            this.m_pref_buttons = new Array<NineButton>();
+            
+            let but_pos = new  Phaser.Geom.Point
+            (
+                half_width,
+                this.game.canvas.height * 0.1
+            );
+    
+            let button : NineButton;
+            let a_times = [ 5, 3, 1 ];
+            
+            for(let index = 0; index < 3; ++index) {
+                button = NineButton.CreateDefault
+                (
+                    this,
+                    but_pos.x,
+                    but_pos.y,
+                    '' + a_times[index] + ' minutes',
+                    function() {
+                        this._onClick_minute_button(a_times[index] * 60);
+                    },
+                    this
+                );
+    
+                this.m_pref_buttons.push(button);
                 but_pos.y += button.getHeight() + 20;
-            };
-            var this_1 = this;
-            for (var index = 0; index < 3; ++index) {
-                _loop_1(index);
             }
             this._close_prefs();
+    
             // play
-            this.m_play_button = nineButton_1.NineButton.CreateDefault(this, half_width, this.game.canvas.height * 0.1, "Play", this._onClick_play, this);
+            this.m_play_button = NineButton.CreateDefault
+            (
+                this,
+                half_width,
+                this.game.canvas.height * 0.1,
+                "Play",
+                this._onClick_play,
+                this
+            );
+    
             // tip
-            nineButton_1.NineButton.CreateDefault(this, half_width, this.game.canvas.height * 0.75, "Next Tip", this.nextTip, this);
+            NineButton.CreateDefault
+            (
+                this,
+                half_width,
+                this.game.canvas.height * 0.75,
+                "Next Tip",
+                this.nextTip,
+                this
+            );
+    
             ///////////////////////////////////
             // Carousel
-            this.m_carousel = new carousel_1.Carousel(this, half_width, this.game.canvas.height * 0.5, 450, 'main_menu', 'clock_idx_', '.png', gameCommons_6.CLOCK_STYLE.kCount);
+            
+            this.m_carousel = new Carousel
+            (
+                this,
+                half_width,
+                this.game.canvas.height * 0.5,
+                450,
+                'main_menu',
+                'clock_idx_',
+                '.png',
+                CLOCK_STYLE.kCount
+            );
             this.m_carousel.addListener('active_changed', this._onCarouselChanged, this);
+            
             // carousel title
-            var carousel_title = this.add.text(half_width, this.game.canvas.height * 0.35, this.m_data_mng.getString('choose_clock'), { fontFamily: '"Roboto Condensed"' });
+            let carousel_title = this.add.text
+            (
+                half_width,
+                this.game.canvas.height * 0.35,
+                this.m_data_mng.getString('choose_clock'),
+                { fontFamily: '"Roboto Condensed"' }
+            );
+    
             carousel_title.setFontSize(50);
             carousel_title.setColor('black');
-            carousel_title.setOrigin(0.5, 0.5);
+            carousel_title.setOrigin(0.5,0.5);
+    
             // carousel item name.
-            this.m_carousel_item_name = this.add.text(half_width, this.game.canvas.height * 0.65, "", { fontFamily: '"Roboto Condensed"' });
+            this.m_carousel_item_name = this.add.text
+            (
+                half_width,
+                this.game.canvas.height * 0.65,
+                "",
+                { fontFamily: '"Roboto Condensed"' }
+            );
+    
             this.m_carousel_item_name.setFontSize(50);
             this.m_carousel_item_name.setColor('black');
-            this.m_carousel_item_name.setOrigin(0.5, 0.5);
+            this.m_carousel_item_name.setOrigin(0.5,0.5);
+    
             // display default element
-            this.m_carousel.setActive(this.m_game_manager.getUserPreference().getClockStyle());
+            this.m_carousel.setActive
+            (
+                this.m_game_manager.getUserPreference().getClockStyle()
+            );
+                */
             return;
         };
         /****************************************************/
@@ -1642,7 +2338,6 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game
         * Safely destroys the object.
         */
         MainMenu.prototype.destroy = function () {
-            _super.prototype.destroy.call(this);
             this.m_carousel.destroy();
             this.m_carousel = null;
             this.m_cloud_popup.destroy();
@@ -1654,25 +2349,27 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game
             }
             this.m_pref_buttons = null;
             this.m_game_manager = null;
-            this.m_data_mng = null;
+            //this.m_data_mng = null;        
             return;
         };
         /****************************************************/
         /* Private                                          */
         /****************************************************/
         MainMenu.prototype._onClick_minute_button = function (_time) {
-            var prefs = this.m_game_manager.getUserPreference();
+            /*
+            let prefs : UserPreferences
+                = this.m_game_manager.getUserPreference();
             prefs.chrono_value = _time;
+    
             // TODO : descomentar,hasta tener el skin de todos los relojes.
-            //prefs.setClockStyle(this.m_carousel.getCurrentIdx()); 
+            //prefs.setClockStyle(this.m_carousel.getCurrentIdx());
             prefs.setClockStyle(0);
+    
             this.destroy();
             this.scene.start('mainGame');
-            return;
+            return;*/
         };
         MainMenu.prototype._onCarouselChanged = function () {
-            this.m_carousel_item_name.text
-                = this.m_data_mng.getString('clock_name_' + this.m_carousel.getCurrentIdx());
             return;
         };
         MainMenu.prototype._close_prefs = function () {
@@ -1693,48 +2390,17 @@ define("scenes/menus/mainMenu", ["require", "exports", "scenes/BaseScene", "game
             return;
         };
         MainMenu.prototype.nextTip = function () {
-            this.m_cloud_popup.setText(this.m_data_mng.getString('menu_tip_0' + this.m_tip_num));
-            this.m_cloud_popup.close();
-            this.m_cloud_popup.open();
-            // iterate over tips.
-            this.m_tip_num++;
-            if (this.m_tip_num > 5) {
-                this.m_tip_num = 0;
-            }
         };
         return MainMenu;
-    }(BaseScene_1.BaseScene));
+    }(Phaser.Scene));
     exports.MainMenu = MainMenu;
 });
 define("game/ui/clocks/chronoClock", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ChronoClock = /** @class */ (function () {
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
         function ChronoClock() {
-            return;
         }
-        ChronoClock.prototype.setChronoManager = function (_chrono_mng) {
-            this.m_chrono_mng = _chrono_mng;
-            return;
-        };
-        ChronoClock.prototype.update = function () {
-            return;
-        };
-        ChronoClock.prototype.reset = function () {
-            return;
-        };
-        ChronoClock.prototype.hotClock = function () {
-            return;
-        };
-        /**
-        * Safely destroys the object.
-        */
-        ChronoClock.prototype.destroy = function () {
-            return;
-        };
         return ChronoClock;
     }());
     exports.ChronoClock = ChronoClock;
@@ -1756,7 +2422,7 @@ define("game/ui/clocks/sandClock", ["require", "exports", "game/ui/clocks/chrono
             return _this;
         }
         SandClock.prototype.update = function () {
-            this.m_text.text = this.m_chrono_mng.getCurrentTime().toString();
+            //this.m_text.text = this.m_chrono_mng.getCurrentTime().toString();
             return;
         };
         SandClock.prototype.reset = function () {
@@ -1810,32 +2476,7 @@ define("game/ui/timeOutPop/timeOutPop", ["require", "exports"], function (requir
         /****************************************************/
         /* Public                                           */
         /****************************************************/
-        function TimeOutPop(_scene, _x, _y, _data_mng) {
-            this.m_data_mng = _data_mng;
-            this.m_group = _scene.add.group();
-            // Base texture
-            this.m_texture = _scene.add.nineslice(_x, _y, 145, 145, { key: 'main_menu', frame: 'button_bg.png' }, [70, 70, 70, 70]);
-            this.m_texture.resize(750, 750);
-            this.m_texture.setOrigin(0.5, 0.5);
-            this.m_texture.setInteractive();
-            this.m_texture.on('pointerdown', this.close, this);
-            // Title
-            this.m_title = _scene.add.text(_x, _y - 200, this.m_data_mng.getString('time_out_0'), { fontFamily: '"Roboto Condensed"' });
-            this.m_title.setFontSize(100);
-            this.m_title.setColor('black');
-            this.m_title.setOrigin(0.5, 0.5);
-            this.m_msg = _scene.add.text(_x, _y, '', { fontFamily: '"Roboto Condensed"' });
-            this.m_msg.setFontSize(50);
-            this.m_msg.setColor('black');
-            this.m_msg.setOrigin(0.5, 0.5);
-            this.m_msg.setWordWrapWidth(this.m_texture.width * 0.85);
-            // Message
-            this.m_group.add(this.m_texture);
-            this.m_group.add(this.m_title);
-            this.m_group.add(this.m_msg);
-            this.m_isOpen = true;
-            close();
-            return;
+        function TimeOutPop(_scene, _x, _y) {
         }
         TimeOutPop.prototype.open = function () {
             if (!this.m_isOpen) {
@@ -1844,7 +2485,7 @@ define("game/ui/timeOutPop/timeOutPop", ["require", "exports"], function (requir
                 if (rnd > 4) {
                     rnd = 4;
                 }
-                this.m_msg.text = this.m_data_mng.getString('time_out_' + rnd);
+                //this.m_msg.text = this.m_data_mng.getString('time_out_' + rnd);
                 this.m_isOpen = !this.m_isOpen;
             }
             return;
@@ -1869,7 +2510,7 @@ define("game/ui/timeOutPop/timeOutPop", ["require", "exports"], function (requir
     }());
     exports.TimeOutPop = TimeOutPop;
 });
-define("scenes/levels/game_level", ["require", "exports", "scenes/BaseScene", "game/gameCommons", "game/ui/clocks/sandClock", "game/ui/clocks/digitalClock", "game/ui/clocks/analogClock", "game/ui/buttons/nineButton", "game/ui/timeOutPop/timeOutPop"], function (require, exports, BaseScene_2, gameCommons_7, sandClock_1, digitalClock_1, analogClock_1, nineButton_2, timeOutPop_1) {
+define("scenes/levels/game_level", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MainGame = /** @class */ (function (_super) {
@@ -1881,126 +2522,58 @@ define("scenes/levels/game_level", ["require", "exports", "scenes/BaseScene", "g
         /* Public                                           */
         /****************************************************/
         MainGame.prototype.create = function () {
-            _super.prototype.create.call(this);
-            var half_width = this.game.canvas.width * 0.5;
-            // get GameManager. 
-            this.m_game_mng
-                = this.m_master.getManager(gameCommons_7.MANAGER_ID.kGameManager);
-            // initalize Gameplay.
-            this.m_game_mng.initGamePlay();
-            // get DataManager.
-            this.m_data_mng = this.m_game_mng.getDataManager();
-            // get ChronoManager.
-            this.m_chrono_mng = this.m_game_mng.getChronoManager();
-            // get user preferences
-            this.m_user_pref = this.m_game_mng.getUserPreference();
-            ///////////////////////////////////
-            // Chrono Display
-            var clock_x = this.game.canvas.width * 0.5;
-            var clocl_y = this.game.canvas.height * 0.5;
-            switch (this.m_user_pref.getClockStyle()) {
-                case gameCommons_7.CLOCK_STYLE.kSand:
-                    this.m_chrono_clock = new sandClock_1.SandClock(this, clock_x, clocl_y);
-                    break;
-                case gameCommons_7.CLOCK_STYLE.kDigital:
-                    this.m_chrono_clock = new digitalClock_1.DigitalClock(this, clock_x, clocl_y);
-                    break;
-                case gameCommons_7.CLOCK_STYLE.kAnalog:
-                    this.m_chrono_clock = new analogClock_1.AnalogClock(this, clock_x, clocl_y);
-                    break;
-                default:
-                    this.m_chrono_clock = new sandClock_1.SandClock(this, clock_x, clocl_y);
-                    break;
-            }
-            // set manager to chrono display
-            this.m_chrono_clock.setChronoManager(this.m_chrono_mng);
-            ///////////////////////////////////
-            // Buttons
-            this.m_pause_resume = nineButton_2.NineButton.CreateDefault(this, half_width, this.game.canvas.height * 0.8, "Start", this._on_click_pause_resume, this);
-            this.m_reset = nineButton_2.NineButton.CreateDefault(this, half_width, this.game.canvas.height * 0.9, "Reset", this._reset_clock, this);
-            this.m_main_menu = nineButton_2.NineButton.CreateDefault(this, half_width, this.game.canvas.height * 0.1, "Main_Menu", this._on_click_main_menu, this);
-            ///////////////////////////////////
-            // Popup
-            this.m_pop_up = new timeOutPop_1.TimeOutPop(this, half_width, this.game.canvas.height * 0.5, this.m_data_mng);
-            this.m_chrono_mng.addListener('on_mark', this._on_reach_mark, this);
-            this.m_chrono_mng.addListener('on_finish', this._on_chrono_finish, this);
-            this._reset_clock();
-            return;
-        };
-        MainGame.prototype.update = function (_step, _dt) {
-            _super.prototype.update.call(this, _step, _dt);
-            this.m_chrono_clock.update();
-            return;
-        };
-        MainGame.prototype.destroy = function () {
-            _super.prototype.destroy.call(this);
-            this.m_pop_up.destroy();
-            this.m_pop_up = null;
-            this.m_pause_resume.destroy();
-            this.m_pause_resume = null;
-            this.m_reset.destroy();
-            this.m_reset = null;
-            this.m_data_mng = null;
-            this.m_user_pref = null;
-            // destroy clock display.
-            this.m_chrono_clock.destroy();
-            this.m_chrono_clock = null;
-            // shutdown Gameplay.
-            this.m_game_mng.shutdownGameplay();
-            this.m_game_mng = null;
-            return;
-        };
-        /****************************************************/
-        /* Private                                          */
-        /****************************************************/
-        MainGame.prototype._on_click_main_menu = function () {
-            this.destroy();
-            this.scene.start('mainMenu');
-            return;
-        };
-        MainGame.prototype._on_chrono_finish = function () {
-            this._reset_clock();
-            this.m_pop_up.open();
-            return;
-        };
-        MainGame.prototype._on_reach_mark = function () {
-            this.m_chrono_clock.hotClock();
-            return;
-        };
-        MainGame.prototype._reset_clock = function () {
-            this.m_chrono_mng.reset(this.m_user_pref.chrono_value, 
-            //15,
-            10);
-            this._init_button_frame();
-            this.m_chrono_clock.reset();
-            if (this.m_pop_up.isOpen()) {
-                this.m_pop_up.close();
-            }
-            return;
+            /****************************************************/
+            /* Private                                          */
+            /****************************************************/
+            /*
+              private _on_click_main_menu()
+              : void {
+                  this.destroy();
+                  this.scene.start('mainMenu');
+                  return;
+              }
+          
+              private _on_chrono_finish()
+              : void {
+                  this._reset_clock();
+                  this.m_pop_up.open();
+                  return;
+              }
+          
+              private _on_reach_mark()
+              : void {
+                  this.m_chrono_clock.hotClock();
+                  return;
+              }
+          
+              private _reset_clock()
+              : void { /*
+                  this.m_chrono_mng.reset
+                  (
+                      this.m_user_pref.chrono_value,
+                      //15,
+                      10
+                  )
+          
+                  this._init_button_frame();
+                  this.m_chrono_clock.reset();
+                  
+                  if(this.m_pop_up.isOpen()){
+                      this.m_pop_up.close();
+                  }
+                  return;*/
         };
         MainGame.prototype._on_click_pause_resume = function () {
-            if (this.m_chrono_mng.isRunning()) {
-                this.m_chrono_mng.pause();
-                this.m_pause_resume.setText('Resumen');
-            }
-            else {
-                this.m_chrono_mng.start();
-                this.m_pause_resume.setText('Pause');
-            }
-            if (this.m_pop_up.isOpen()) {
-                this.m_pop_up.close();
-            }
-            return;
         };
         MainGame.prototype._init_button_frame = function () {
             this.m_pause_resume.setText('Start');
             return;
         };
         return MainGame;
-    }(BaseScene_2.BaseScene));
+    }(Phaser.Scene));
     exports.MainGame = MainGame;
 });
-define("scenes/localization", ["require", "exports", "utilities/managers/masterManager", "game/gameCommons"], function (require, exports, masterManager_4, gameCommons_8) {
+define("scenes/localization", ["require", "exports", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, gameCommons_10, masterManager_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var LocalizationScene = /** @class */ (function (_super) {
@@ -2014,15 +2587,11 @@ define("scenes/localization", ["require", "exports", "utilities/managers/masterM
         LocalizationScene.prototype.create = function () {
             var width = this.game.canvas.width;
             var height = this.game.canvas.height;
-            /**
-             * North America map, without Mexico.
-             */
+            // English icon
             var english_button = this.add.sprite(width * 0.5, height * 0.25, 'preloader', 'english_map.png');
             english_button.setInteractive();
             english_button.on('pointerup', this._onClick_english, this);
-            /**
-             * Latin America map.
-            */
+            // Latam icon
             var latin_button = this.add.sprite(width * 0.5, height * 0.75, 'preloader', 'latino_map.png');
             latin_button.setInteractive();
             latin_button.on('pointerup', this._onClick_spanish, this);
@@ -2032,15 +2601,19 @@ define("scenes/localization", ["require", "exports", "utilities/managers/masterM
         /* Private                                          */
         /****************************************************/
         LocalizationScene.prototype._onClick_english = function () {
-            var game_mng = masterManager_4.MasterManager.GetInstance().getManager(gameCommons_8.MANAGER_ID.kGameManager);
-            game_mng.setLocalization(gameCommons_8.LOCALIZATION.kEnglish);
+            var master = masterManager_4.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_10.MANAGER_ID.kGameManager);
+            var gameController = gameManager.getComponent(gameCommons_10.COMPONENT_ID.kGameController);
+            gameController.setLocalization(gameCommons_10.LOCALIZATION.kEnglish);
             // TODO: start preload scene.
             this.scene.start('preloader');
             return;
         };
         LocalizationScene.prototype._onClick_spanish = function () {
-            var game_mng = masterManager_4.MasterManager.GetInstance().getManager(gameCommons_8.MANAGER_ID.kGameManager);
-            game_mng.setLocalization(gameCommons_8.LOCALIZATION.kSpanish);
+            var master = masterManager_4.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_10.MANAGER_ID.kGameManager);
+            var gameController = gameManager.getComponent(gameCommons_10.COMPONENT_ID.kGameController);
+            gameController.setLocalization(gameCommons_10.LOCALIZATION.KSpanish);
             // TODO: start preload scene.
             this.scene.start('preloader');
             return;
@@ -2093,7 +2666,7 @@ define("game_init", ["require", "exports", "scenes/preloader", "scenes/boot", "s
     }());
     return GameInit;
 });
-define("scenes/levels/testing/test_level_tiled", ["require", "exports", "scenes/BaseScene"], function (require, exports, BaseScene_3) {
+define("scenes/levels/testing/test_level_tiled", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Test_Level_Tiled = /** @class */ (function (_super) {
@@ -2102,7 +2675,6 @@ define("scenes/levels/testing/test_level_tiled", ["require", "exports", "scenes/
             return _super !== null && _super.apply(this, arguments) || this;
         }
         Test_Level_Tiled.prototype.create = function () {
-            _super.prototype.create.call(this);
             /****************************************************/
             /* Scene                                            */
             /****************************************************/
@@ -2153,41 +2725,16 @@ define("scenes/levels/testing/test_level_tiled", ["require", "exports", "scenes/
             return;
         };
         return Test_Level_Tiled;
-    }(BaseScene_3.BaseScene));
+    }(Phaser.Scene));
     exports.Test_Level_Tiled = Test_Level_Tiled;
-});
-define("utilities/enum_commons", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var Direction4;
-    (function (Direction4) {
-        Direction4[Direction4["kUp"] = 0] = "kUp";
-        Direction4[Direction4["kDown"] = 1] = "kDown";
-        Direction4[Direction4["kRigh"] = 2] = "kRigh";
-        Direction4[Direction4["kLeft"] = 3] = "kLeft";
-    })(Direction4 = exports.Direction4 || (exports.Direction4 = {}));
-    var Axis;
-    (function (Axis) {
-        Axis[Axis["kHorizontal"] = 0] = "kHorizontal";
-        Axis[Axis["kVertical"] = 1] = "kVertical";
-    })(Axis = exports.Axis || (exports.Axis = {}));
-    var PositionID;
-    (function (PositionID) {
-        PositionID[PositionID["kTop"] = 0] = "kTop";
-        PositionID[PositionID["kBottom"] = 1] = "kBottom";
-        PositionID[PositionID["kLeft"] = 2] = "kLeft";
-        PositionID[PositionID["kRight"] = 3] = "kRight";
-    })(PositionID = exports.PositionID || (exports.PositionID = {}));
-    var Rotation;
-    (function (Rotation) {
-        Rotation[Rotation["kCW"] = 0] = "kCW";
-        Rotation[Rotation["kCCW"] = 1] = "kCCW";
-    })(Rotation = exports.Rotation || (exports.Rotation = {}));
 });
 define("utilities/fsm_state", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var FSMState = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
         function FSMState() {
             this.m_fsm = null;
             return;
@@ -2216,6 +2763,9 @@ define("utilities/fsm", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var FSM = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
         function FSM() {
             this.m_states_map = new Map();
             this.clear();
@@ -2271,663 +2821,555 @@ define("utilities/fsm", ["require", "exports"], function (require, exports) {
     }());
     exports.FSM = FSM;
 });
-define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_4) {
+/// <reference path="../../libs/tsDefinitions/phaser.d.ts">
+define("utilities/trigger", ["require", "exports"], function (require, exports) {
+    "use strict";
+    var Trigger = /** @class */ (function () {
+        function Trigger() {
+            this.m_trigger_time = 0;
+            this.m_time = 0;
+            return;
+        }
+        Trigger.prototype.update = function (_dt) {
+            this.m_time += _dt;
+            if (this.m_time >= this.m_trigger_time) {
+                this.m_time = 0;
+                return true;
+            }
+            return false;
+        };
+        Trigger.prototype.setTriggerTime = function (_trigger_time) {
+            this.m_trigger_time = _trigger_time;
+            return;
+        };
+        Trigger.prototype.setTime = function (_time) {
+            this.m_time = _time;
+            return;
+        };
+        Trigger.prototype.reset = function () {
+            this.m_time = 0;
+            return;
+        };
+        return Trigger;
+    }());
+    return Trigger;
+});
+define("utilities/validations", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var OBJECT_POOL_TYPE;
-    (function (OBJECT_POOL_TYPE) {
-        OBJECT_POOL_TYPE[OBJECT_POOL_TYPE["kStatic"] = 0] = "kStatic";
-        OBJECT_POOL_TYPE[OBJECT_POOL_TYPE["kDynamic"] = 1] = "kDynamic";
-    })(OBJECT_POOL_TYPE = exports.OBJECT_POOL_TYPE || (exports.OBJECT_POOL_TYPE = {}));
-    var ObjectPool = /** @class */ (function () {
-        /**
-         * Private constructor. Object Pool must be created with its Create static
-         * methods.
-         */
-        function ObjectPool() {
+    function MinimumValue(_value, _min) {
+        if (_value < _min) {
+            return _min;
+        }
+        return _value;
+    }
+    exports.MinimumValue = MinimumValue;
+    function MaximumValue(_value, _max) {
+        if (_value > _max) {
+            return _max;
+        }
+        return _value;
+    }
+    exports.MaximumValue = MaximumValue;
+    function NumberRange(_value, _min, _max) {
+        if (_value < _min) {
+            _value = _min;
+        }
+        else if (_value > _max) {
+            _value = _max;
+        }
+        return _value;
+    }
+    exports.NumberRange = NumberRange;
+});
+define("utilities/component/mxActorAssembler", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxActorAssembler = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MxActorAssembler() {
+            this._m_common_components = new Map();
             return;
+        }
+        MxActorAssembler.prototype.assemble = function (_actor) {
+            var component_mng = _actor.getComponentMng();
+            this._m_common_components.forEach(function (_component) {
+                component_mng.addComponent(_component);
+                return;
+            }, this);
+            return;
+        };
+        MxActorAssembler.prototype.update = function () {
+            return;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        MxActorAssembler.prototype.destroy = function () {
+            this._m_common_components.forEach(function (_component) {
+                _component.destroy();
+                return;
+            }, this);
+            this._m_common_components.clear();
+            this._m_common_components = null;
+            return;
+        };
+        return MxActorAssembler;
+    }());
+    exports.MxActorAssembler = MxActorAssembler;
+});
+define("utilities/fs/data_map", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_7) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxDataMap = /** @class */ (function () {
+        function MxDataMap() {
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        MxDataMap.Create = function (_data, _separator_char, _break_line_char) {
+            asserts_7.AssertString(_data);
+            asserts_7.AssertString(_separator_char);
+            asserts_7.AssertString(_break_line_char);
+            var map = new Map();
+            var a_pair = _data.split(_break_line_char);
+            for (var index = 0; index < a_pair.length; ++index) {
+                var a_values = a_pair[index].split(_separator_char);
+                if (a_values.length == 2) {
+                    map.set(a_values[0], a_values[1]);
+                }
+                else if (a_values.length == 1) {
+                    map.set(a_values[0], '');
+                }
+                else {
+                    continue;
+                }
+            }
+            return map;
+        };
+        return MxDataMap;
+    }());
+    exports.MxDataMap = MxDataMap;
+});
+define("utilities/interpolation/interpolation", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var Interpolation = /** @class */ (function () {
+        function Interpolation() {
+        }
+        Interpolation.Linear = function (x1, y1, x2, y2, x) {
+            return ((x - x1) * (y2 - y1) / (x2 - x1)) + y1;
+        };
+        Interpolation.Bilinear = function (x1, y1, x2, y2, v1, v2, v3, v4, tx, ty) {
+            //P1:{x1,y1,v1} - P2:{x2,y1,v2} - P3:{x1,y2,v3} - P4:{x2,y2,v4}
+            //Target:{tx,ty}
+            var area_v1 = Math.abs((tx - x1) * (ty - y1)) * v4;
+            var area_v2 = Math.abs((tx - x2) * (ty - y1)) * v3;
+            var area_v3 = Math.abs((tx - x1) * (ty - y2)) * v2;
+            var area_v4 = Math.abs((tx - x2) * (ty - y2)) * v1;
+            var area_total = (x2 - x1) * (y2 - y1);
+            return (area_v1 + area_v2 + area_v3 + area_v4) / area_total;
+        };
+        return Interpolation;
+    }());
+    exports.Interpolation = Interpolation;
+});
+define("utilities/noise/perlinNoise", ["require", "exports", "utilities/interpolation/interpolation"], function (require, exports, interpolation_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var PerlinNoise = /** @class */ (function () {
+        function PerlinNoise() {
         }
         /****************************************************/
         /* Public                                           */
         /****************************************************/
         /**
-         * Creates an ObjectPool wich creates elements if it doesn't has
-         * any active element available. The user can specify the maximum
-         * of elements that this pool can store, the pool will not create
-         * an element if the maximum number of elements is reached.
          *
-         * @param _max Maximum of elements that this container can store.
-         * @param _create_fn Fuction used to create a new element, this should return an element.
+         * @param _length
+         * @param _n_octaves
          */
-        ObjectPool.CreateDynamic = function (_max, _create_fn, _context) {
-            asserts_4.AssertFunction(_create_fn);
-            asserts_4.AssertNumber(_max);
-            var pool = new ObjectPool();
-            pool.m_a_active = new Array();
-            pool.m_a_desactive = new Array();
-            pool.m_type = OBJECT_POOL_TYPE.kDynamic;
-            pool.m_max_size = _max;
-            pool.m_size = 0;
-            pool.m_create_fn = _create_fn;
-            if (_context) {
-                pool.m_fn_create_context = _context;
-            }
-            pool.m_on_active_context = undefined;
-            pool.m_on_active = undefined;
-            pool.m_on_desactive = undefined;
-            pool.m_on_desactive_context = undefined;
-            return pool;
-        };
-        /**
-         * Creates an ObjectPool that already has the elements needed and will
-         * recycle them. The user need to give an array of elements.
-         *
-         * @param _a_elements Array of elements that belong to thes ObjectPool.
-         */
-        ObjectPool.CreateStatic = function (_a_elements) {
-            var pool = new ObjectPool();
-            pool.m_a_active = new Array();
-            pool.m_a_desactive = new Array();
-            pool.m_type = OBJECT_POOL_TYPE.kStatic;
-            pool.m_max_size = _a_elements.length;
-            pool.m_size = _a_elements.length;
-            for (var index = 0; index < pool.m_size; ++index) {
-                pool.desactive(_a_elements[index]);
-            }
-            pool.m_create_fn = undefined;
-            pool.m_fn_create_context = undefined;
-            pool.m_on_active_context = undefined;
-            pool.m_on_active = undefined;
-            pool.m_on_desactive = undefined;
-            pool.m_on_desactive_context = undefined;
-            return pool;
-        };
-        ObjectPool.prototype.update = function (_dt) {
-            for (var index = 0; index < this.m_a_active.length; ++index) {
-                this.m_a_active[index].update(_dt);
-            }
-            return;
-        };
-        ObjectPool.prototype.setOnActiveFn = function (_fn, _context) {
-            asserts_4.AssertFunction(_fn);
-            this.m_on_active = _fn;
-            if (_context != undefined) {
-                this.m_on_active_context = _context;
-            }
-            return;
-        };
-        ObjectPool.prototype.setOnDesactiveFn = function (_fn, _context) {
-            asserts_4.AssertFunction(_fn);
-            this.m_on_desactive = _fn;
-            if (_context != undefined) {
-                this.m_on_desactive_context = _context;
-            }
-            return;
-        };
-        ObjectPool.prototype.get = function () {
-            var element = null;
-            if (this.hasDesactive()) {
-                element = this.m_a_desactive[0];
-                this._active(element);
-                return element;
-            }
-            if (this.isFull()) {
-                return element;
-            }
-            switch (this.m_type) {
-                case OBJECT_POOL_TYPE.kDynamic:
-                    element = this._create_element();
-                    this._active(element);
-                    return element;
-                default:
-                    return element;
-            }
-        };
-        ObjectPool.prototype.desactive = function (_element) {
-            var active_size = this.m_a_active.length;
-            for (var index = 0; index < active_size; ++index) {
-                if (this.m_a_active[index] == _element) {
-                    this.m_a_active.splice(index, 1);
+        PerlinNoise.Noise1D = function (_length, _frecuency_power, _amplitude_power, _n_octaves, _normalized) {
+            if (_frecuency_power === void 0) { _frecuency_power = 2; }
+            if (_amplitude_power === void 0) { _amplitude_power = 2; }
+            if (_n_octaves === void 0) { _n_octaves = 6; }
+            if (_normalized === void 0) { _normalized = false; }
+            /**
+             * Wave values.
+             */
+            var wave = new Float32Array(_length);
+            var frecuency = 0;
+            var amplitude = 0;
+            for (var oct_idx = 1; oct_idx <= _n_octaves; ++oct_idx) {
+                /**
+                 * Octave Frecuency
+                 */
+                frecuency = Math.pow(_frecuency_power, oct_idx);
+                /**
+                 * Octave Amplitude
+                 */
+                amplitude = _length / Math.pow(_amplitude_power, oct_idx);
+                if (frecuency > _length) {
                     break;
                 }
+                /**
+                 * Apply Octave
+                 */
+                PerlinNoise.Octave(frecuency, amplitude, wave, _length);
             }
-            this.m_a_desactive.push(_element);
-            _element.m_mx_active = false;
-            _element.mxDesactive();
-            if (this.m_on_desactive != undefined) {
-                this.m_on_desactive.call(this.m_on_desactive_context, _element);
+            if (_normalized) {
+                /**
+                * Normalize values
+                */
+                for (var index = 0; index < _length; ++index) {
+                    wave[index] /= _length;
+                }
             }
-            return;
+            return wave;
         };
-        ObjectPool.prototype.fill = function () {
-            var element;
-            while (!this.isFull()) {
-                element = this._create_element();
-                this.desactive(element);
+        PerlinNoise.Noise2D = function (_length, _frecuency_power, _amplitude_power, _n_octaves, _normalized) {
+            if (_frecuency_power === void 0) { _frecuency_power = 2; }
+            if (_amplitude_power === void 0) { _amplitude_power = 2; }
+            if (_n_octaves === void 0) { _n_octaves = 6; }
+            if (_normalized === void 0) { _normalized = false; }
+            var grid = new Array(_length);
+            for (var index = 0; index < _length; ++index) {
+                grid[index] = new Float32Array(_length);
             }
-            return;
-        };
-        ObjectPool.prototype.hasDesactive = function () {
-            return this.m_a_desactive.length > 0;
-        };
-        ObjectPool.prototype.isFull = function () {
-            return this.m_size >= this.m_max_size;
-        };
-        ObjectPool.prototype.getSize = function () {
-            return this.m_size;
-        };
-        ObjectPool.prototype.getMaxSize = function () {
-            return this.m_max_size;
-        };
-        ObjectPool.prototype.getType = function () {
-            return this.m_type;
+            var frecuency = 0;
+            var amplitude = 0;
+            var high_value = 0;
+            for (var oct_idx = 1; oct_idx <= _n_octaves; ++oct_idx) {
+                /**
+                 * Octave Frecuency
+                 */
+                //frecuency = Math.pow(_frecuency_power, oct_idx);
+                frecuency = _frecuency_power * oct_idx;
+                /**
+                 * Octave Amplitude
+                 */
+                //amplitude = _length / Math.pow(_amplitude_power, oct_idx);
+                amplitude = _amplitude_power / oct_idx;
+                high_value += amplitude;
+                if (frecuency > _length) {
+                    break;
+                }
+                /**
+                 * Applay Octave
+                 */
+                PerlinNoise.Octave2D(frecuency, amplitude, grid, _length);
+            }
+            /**
+            * Normalize values
+            */
+            if (_normalized) {
+                for (var row = 0; row < _length; ++row) {
+                    for (var col = 0; col < _length; ++col) {
+                        grid[row][col] /= high_value;
+                    }
+                }
+            }
+            return grid;
         };
         /**
-        * Safely destroys the object.
-        */
-        ObjectPool.prototype.destroy = function () {
-            var obj;
-            while (this.m_a_active.length) {
-                obj = this.m_a_active.pop();
-                obj.destroy();
+         *
+         * @param _frecuency
+         * @param _amplitude
+         * @param _length
+         */
+        PerlinNoise.Octave = function (_frecuency, _amplitude, _wave, _length) {
+            /**
+             * Calculate the steps.
+             */
+            var step = Math.floor(_length / _frecuency);
+            /**
+             *
+             */
+            var y1 = undefined;
+            var y2 = undefined;
+            var x1 = undefined;
+            var x2 = undefined;
+            for (var index = 0; index <= _length; index += step) {
+                /**
+                 * Generate a value randomly between [0 - amplitud].
+                 */
+                y2 = _amplitude - (Math.random() * _amplitude);
+                /**
+                 * adds this value to the wave
+                 */
+                _wave[index] += y2;
+                /**
+                 * Interpolate the inbetweens values form this node to the last node.
+                 * Te substraction of the current index with the backstep determinate
+                 * the first begining of the segment.
+                 */
+                if (y1 != undefined) {
+                    x1 = index - (step - 1);
+                    x2 = index;
+                    for (var node = index - (step - 1); node < index; ++node) {
+                        /**
+                         * Get the linear interpolation at "node" position.
+                         */
+                        _wave[node] += interpolation_1.Interpolation.Linear(x1, y1, x2, y2, node);
+                    }
+                }
+                /**
+                 * X1 es igual a x2
+                 */
+                y1 = y2;
             }
-            this.m_a_active = null;
-            while (this.m_a_desactive.length) {
-                obj = this.m_a_desactive.pop();
-                obj.destroy();
+            return;
+        };
+        PerlinNoise.Octave2D = function (_frecuency, _amplitude, _wave, _length) {
+            var grid = new Array(_frecuency);
+            for (var index = 0; index <= _frecuency; ++index) {
+                grid[index] = new Float32Array(_frecuency + 1);
             }
-            this.m_a_desactive = null;
-            this.m_create_fn = null;
-            this.m_fn_create_context = null;
-            this.m_on_active = null;
-            this.m_on_active_context = null;
-            this.m_on_desactive = null;
-            this.m_on_desactive_context = null;
+            var x1;
+            var y1;
+            var x2;
+            var y2;
+            var local_x1;
+            var local_y1;
+            var local_x2;
+            var local_y2;
+            var temp;
+            // Interator over the grid.
+            for (var row = 0; row <= _frecuency; ++row) {
+                for (var col = 0; col <= _frecuency; ++col) {
+                    grid[row][col] = _amplitude - (Math.random() * _amplitude);
+                    // Check if node is not in first row or first column.
+                    if (row > 0 && col > 0) {
+                        x2 = col;
+                        y2 = row;
+                        x1 = x2 - 1;
+                        y1 = y2 - 1;
+                        local_x1 = (Math.floor((x1 / _frecuency) * _length));
+                        local_x2 = (Math.floor((x2 / _frecuency) * _length));
+                        local_y1 = (Math.floor((y1 / _frecuency) * _length));
+                        local_y2 = (Math.floor((y2 / _frecuency) * _length));
+                        for (var y = local_y1; y < local_y2; ++y) {
+                            for (var x = local_x1; x < local_x2; ++x) {
+                                temp =
+                                    interpolation_1.Interpolation.Bilinear(local_x1, local_y1, local_x2, local_y2, grid[y1][x1], grid[y1][x2], grid[y2][x1], grid[y2][x2], x, y);
+                                _wave[y][x] += temp;
+                            }
+                        }
+                    }
+                }
+            }
             return;
         };
         /****************************************************/
         /* Private                                          */
         /****************************************************/
-        ObjectPool.prototype._active = function (_element) {
-            var desactive_size = this.m_a_desactive.length;
-            for (var index = 0; index < desactive_size; ++index) {
-                if (this.m_a_desactive[index] == _element) {
-                    this.m_a_desactive.splice(index, 1);
-                    break;
-                }
+        PerlinNoise.MAX_LENGHT = 256;
+        return PerlinNoise;
+    }());
+    exports.PerlinNoise = PerlinNoise;
+});
+define("utilities/ui/mxUI", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxUI = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MxUI() {
+            this._m_size = new Phaser.Geom.Point(0, 0);
+            return;
+        }
+        MxUI.prototype.update = function (_dt) {
+            return;
+        };
+        MxUI.prototype.setPosition = function (_x, _y) {
+            return;
+        };
+        MxUI.prototype.move = function (_x, _y) {
+            return;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        MxUI.prototype.destroy = function () {
+            this._m_size = null;
+            return;
+        };
+        /****************************************************/
+        /* Protected                                        */
+        /****************************************************/
+        MxUI.prototype._getSprite_box = function (_scene) {
+            var sprite;
+            if (!_scene.textures.exists('_mx_ui_box')) {
+                var texture = void 0;
+                texture = _scene.add.graphics();
+                texture.fillStyle(0xffffff);
+                texture.fillRect(0, 0, 16, 16);
+                texture.generateTexture('_mx_ui_box', 16, 16);
+                texture.destroy();
             }
-            this.m_a_active.push(_element);
-            _element.m_mx_active = true;
-            _element.mxActive();
-            if (this.m_on_active != undefined) {
-                this.m_on_active.call(this.m_on_active_context, _element);
+            sprite = _scene.add.sprite(0, 0, '_mx_ui_box');
+            return sprite;
+        };
+        MxUI.prototype._getSprite_circle16 = function (_scene) {
+            var sprite;
+            if (!_scene.textures.exists('_mx_ui_circle_16')) {
+                var texture = void 0;
+                texture = _scene.add.graphics();
+                texture.fillStyle(0xffffff);
+                texture.fillCircle(0, 0, 16);
+                texture.generateTexture('_mx_ui_circle_16');
+                texture.destroy();
             }
-            return;
+            sprite = _scene.add.sprite(0, 0, '_mx_ui_circle_16');
+            return sprite;
         };
-        ObjectPool.prototype._create_element = function () {
-            asserts_4.AssertFunction(this.m_create_fn);
-            var element = this.m_create_fn.call(this.m_fn_create_context, this);
-            this.m_size++;
-            return element;
+        MxUI.prototype._get_text = function (_scene) {
+            var text;
+            text = _scene.add.text(0, 0, "text", { fontFamily: '"Roboto Condensed"' });
+            text.setFontSize(24);
+            text.setColor('white');
+            return text;
         };
-        return ObjectPool;
+        return MxUI;
     }());
-    exports.ObjectPool = ObjectPool;
+    exports.MxUI = MxUI;
 });
-define("utilities/component/mxComponent", ["require", "exports"], function (require, exports) {
+define("utilities/ui/mxSlider", ["require", "exports", "utilities/ui/mxUI"], function (require, exports, mxUI_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var MxComponent = /** @class */ (function () {
-        function MxComponent(_id) {
-            this.m_id = _id;
-            return;
-        }
-        MxComponent.setManager = function (_component, _mng) {
-            _component.m_manager = _mng;
-            return;
-        };
-        MxComponent.prototype.getID = function () {
-            return this.m_id;
-        };
-        MxComponent.prototype.init = function () {
-            return;
-        };
-        MxComponent.prototype.update = function (_dt) {
-            return;
-        };
-        MxComponent.prototype.destroy = function () {
-            this.m_manager = null;
-            return;
-        };
-        return MxComponent;
-    }());
-    exports.MxComponent = MxComponent;
-});
-define("utilities/component/mxComponentMng", ["require", "exports", "utilities/component/mxComponent"], function (require, exports, mxComponent_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxComponentMng = /** @class */ (function () {
-        function MxComponentMng() {
-            this.m_component_map = new Map();
-            return;
-        }
-        MxComponentMng.prototype.init = function () {
-            this.m_component_map.forEach(function (_component) {
-                _component.init();
-                return;
-            });
-            return;
-        };
-        MxComponentMng.prototype.update = function (_dt) {
-            this.m_component_map.forEach(function (_component) {
-                _component.update(_dt);
-                return;
-            }, this);
-            return;
-        };
-        MxComponentMng.prototype.addComponent = function (_component) {
-            mxComponent_1.MxComponent.setManager(_component, this);
-            this.m_component_map.set(_component.getID(), _component);
-            return;
-        };
-        MxComponentMng.prototype.removeComponent = function (_id) {
-            this.m_component_map.delete(_id);
-            return;
-        };
-        MxComponentMng.prototype.hasComponent = function (_id) {
-            return this.m_component_map.has(_id);
-        };
-        MxComponentMng.prototype.getComponent = function (_id) {
-            if (this.m_component_map.has(_id)) {
-                return this.m_component_map.get(_id);
-            }
-            else {
-                return null;
-            }
-        };
-        MxComponentMng.prototype.destroy = function () {
-            this.m_component_map.forEach(function (_component) {
-                _component.destroy();
-            });
-            this.m_component_map.clear();
-            this.m_component_map = null;
-            return;
-        };
-        return MxComponentMng;
-    }());
-    exports.MxComponentMng = MxComponentMng;
-});
-define("utilities/component/mxActor", ["require", "exports", "utilities/component/mxComponentMng"], function (require, exports, mxComponentMng_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxActor = /** @class */ (function () {
-        function MxActor() {
-            this.m_component_mg = new mxComponentMng_1.MxComponentMng();
-            return;
-        }
-        MxActor.prototype.update = function (_dt) {
-            this.m_component_mg.update(_dt);
-            return;
-        };
-        MxActor.prototype.getComponentMng = function () {
-            return this.m_component_mg;
-        };
-        MxActor.prototype.getComponent = function (_id) {
-            return this.m_component_mg.getComponent(_id);
-        };
-        MxActor.prototype.destroy = function () {
-            this.m_component_mg.destroy();
-            return;
-        };
-        return MxActor;
-    }());
-    exports.MxActor = MxActor;
-});
-define("utilities/nodeMaps/nodeMap", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxNodeMap = /** @class */ (function () {
-        function MxNodeMap(_width, _height) {
-            this.m_width = _width;
-            this.m_height = _height;
-            return;
-        }
-        MxNodeMap.prototype.init = function () {
-            return;
-        };
-        MxNodeMap.prototype.getWidth = function () {
-            return this.m_width;
-        };
-        MxNodeMap.prototype.getHeight = function () {
-            return this.m_height;
-        };
-        return MxNodeMap;
-    }());
-    exports.MxNodeMap = MxNodeMap;
-});
-define("utilities/nodes/mxNode", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxNode = /** @class */ (function () {
-        function MxNode() {
-            this.m_position = new Phaser.Math.Vector2(0, 0);
-            return;
-        }
-        MxNode.prototype.setPosition = function (_position) {
-            this.m_position = _position;
-            return;
-        };
-        MxNode.prototype.getPosition = function () {
-            return this.m_position;
-        };
-        return MxNode;
-    }());
-    exports.MxNode = MxNode;
-});
-define("utilities/nodes/mxCoord", ["require", "exports", "utilities/nodes/mxNode", "utilities/enum_commons"], function (require, exports, mxNode_1, enum_commons_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxCoord = /** @class */ (function (_super) {
-        __extends(MxCoord, _super);
-        function MxCoord() {
+    var MxSlider = /** @class */ (function (_super) {
+        __extends(MxSlider, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MxSlider(_scene, _x, _y, _title) {
+            if (_title === void 0) { _title = "Slider"; }
             var _this = _super.call(this) || this;
-            _this.m_object = null;
+            _this._m_group = _scene.add.group();
+            // Slider Background
+            _this._m_bck = _this._getSprite_box(_scene);
+            _this._m_bck.setScale(20, 2);
+            _this._m_bck.setTint(0x000000);
+            _this._m_bck.setAlpha(0.5);
+            _this._m_bck.setInteractive();
+            _this._m_bck.on('pointerdown', _this._onDown_slider, _this);
+            _this._m_bck.setOrigin(0, 0);
+            // Slider Size
+            _this._m_size.x = _this._m_bck.width * _this._m_bck.scaleX;
+            _this._m_size.y = _this._m_bck.height * _this._m_bck.scaleY;
+            // Slider Fill
+            _this._m_fill = _this._getSprite_box(_scene);
+            _this._m_fill.setScale(0, 2);
+            _this._m_fill.setTint(0xffa100);
+            _this._m_fill.setOrigin(0, 0);
+            // Slider Text
+            _this._m_text = _this._get_text(_scene);
+            _this._m_text.text = "100";
+            _this._m_text.setOrigin(0.5, 0.5);
+            _this._m_text.setPosition(_this._m_bck.x + _this._m_size.x * 0.5, _this._m_bck.y + _this._m_size.y * 0.5);
+            // Slider Title
+            _this._m_title = _this._get_text(_scene);
+            _this._m_title.text = _title;
+            _this._m_title.setOrigin(0, 1);
+            _this._m_title.setPosition(_this._m_bck.x, _this._m_bck.y - 10);
+            // Add group members
+            _this._m_group.add(_this._m_title);
+            _this._m_group.add(_this._m_text);
+            _this._m_group.add(_this._m_bck);
+            _this._m_group.add(_this._m_fill);
+            _this.setValues(-1, 1);
+            _this._resize_fill(0.5);
+            _this.setPosition(_x, _y);
+            _this._m_dragging = false;
             return _this;
         }
-        MxCoord.SetObject = function (_coord, _object) {
-            _coord.m_object = _object;
-            return;
-        };
-        MxCoord.IsNull = function (_coord) {
-            return _coord.m_object == null;
-        };
-        MxCoord.prototype.getObject = function () {
-            return this.m_object;
-        };
-        MxCoord.prototype.attachUp = function (_node) {
-            this.m_coord_up = _node;
-            _node.m_coord_down = this.m_coord_up;
-            return;
-        };
-        MxCoord.prototype.attachRight = function (_node) {
-            this.m_coord_right = _node;
-            _node.m_coord_left = this.m_coord_right;
-            return;
-        };
-        MxCoord.prototype.attachLeft = function (_node) {
-            this.m_coord_left = _node;
-            _node.m_coord_right = this.m_coord_left;
-            return;
-        };
-        MxCoord.prototype.attachDown = function (_node) {
-            this.m_coord_down = _node;
-            _node.m_coord_up = this.m_coord_down;
-            return;
-        };
-        MxCoord.prototype.getCoord = function (_node) {
-            switch (_node) {
-                case enum_commons_1.Direction4.kUp:
-                    return this.m_coord_up;
-                case enum_commons_1.Direction4.kDown:
-                    return this.m_coord_down;
-                case enum_commons_1.Direction4.kLeft:
-                    return this.m_coord_left;
-                case enum_commons_1.Direction4.kRigh:
-                    return this.m_coord_right;
-                default:
-                    return this.m_coord_left;
+        MxSlider.prototype.setValues = function (_min, _max) {
+            if (_max > _min) {
+                this._m_min_value = _min;
+                this._m_max_value = _max;
+                this._m_delta_value = _max - _min;
             }
+            return;
         };
-        return MxCoord;
-    }(mxNode_1.MxNode));
-    exports.MxCoord = MxCoord;
-});
-define("utilities/nodeMaps/coordMap", ["require", "exports", "utilities/nodeMaps/nodeMap", "utilities/nodes/mxCoord", "utilities/enum_commons"], function (require, exports, nodeMap_1, mxCoord_1, enum_commons_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxCoordMap = /** @class */ (function (_super) {
-        __extends(MxCoordMap, _super);
-        function MxCoordMap(_width, _heigth, _rotation) {
-            var _this = _super.call(this, _width, _heigth) || this;
-            ///////////////////////////////////
-            // Init
-            _this.m_a_objects = new Array();
-            ////////////////////////////////////
-            // Create an empty Grid
-            var coord;
-            var adyacent_coord;
-            for (var row = 0; row < _heigth; ++row) {
-                for (var col = 0; col < _width; ++col) {
-                    coord = new mxCoord_1.MxCoord();
-                    coord.setPosition(new Phaser.Math.Vector2(col, row));
-                    // Up Attachment         
-                    if (row > 0) {
-                        adyacent_coord
-                            = _this.m_a_objects[(_width * (row - 1)) + col];
-                        coord.attachUp(adyacent_coord);
-                    }
-                    // Left Attachment
-                    if (col > 0) {
-                        adyacent_coord
-                            = _this.m_a_objects[_this.m_a_objects.length - 1];
-                        coord.attachLeft(adyacent_coord);
-                    }
-                    _this.m_a_objects.push(coord);
+        MxSlider.prototype.update = function (_dt) {
+            if (this._m_dragging) {
+                if (!this._m_pointer.isDown) {
+                    this._m_dragging = !this._m_dragging;
                 }
-            }
-            if (_rotation == enum_commons_2.Rotation.kCW) {
-                _this._continuityCW();
-            }
-            else {
-                _this._continuityCCW();
-            }
-            return _this;
-        }
-        MxCoordMap.prototype.getCoord = function (_x, _y) {
-            var index = (this.m_width * _y) + _x;
-            if (index >= this.m_a_objects.length) {
-                console.warn("MxCoordMap: Index out of Range");
-                return new mxCoord_1.MxCoord();
-            }
-            return this.m_a_objects[index];
-        };
-        MxCoordMap.prototype.getObject = function (_x, _y) {
-            var coord = this.getCoord(_x, _y);
-            return coord.getObject();
-        };
-        MxCoordMap.prototype._continuityCW = function () {
-            var coord;
-            var ady_coord;
-            ///////////////////////////////////
-            // Up Attachment
-            for (var index = 0; index < this.m_width; ++index) {
-                coord = this.getCoord(index, 0);
-                if (index == this.m_width - 1) {
-                    ady_coord = this.getCoord(0, this.m_height - 1);
-                }
-                else {
-                    ady_coord = this.getCoord(index + 1, this.m_height - 1);
-                }
-                coord.attachUp(ady_coord);
-            }
-            ///////////////////////////////////
-            // Left Attachment
-            for (var index = 0; index < this.m_height; ++index) {
-                coord = this.getCoord(0, index);
-                if (index == 0) {
-                    ady_coord = this.getCoord(this.m_width - 1, this.m_height - 1);
-                }
-                else {
-                    ady_coord = this.getCoord(this.m_width - 1, index - 1);
-                }
-                coord.attachLeft(ady_coord);
+                this._onDrag(this._m_pointer);
             }
             return;
         };
-        MxCoordMap.prototype._continuityCCW = function () {
-            var coord;
-            var ady_coord;
-            ///////////////////////////////////
-            // Up Attachment
-            for (var index = 0; index < this.m_width; ++index) {
-                coord = this.getCoord(index, 0);
-                if (index == 0) {
-                    ady_coord = this.getCoord(this.m_width - 1, this.m_height - 1);
-                }
-                else {
-                    ady_coord = this.getCoord(index - 1, this.m_height - 1);
-                }
-                coord.attachUp(ady_coord);
-            }
-            ///////////////////////////////////
-            // Left Attachment
-            for (var index = 0; index < this.m_height; ++index) {
-                coord = this.getCoord(0, index);
-                if (index == this.m_height - 1) {
-                    ady_coord = this.getCoord(0, this.m_width - 1);
-                }
-                else {
-                    ady_coord = this.getCoord(this.m_width - 1, index + 1);
-                }
-                coord.attachLeft(ady_coord);
+        MxSlider.prototype.setPosition = function (_x, _y) {
+            this.move(_x - this._m_bck.x, _y - this._m_bck.y);
+            return;
+        };
+        MxSlider.prototype.move = function (_x, _y) {
+            this._m_group.incXY(_x, _y);
+            return;
+        };
+        MxSlider.prototype.getValue = function () {
+            return this._m_value;
+        };
+        MxSlider.prototype.getFracValue = function () {
+            return this._m_norm_value;
+        };
+        MxSlider.prototype.setValue = function (_value) {
+            if (this._m_min_value <= _value && _value <= this._m_max_value) {
+                var dt_value = (_value - this._m_min_value) / this._m_delta_value;
+                this._resize_fill(dt_value);
             }
             return;
         };
-        return MxCoordMap;
-    }(nodeMap_1.MxNodeMap));
-    exports.MxCoordMap = MxCoordMap;
-});
-define("utilities/nodeMaps/coordMapIterator", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxCoordMapIterator = /** @class */ (function () {
-        function MxCoordMapIterator() {
-        }
-        MxCoordMapIterator.Create = function (_coord_map) {
-            var coord_map_it = new MxCoordMapIterator();
-            coord_map_it.m_coord_map = _coord_map;
-            return coord_map_it;
-        };
-        MxCoordMapIterator.prototype.setPosition = function (_col, _row) {
-            this.m_coord = this.m_coord_map.getCoord(_col, _row);
-            return;
-        };
-        MxCoordMapIterator.prototype.getObject = function () {
-            return this.m_coord.getObject();
-        };
-        MxCoordMapIterator.prototype.move = function (_direction) {
-            this.m_coord = this.m_coord.getCoord(_direction);
-            return;
-        };
-        return MxCoordMapIterator;
-    }());
-    exports.MxCoordMapIterator = MxCoordMapIterator;
-});
-define("utilities/nodes/mxBiNode", ["require", "exports", "utilities/nodes/mxNode"], function (require, exports, mxNode_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxBiNode = /** @class */ (function (_super) {
-        __extends(MxBiNode, _super);
-        function MxBiNode() {
-            var _this = _super.call(this) || this;
-            return _this;
-        }
-        MxBiNode.SetObject = function (_bi_node, _object) {
-            _bi_node.m_object = _object;
-            return;
-        };
-        MxBiNode.IsNull = function (_bi_node) {
-            return _bi_node.m_object == null;
-        };
-        MxBiNode.prototype.getObject = function () {
-            return this.m_object;
-        };
-        MxBiNode.prototype.attachNext = function (_bi_node) {
-            this.m_next = _bi_node;
-            _bi_node.m_previous = this;
-            return;
-        };
-        MxBiNode.prototype.attachPrevious = function (_bi_node) {
-            this.m_previous = _bi_node;
-            _bi_node.m_next = this;
-            return;
-        };
-        MxBiNode.prototype.dettachNext = function () {
-            if (this.m_next != null) {
-                this.m_next.m_previous = null;
+        MxSlider.prototype.setFracValue = function (_value) {
+            if (0 <= _value && _value <= 1) {
+                this._resize_fill(_value);
             }
-            this.m_next = null;
             return;
         };
-        MxBiNode.prototype.dettachPrevious = function () {
-            if (this.m_previous != null) {
-                this.m_previous.m_next = null;
+        MxSlider.prototype.destroy = function () {
+            _super.prototype.destroy.call(this);
+            this._m_bck = null;
+            this._m_fill = null;
+            return;
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        MxSlider.prototype._resize_fill = function (_value) {
+            this._m_fill.scaleX = _value * this._m_bck.scaleX;
+            this._m_norm_value = _value;
+            this._m_value
+                = this._m_min_value + (this._m_norm_value * this._m_delta_value);
+            this._m_text.text = this._m_value.toString();
+            return;
+        };
+        MxSlider.prototype._onDown_slider = function (_pointer) {
+            this._m_pointer = _pointer;
+            this._m_dragging = true;
+            this._onDrag(_pointer);
+            return;
+        };
+        MxSlider.prototype._onDrag = function (_pointer) {
+            var x = this._truncate(_pointer.x, this._m_bck.x, this._m_bck.x + this._m_size.x);
+            x -= this._m_bck.x;
+            x /= this._m_size.x;
+            this._resize_fill(x);
+            return;
+        };
+        MxSlider.prototype._truncate = function (_value, _min, _max) {
+            if (_value > _max) {
+                _value = _max;
             }
-            this.m_previous = null;
-            return;
-        };
-        MxBiNode.prototype.getNext = function () {
-            return this.m_next;
-        };
-        MxBiNode.prototype.getPrevious = function () {
-            return this.m_previous;
-        };
-        return MxBiNode;
-    }(mxNode_2.MxNode));
-    exports.MxBiNode = MxBiNode;
-});
-define("utilities/nodes/mxListBiNode", ["require", "exports", "utilities/nodes/mxBiNode"], function (require, exports, mxBiNode_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxListBiNode = /** @class */ (function () {
-        function MxListBiNode() {
-            this.m_begin = new mxBiNode_1.MxBiNode();
-            this.m_end = new mxBiNode_1.MxBiNode();
-            this.m_begin.attachNext(this.m_end);
-            this.m_length = 0;
-            return;
-        }
-        MxListBiNode.prototype.addEnd = function (_bi_node) {
-            if (this._internalNode) {
-                console.warn("Can't add an internal node.");
-                return;
+            else if (_value < _min) {
+                _value = _min;
             }
-            var last_element = this.m_end.getPrevious();
-            this.m_end.dettachPrevious();
-            this.m_end.attachPrevious(_bi_node);
-            last_element.attachNext(_bi_node);
-            this.m_length++;
-            return;
+            return _value;
         };
-        MxListBiNode.prototype.addBeginning = function (_bi_node) {
-            if (this._internalNode) {
-                console.warn("Can't add an internal node.");
-                return;
-            }
-            var first_element = this.m_begin.getNext();
-            this.m_begin.dettachNext();
-            this.m_begin.attachNext(_bi_node);
-            first_element.attachPrevious(_bi_node);
-            this.m_length++;
-            return;
-        };
-        MxListBiNode.prototype.getNode = function (_idx) {
-            return;
-        };
-        MxListBiNode.prototype.getFirst = function () {
-            return this.m_begin.getNext();
-        };
-        MxListBiNode.prototype.getLast = function () {
-            return this.m_end.getPrevious();
-        };
-        MxListBiNode.prototype.getLength = function () {
-            return this.m_length;
-        };
-        MxListBiNode.prototype._internalNode = function (_bi_node) {
-            return (this.m_begin == _bi_node || this.m_end == _bi_node);
-        };
-        return MxListBiNode;
-    }());
-    exports.MxListBiNode = MxListBiNode;
+        return MxSlider;
+    }(mxUI_1.MxUI));
+    exports.MxSlider = MxSlider;
 });
 //# sourceMappingURL=gameBundle.js.map

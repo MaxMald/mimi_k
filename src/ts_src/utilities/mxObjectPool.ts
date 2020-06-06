@@ -9,7 +9,8 @@ export enum OBJECT_POOL_TYPE
 export interface IObjectPool
 {
     m_mx_active : boolean;
-    update(_dt : number) : void;
+    
+    update() : void;
     mxActive() : void;
     mxDesactive() : void;
     destroy():void;
@@ -139,7 +140,9 @@ export class ObjectPool<T extends IObjectPool>
      */
     public static CreateStatic<U extends IObjectPool>
     (
-        _a_elements : Array<U>
+        _a_elements : Array<U>,
+        _init_fn : (_obj : U, _obj_pool : ObjectPool<U>)=>void, 
+        _context? : any
     )
     : ObjectPool<U>
     {
@@ -156,6 +159,7 @@ export class ObjectPool<T extends IObjectPool>
         for(let index = 0; index < pool.m_size; ++index)
         {
             pool.desactive(_a_elements[index]);
+            _init_fn(_a_elements[index], pool);
         }
 
         pool.m_create_fn = undefined;
@@ -168,10 +172,10 @@ export class ObjectPool<T extends IObjectPool>
         return pool;
     }
 
-    public update(_dt : number)
+    public update()
     : void {
         for(let index : number = 0; index < this.m_a_active.length; ++index){
-            this.m_a_active[index].update(_dt);
+            this.m_a_active[index].update();
         }
         return;
     }

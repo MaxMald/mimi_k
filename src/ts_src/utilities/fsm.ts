@@ -2,9 +2,19 @@ import { FSMState } from "./fsm_state";
 
 export class FSM
 {
+
+    /****************************************************/
+    /* Protected                                        */
+    /****************************************************/
+    
     protected m_states_map : Map<number,FSMState>;
+    
     protected m_active_state : FSMState;
 
+    /****************************************************/
+    /* Public                                           */
+    /****************************************************/
+    
     constructor()
     {
         this.m_states_map = new Map<number,FSMState>();

@@ -1,6 +1,4 @@
-import { BaseScene } from "../BaseScene";
 import { CloudPopup } from "../../game/ui/cloud_popup";
-import { DataManager } from "../../game/managers/dataManager/dataManager";
 import { GameManager } from "../../game/managers/gameManager/gameManager";
 import { MANAGER_ID, CLOCK_STYLE } from "../../game/gameCommons";
 import { UserPreferences } from "../../game/managers/userPreferences/userPreferences";
@@ -10,8 +8,13 @@ import { Carousel } from "../../game/ui/carousel/carousel";
 /**
  * 
  */
-export class MainMenu extends BaseScene
+export class MainMenu extends Phaser.Scene
 {
+    /****************************************************/
+    /* Public                                           */
+    /****************************************************/
+    
+
     /**
      * Array of time preferences buttons 
      */
@@ -25,12 +28,8 @@ export class MainMenu extends BaseScene
     /**
      * Reference to the game manager.
      */
-    private m_game_manager : GameManager;
-
-    /**
-     * Reference to the data manager.
-     */
-    private m_data_mng : DataManager;
+    private m_game_manager : GameManager;    /**
+  
 
     /**
      * Cloud poppup object.
@@ -52,11 +51,10 @@ export class MainMenu extends BaseScene
      */
     private m_carousel_item_name : Phaser.GameObjects.Text;
 
-    public create ()
+    create ()
     : void
-    {
-        super.create();
-
+    {    
+        /*
         // gameCommons
         let half_width : number = this.game.canvas.width * 0.5;
 
@@ -182,7 +180,7 @@ export class MainMenu extends BaseScene
         (
             this.m_game_manager.getUserPreference().getClockStyle()
         );
-
+            */
         return;
     }
 
@@ -195,7 +193,6 @@ export class MainMenu extends BaseScene
     */
     public destroy()
     : void {
-        super.destroy();
 
         this.m_carousel.destroy();
         this.m_carousel = null;
@@ -212,7 +209,7 @@ export class MainMenu extends BaseScene
         this.m_pref_buttons = null;
 
         this.m_game_manager = null;
-        this.m_data_mng = null;        
+        //this.m_data_mng = null;        
         return;
     }
     
@@ -222,6 +219,7 @@ export class MainMenu extends BaseScene
     
     private _onClick_minute_button(_time : number)
     : void {
+        /*
         let prefs : UserPreferences
             = this.m_game_manager.getUserPreference();
         prefs.chrono_value = _time;
@@ -232,13 +230,13 @@ export class MainMenu extends BaseScene
 
         this.destroy();
         this.scene.start('mainGame');
-        return;
+        return;*/
     }
 
     private _onCarouselChanged()
-    : void {
+    : void {/*
         this.m_carousel_item_name.text
-            = this.m_data_mng.getString('clock_name_' + this.m_carousel.getCurrentIdx());
+            = this.m_data_mng.getString('clock_name_' + this.m_carousel.getCurrentIdx());*/
         return;
     }
 
@@ -274,7 +272,7 @@ export class MainMenu extends BaseScene
     }
 
     private nextTip()
-    : void {
+    : void {/*
         this.m_cloud_popup.setText(this.m_data_mng.getString('menu_tip_0'+this.m_tip_num));
         
         this.m_cloud_popup.close();
@@ -284,6 +282,6 @@ export class MainMenu extends BaseScene
         this.m_tip_num++;
         if(this.m_tip_num > 5) {
             this.m_tip_num = 0;
-        }
+        }*/
     }
 }

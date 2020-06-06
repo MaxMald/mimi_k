@@ -1,5 +1,3 @@
-import { DataManager } from "../../managers/dataManager/dataManager";
-
 export class TimeOutPop
 {
     /****************************************************/
@@ -14,7 +12,7 @@ export class TimeOutPop
 
     private m_msg : Phaser.GameObjects.Text;
 
-    private m_data_mng : DataManager;
+    //private m_data_mng : DataManager;
 
     private m_isOpen : boolean;
 
@@ -27,9 +25,9 @@ export class TimeOutPop
         _scene : Phaser.Scene,
         _x : number,
         _y : number,
-        _data_mng : DataManager
+        //_data_mng : DataManager
     )
-    {
+    {/*
         this.m_data_mng = _data_mng;
 
         this.m_group = _scene.add.group();
@@ -84,7 +82,7 @@ export class TimeOutPop
 
         this.m_isOpen = true;
         close();
-        return;
+        return;*/
     }
 
     public open()
@@ -97,7 +95,7 @@ export class TimeOutPop
                 rnd = 4;
             } 
 
-            this.m_msg.text = this.m_data_mng.getString('time_out_' + rnd);
+            //this.m_msg.text = this.m_data_mng.getString('time_out_' + rnd);
             this.m_isOpen = !this.m_isOpen;
         }        
         return;

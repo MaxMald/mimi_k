@@ -1,71 +1,72 @@
-import { MasterManager } from "../utilities/managers/masterManager";
+import { MxComponent } from "../utilities/component/mxComponent";
+import { MxActor } from "../utilities/component/mxActor";
+import { MasterManager } from "../game/managers/masteManager/masterManager";
 import { GameManager } from "../game/managers/gameManager/gameManager";
-import { FileLoader } from "../utilities/fs/fs";
+import { MasterController } from "../game/managers/masteManager/components/MasterController";
 
+/**
+ * Creates modules and load assets for the preload scene.
+ */
 export class Boot extends Phaser.Scene
 {   
-    public preload ()
-    : void
-    {   
-        /**
-         * Loads preloader assets. This file must be light.
-         */
-        this.load.atlas
-        (
-            'preloader',
-            'src/assets/images/atlas/preloader.png',
-            'src/assets/images/atlas/preloader.js'
-        );
+  /****************************************************/
+  /* Public                                           */
+  /****************************************************/
+  
+  preload ()
+  : void
+  { 
+    this.load.atlas
+    (
+      'preloader',
+      'src/assets/images/atlas/preloader.png',
+      'src/assets/images/atlas/preloader.js'
+    );
 
-        ///////////////////////////////////
-        // Metta Puzzle Preloader
+    ///////////////////////////////////
+    // Metta Puzzle Preloader
 
-        // atlas
-        this.load.atlas
-        (
-            'metta_puzzle_loader',
-            'src/assets/images/atlas/metta_puzzle_loader.png',
-            'src/assets/images/atlas/metta_puzzle_loader.js'
-        );
+    // atlas
+    this.load.atlas
+    (
+      'metta_puzzle_loader',
+      'src/assets/images/atlas/metta_puzzle_loader.png',
+      'src/assets/images/atlas/metta_puzzle_loader.js'
+    );
 
-        // tiled map
-        this.load.tilemapTiledJSON
-        (
-            'metta_puzzle_loader', 
-            'src/assets/images/atlas/metta_puzzle_loader.json'
-        );
+    // tiled map
+    this.load.tilemapTiledJSON
+    (
+      'metta_puzzle_loader', 
+      'src/assets/images/atlas/metta_puzzle_loader.json'
+    );
+    return;
+  }
 
-        return;
-    }
+  create ()
+  : void
+  {    
+    // Fit the game canvas to parent container
+    this.game.scale.scaleMode = Phaser.Scale.ScaleModes.FIT;
 
-    public create ()
-    : void
-    {
-        /**
-         * Fit the game canvas to parent container.
-         */
-        this.game.scale.scaleMode = Phaser.Scale.ScaleModes.FIT;
+    // prepare modules
+    MxComponent.Prepare();
+    MxActor.Prepare();    
 
-        /**
-         * Prepare FileLoader
-         */
-        FileLoader.Prepare();
+    // Master Manager
+    MasterManager.Prepare();
+    let master = MasterManager.GetInstance();
+    
+    // Master Manager Components
+    master.addComponent(new MasterController());
 
-        /**
-         * Prepare Master Manager.
-         */
-        MasterManager.Prepare(this.game);
-        let master : MasterManager = MasterManager.GetInstance();        
+    // Master Manager Children
+    master.addChild(GameManager.Create());  
 
-        /**
-         * Create GameManager.
-         */
-        master.addManager(new GameManager());
+    master.init();
 
-        /**
-         * Start Preloader Sccene.
-         */
-        this.scene.start('localization');
-        return;
-    }    
+    // next scene
+    this.scene.start('localization');
+    return;
+  }    
 }

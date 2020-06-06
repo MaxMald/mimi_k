@@ -38,7 +38,7 @@ export class SandClock extends ChronoClock
 
     public update()
     : void {
-        this.m_text.text = this.m_chrono_mng.getCurrentTime().toString();
+        //this.m_text.text = this.m_chrono_mng.getCurrentTime().toString();
         return;
     }
 

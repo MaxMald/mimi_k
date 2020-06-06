@@ -1,4 +1,4 @@
-import { ChronoManager } from "../../managers/chronoManager/chronoManager";
+
 
 export class ChronoClock 
 {
@@ -7,12 +7,12 @@ export class ChronoClock
     /* Private                                          */
     /****************************************************/
     
-    protected m_chrono_mng : ChronoManager;
+    //protected m_chrono_mng : ChronoManager;
 
     /****************************************************/
     /* Public                                           */
     /****************************************************/
-    
+    /*
     public constructor(){
         return;
     }
@@ -38,11 +38,9 @@ export class ChronoClock
         return;
     }
     
-    /**
-    * Safely destroys the object.
-    */
+   
     public destroy()
     : void {
         return;
-    }
+    }*/
 }
