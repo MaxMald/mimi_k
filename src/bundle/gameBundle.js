@@ -913,16 +913,20 @@ define("game/gameCommons", ["require", "exports"], function (require, exports) {
         kEnglish: 2
     });
     exports.CLOCK_STYLE = Object.freeze({
-        kSand: 1,
-        kDigital: 2,
-        kAnalog: 3,
-        kCount: 4
+        kSand: 0,
+        kDigital: 1,
+        kAnalog: 2,
+        kCount: 3
     });
     exports.COMPONENT_ID = Object.freeze({
         kChronoController: 1,
         kMasterController: 2,
         kGameController: 3,
-        kDataController: 4
+        kDataController: 4,
+        kSprite: 5,
+        kNineSlice: 6,
+        kText: 7,
+        kPopupController: 8
     });
     exports.MESSAGE_ID = Object.freeze({
         kOnAgentActive: 1,
@@ -1539,6 +1543,7 @@ define("scenes/preloader", ["require", "exports", "utilities/fs/csv_file", "game
                 dataController.add(row.getCell(0), row.getCell(text_column_index));
             }
             csv_file.destroy();
+            this.scene.start('mainMenu');
             return;
         };
         Preloader.prototype._get_object_layer = function (_map, _layer) {
@@ -1676,120 +1681,6 @@ define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", 
         return Boot;
     }(Phaser.Scene));
     exports.Boot = Boot;
-});
-define("game/ui/cloud_popup", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var CloudPopup = /** @class */ (function () {
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function CloudPopup(_scene) {
-            this.m_scene = _scene;
-            // Get the cloud popup texture from TextureManager
-            var texture = _scene.game.textures.get('main_menu');
-            var cloud_frame = texture.get('msg_cloud.png');
-            // sets the minimum size from the original texture
-            this.m_min_width = cloud_frame.width;
-            this.m_min_height = cloud_frame.height;
-            // Create nineslice cloud texture
-            this.m_cloud = _scene.add.nineslice(0, 0, cloud_frame.width, cloud_frame.height, { key: 'main_menu', frame: 'msg_cloud.png' }, [61, 72, 69, 59]);
-            this.m_cloud.setOrigin(0.5, 0.5);
-            // Create Text
-            this.m_text = _scene.add.text(this.m_cloud.x, this.m_cloud.y, "", { fontFamily: '"Roboto Condensed"' });
-            this.m_text.setFontSize(50);
-            this.m_text.setColor('black');
-            this.m_text.setOrigin(0.5, 0.5);
-            // Text Padding
-            this.m_top_padding = this.m_min_height * 0.25;
-            this.m_bottom_padding = this.m_min_height * 0.25;
-            this.m_left_padding = this.m_min_width * 0.25;
-            this.m_right_padding = this.m_min_height * 0.25;
-            // sets maximum size from the orinal texture
-            this.setMaxWidth(this.m_min_width);
-            this.m_isOpen = false;
-            return;
-        }
-        CloudPopup.prototype.open = function () {
-            if (!this.m_isOpen) {
-                this.m_cloud.setScale(0, 0);
-                this.m_cloud_tween = this.m_scene.tweens.add({
-                    targets: this.m_cloud,
-                    scale: 1,
-                    duration: 400,
-                    ease: 'Bounce'
-                });
-                this.m_text.setScale(0, 0);
-                this.m_text_tween = this.m_scene.tweens.add({
-                    targets: this.m_text,
-                    scale: 1,
-                    duration: 400,
-                    ease: 'Bounce'
-                });
-                this.m_isOpen = !this.m_isOpen;
-            }
-            return;
-        };
-        CloudPopup.prototype.close = function () {
-            if (this.m_isOpen) {
-                // TODO
-                if (this.m_cloud_tween.isPlaying()) {
-                    this.m_cloud_tween.stop();
-                }
-                if (this.m_text_tween.isPlaying()) {
-                    this.m_text_tween.stop();
-                }
-                this.m_isOpen = !this.m_isOpen;
-            }
-            return;
-        };
-        CloudPopup.prototype.setPosition = function (_x, _y) {
-            this.m_text.setPosition(this.m_text.x + (_x - this.m_cloud.x), this.m_text.y + (_y - this.m_cloud.y));
-            this.m_cloud.setPosition(_x, _y);
-            return;
-        };
-        CloudPopup.prototype.setText = function (_text) {
-            this.m_text.text = _text;
-            this.setSize(this.m_text.width + this.m_left_padding + this.m_right_padding, this.m_text.height + this.m_top_padding + this.m_bottom_padding);
-            return;
-        };
-        CloudPopup.prototype.setMaxWidth = function (_width) {
-            this.m_max_width = this._check_minimum_value(_width, this.m_min_width);
-            this.m_text.setWordWrapWidth(this.m_max_width - this.m_left_padding - this.m_right_padding);
-            return;
-        };
-        CloudPopup.prototype.setSize = function (_width, _height) {
-            this.m_width = this._check_minimum_value(_width, this.m_min_width);
-            this.m_width = this._check_maximum_value(_width, this.m_max_width);
-            this.m_height = this._check_minimum_value(_height, this.m_min_height);
-            this.m_height = _height;
-            this.m_cloud.resize(this.m_width, this.m_height);
-            return;
-        };
-        CloudPopup.prototype.getTextObject = function () {
-            return this.m_text;
-        };
-        CloudPopup.prototype.destroy = function () {
-            return;
-        };
-        /****************************************************/
-        /* Private                                          */
-        /****************************************************/
-        CloudPopup.prototype._check_minimum_value = function (_value, _min) {
-            if (_value < _min) {
-                return _min;
-            }
-            return _value;
-        };
-        CloudPopup.prototype._check_maximum_value = function (_value, _max) {
-            if (_value > _max) {
-                return _max;
-            }
-            return _value;
-        };
-        return CloudPopup;
-    }());
-    exports.CloudPopup = CloudPopup;
 });
 define("game/ui/buttons/button", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -2190,7 +2081,450 @@ define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgB
     }());
     exports.Carousel = Carousel;
 });
-define("scenes/menus/mainMenu", ["require", "exports"], function (require, exports) {
+define("game/components/nineSliceComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_7, gameCommons_10) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var NineSliceComponent = /** @class */ (function (_super) {
+        __extends(NineSliceComponent, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function NineSliceComponent() {
+            var _this = _super.call(this, gameCommons_10.COMPONENT_ID.kNineSlice) || this;
+            return _this;
+        }
+        NineSliceComponent.prototype.init = function (_actor) {
+            this._m_min_width = 0;
+            this._m_min_height = 0;
+            this._m_local_position = new Phaser.Geom.Point(_actor.m_position.x, _actor.m_position.y);
+            return;
+        };
+        NineSliceComponent.prototype.prepare = function (_scene, _texture, _frame, _offsets) {
+            var texture = _scene.game.textures.get(_texture);
+            var frame = texture.get(_frame);
+            // sets the minimum size from the original texture
+            this._m_min_width = frame.width;
+            this._m_min_height = frame.height;
+            // Create nineslice texture
+            this._m_texture = _scene.add.nineslice(this._m_local_position.x, this._m_local_position.y, this._m_min_width, this._m_min_height, { key: _texture, frame: _frame }, _offsets);
+            this._m_texture.setOrigin(0.5, 0.5);
+            return;
+        };
+        NineSliceComponent.prototype.update = function (_actor) {
+            this._m_texture.x = _actor.m_position.x + this._m_local_position.x;
+            this._m_texture.y = _actor.m_position.y + this._m_local_position.y;
+            return;
+        };
+        NineSliceComponent.prototype.receive = function (_id, _data) {
+            if (_id == gameCommons_10.MESSAGE_ID.kOnAgentActive) {
+                this.setVisible(true);
+                this.setActive(true);
+                return;
+            }
+            else if (_id == gameCommons_10.MESSAGE_ID.kOnAgentDesactive) {
+                this.setVisible(false);
+                this.setActive(false);
+                return;
+            }
+        };
+        NineSliceComponent.prototype.resize = function (_width, _height) {
+            this._m_texture.resize(_width, _height);
+            return;
+        };
+        NineSliceComponent.prototype.getMinSize = function () {
+            return new Phaser.Geom.Point(this._m_min_width, this._m_min_height);
+        };
+        NineSliceComponent.prototype.setTexture = function (_texture_key) {
+            return;
+        };
+        NineSliceComponent.prototype.setFrame = function (_frame) {
+            return;
+        };
+        NineSliceComponent.prototype.getTexture = function () {
+            return this._m_texture;
+        };
+        /**
+         * Move the sprite local position (relative to the MxActor position).
+         *
+         * @param _x {number} Steps in the x axis.
+         * @param _y {number} Steps in the y axis.
+         */
+        NineSliceComponent.prototype.move = function (_x, _y) {
+            this._m_local_position.x += _x;
+            this._m_local_position.y += _y;
+            return;
+        };
+        /**
+         * Sets the local position (relative to the MxActor position) of the sprite.
+         *
+         * @param _x
+         * @param _y
+         */
+        NineSliceComponent.prototype.setPosition = function (_x, _y) {
+            this._m_local_position.setTo(_x, _y);
+            return;
+        };
+        /**
+         * Gets the local position (relative to the MxActor position) of the sprite.
+         */
+        NineSliceComponent.prototype.getPosition = function () {
+            return new Phaser.Math.Vector2(this._m_local_position.x, this._m_local_position.y);
+        };
+        /**
+         * The rotation of this Game Object, in degrees. Default 0.
+         * @param _degrees {number} degrees.
+         */
+        NineSliceComponent.prototype.setAngle = function (_degrees) {
+            this._m_texture.setAngle(_degrees);
+        };
+        NineSliceComponent.prototype.setOrigin = function (_x, _y) {
+            this._m_texture.setOrigin(_x, _y);
+            return;
+        };
+        NineSliceComponent.prototype.setVisible = function (_visible) {
+            this._m_texture.setVisible(_visible);
+            return;
+        };
+        NineSliceComponent.prototype.setActive = function (_active) {
+            this._m_texture.setActive(_active);
+            return;
+        };
+        NineSliceComponent.prototype.destroy = function () {
+            this._m_texture.destroy();
+            this._m_local_position = null;
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        return NineSliceComponent;
+    }(mxComponent_7.MxComponent));
+    exports.NineSliceComponent = NineSliceComponent;
+});
+define("game/components/textComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_8, gameCommons_11) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var TextComponent = /** @class */ (function (_super) {
+        __extends(TextComponent, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function TextComponent() {
+            var _this = _super.call(this, gameCommons_11.COMPONENT_ID.kText) || this;
+            _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
+            return _this;
+        }
+        TextComponent.prototype.init = function (_actor) {
+            this._m_local_position = new Phaser.Geom.Point(_actor.m_position.x, _actor.m_position.y);
+            return;
+        };
+        TextComponent.prototype.prepare = function (_scene, _text, _style) {
+            this._m_text = _scene.add.text(this._m_local_position.x, this._m_local_position.y, _text, _style);
+            return;
+        };
+        TextComponent.prototype.update = function (_actor) {
+            this._m_text.x = _actor.m_position.x + this._m_local_position.x;
+            this._m_text.y = _actor.m_position.y + this._m_local_position.y;
+            return;
+        };
+        TextComponent.prototype.receive = function (_id, _data) {
+            if (_id == gameCommons_11.MESSAGE_ID.kOnAgentActive) {
+                this.setVisible(true);
+                this.setActive(true);
+                return;
+            }
+            else if (_id == gameCommons_11.MESSAGE_ID.kOnAgentDesactive) {
+                this.setVisible(false);
+                this.setActive(false);
+                return;
+            }
+        };
+        /**
+         *
+         * @param _size
+         */
+        TextComponent.prototype.setFontSize = function (_size) {
+            this._m_text.setFontSize(_size);
+            return;
+        };
+        /**
+         *
+         * @param _color
+         */
+        TextComponent.prototype.setFontColor = function (_color) {
+            this._m_text.setColor(_color);
+            return;
+        };
+        /**
+         *
+         * @param _color
+         */
+        TextComponent.prototype.setTint = function (_color) {
+            this._m_text.setTint(_color);
+            return;
+        };
+        /**
+         * Set the alignment of the text in this Text object.
+        * The argument can be one of: left, right, center or justify.
+        * Alignment only works if the Text object has more than one line of text.
+        *
+        * @param align — The text alignment for multi-line text. Default 'left'.
+         */
+        TextComponent.prototype.setAlign = function (_align) {
+            if (_align === void 0) { _align = "left"; }
+            this._m_text.setAlign(_align);
+            return;
+        };
+        /**
+         *
+         * @param _text
+         */
+        TextComponent.prototype.setText = function (_text) {
+            this._m_text.text = _text;
+            return;
+        };
+        TextComponent.prototype.setTextObject = function (_text) {
+            this._m_text = _text;
+            return;
+        };
+        TextComponent.prototype.getSize = function () {
+            return new Phaser.Geom.Point(this._m_text.width, this._m_text.height);
+        };
+        TextComponent.prototype.getTextObject = function () {
+            return this._m_text;
+        };
+        /**
+        * Set the width (in pixels) to use for wrapping lines. Pass in null to remove wrapping by width.
+        *
+        * @param _width — The maximum width of a line in pixels. Set to null to remove wrapping.
+        *
+        * @param _useAdvancedWrap — Whether or not to use the advanced wrapping algorithm. If true, spaces are collapsed and whitespace is trimmed from lines. If false,
+        * spaces and whitespace are left as is. Default false.
+        */
+        TextComponent.prototype.setWordWrapWidth = function (_width, _useAdvanceWrap) {
+            if (_useAdvanceWrap === void 0) { _useAdvanceWrap = false; }
+            this._m_text.setWordWrapWidth(_width, _useAdvanceWrap);
+            return;
+        };
+        /**
+         * Move the sprite local position (relative to the MxActor position).
+         *
+         * @param _x {number} Steps in the x axis.
+         * @param _y {number} Steps in the y axis.
+         */
+        TextComponent.prototype.move = function (_x, _y) {
+            this._m_local_position.x += _x;
+            this._m_local_position.y += _y;
+            return;
+        };
+        /**
+         * Sets the local position (relative to the MxActor position) of the sprite.
+         *
+         * @param _x
+         * @param _y
+         */
+        TextComponent.prototype.setPosition = function (_x, _y) {
+            this._m_local_position.setTo(_x, _y);
+            return;
+        };
+        /**
+         * Gets the local position (relative to the MxActor position) of the sprite.
+         */
+        TextComponent.prototype.getPosition = function () {
+            return new Phaser.Math.Vector2(this._m_local_position.x, this._m_local_position.y);
+        };
+        /**
+         * The rotation of this Game Object, in degrees. Default 0.
+         * @param _degrees {number} degrees.
+         */
+        TextComponent.prototype.setAngle = function (_degrees) {
+            this._m_text.setAngle(_degrees);
+        };
+        TextComponent.prototype.setOrigin = function (_x, _y) {
+            this._m_text.setOrigin(_x, _y);
+            return;
+        };
+        TextComponent.prototype.setVisible = function (_visible) {
+            this._m_text.setVisible(_visible);
+            return;
+        };
+        TextComponent.prototype.setActive = function (_active) {
+            this._m_text.setActive(_active);
+            return;
+        };
+        TextComponent.prototype.destroy = function () {
+            this._m_text.destroy();
+            this._m_local_position = null;
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        return TextComponent;
+    }(mxComponent_8.MxComponent));
+    exports.TextComponent = TextComponent;
+});
+define("game/ui/cloudPopup/components/popupController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_9, gameCommons_12) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var PopupController = /** @class */ (function (_super) {
+        __extends(PopupController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function PopupController() {
+            var _this = _super.call(this, gameCommons_12.COMPONENT_ID.kPopupController) || this;
+            return _this;
+        }
+        PopupController.prototype.init = function (_actor) {
+            // get components.
+            this._m_nineSliceComponent = _actor.getComponent(gameCommons_12.COMPONENT_ID.kNineSlice);
+            this._m_textComponent = _actor.getComponent(gameCommons_12.COMPONENT_ID.kText);
+            return;
+        };
+        PopupController.prototype.prepare = function (_scene) {
+            this._m_scene = _scene;
+            // define nineslice min size.
+            var min_size = this._m_nineSliceComponent.getMinSize();
+            this._m_min_width = min_size.x;
+            this._m_min_height = min_size.y;
+            // define padding
+            this._m_top_padding = this._m_min_height * 0.25;
+            this._m_bottom_padding = this._m_min_height * 0.25;
+            this._m_left_padding = this._m_min_width * 0.25;
+            this._m_right_padding = this._m_min_height * 0.25;
+            // sets maximum size from the orinal texture
+            this.setMaxWidth(this._m_min_width);
+            this._m_isOpen = false;
+            return;
+        };
+        PopupController.prototype.open = function () {
+            if (!this._m_isOpen) {
+                var nineTexture = this._m_nineSliceComponent.getTexture();
+                nineTexture.setScale(0, 0);
+                this._m_texture_tween = this._m_scene.tweens.add({
+                    targets: nineTexture,
+                    scale: 1,
+                    duration: 400,
+                    ease: 'Bounce'
+                });
+                var text = this._m_textComponent.getTextObject();
+                text.setScale(0, 0);
+                this._m_text_tween = this._m_scene.tweens.add({
+                    targets: text,
+                    scale: 1,
+                    duration: 400,
+                    ease: 'Bounce'
+                });
+                this._m_isOpen = !this._m_isOpen;
+            }
+            return;
+        };
+        PopupController.prototype.close = function () {
+            if (this._m_isOpen) {
+                if (this._m_texture_tween.isPlaying()) {
+                    this._m_texture_tween.stop();
+                }
+                if (this._m_text_tween.isPlaying()) {
+                    this._m_text_tween.stop();
+                }
+                this._m_isOpen = !this._m_isOpen;
+            }
+            return;
+        };
+        PopupController.prototype.setMaxWidth = function (_width) {
+            this._m_max_width = this._check_minimum_value(_width, this._m_min_width);
+            this._m_textComponent.setWordWrapWidth(this._m_max_width - this._m_left_padding - this._m_right_padding);
+            return;
+        };
+        PopupController.prototype.setText = function (_text) {
+            this._m_textComponent.setText(_text);
+            var textSize = this._m_textComponent.getSize();
+            this.setSize(textSize.x + this._m_left_padding + this._m_right_padding, textSize.y + this._m_top_padding + this._m_bottom_padding);
+            return;
+        };
+        PopupController.prototype.setSize = function (_width, _height) {
+            this._m_width = this._check_minimum_value(_width, this._m_min_width);
+            this._m_width = this._check_maximum_value(_width, this._m_max_width);
+            this._m_height = this._check_minimum_value(_height, this._m_min_height);
+            this._m_height = _height;
+            this._m_nineSliceComponent.resize(this._m_width, this._m_height);
+            return;
+        };
+        PopupController.prototype.destroy = function () {
+            this._m_nineSliceComponent = null;
+            this._m_textComponent = null;
+            if (this._m_text_tween != null) {
+                this._m_text_tween.destroy();
+                this._m_text_tween = null;
+            }
+            if (this._m_texture_tween != null) {
+                this._m_texture_tween.destroy();
+                this._m_texture_tween = null;
+            }
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        PopupController.prototype._check_minimum_value = function (_value, _min) {
+            if (_value < _min) {
+                return _min;
+            }
+            return _value;
+        };
+        PopupController.prototype._check_maximum_value = function (_value, _max) {
+            if (_value > _max) {
+                return _max;
+            }
+            return _value;
+        };
+        return PopupController;
+    }(mxComponent_9.MxComponent));
+    exports.PopupController = PopupController;
+});
+define("game/ui/cloudPopup/Popup", ["require", "exports", "utilities/component/mxActor", "game/components/nineSliceComponent", "game/components/textComponent", "game/ui/cloudPopup/components/popupController"], function (require, exports, mxActor_4, nineSliceComponent_1, textComponent_1, popupController_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Popup Factories
+     */
+    var Popup = /** @class */ (function () {
+        function Popup() {
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        /**
+         * Creates a cloudpoup.
+         *
+         * @param _scene Phaser.Scene
+         * @param _id Actor's id.
+         */
+        Popup.CreateCloud = function (_scene, _id) {
+            var actor = mxActor_4.MxActor.Create(_id);
+            ///////////////////////////////////
+            // Create Components
+            var popupController = new popupController_1.PopupController();
+            actor.addComponent(popupController);
+            var nineSliceComponent = new nineSliceComponent_1.NineSliceComponent();
+            actor.addComponent(nineSliceComponent);
+            var textComponent = new textComponent_1.TextComponent();
+            actor.addComponent(textComponent);
+            actor.init();
+            ///////////////////////////////////
+            // Prepare Components
+            nineSliceComponent.prepare(_scene, 'main_menu', 'msg_cloud.png', [61, 72, 69, 59]);
+            textComponent.prepare(_scene, "", { fontFamily: '"Roboto Condensed"' });
+            textComponent.setFontSize(30);
+            textComponent.setOrigin(0.5, 0.5);
+            textComponent.setFontColor('black');
+            textComponent.setAlign('center');
+            popupController.prepare(_scene);
+            return actor;
+        };
+        return Popup;
+    }());
+    exports.Popup = Popup;
+});
+define("scenes/menus/mainMenu", ["require", "exports", "game/ui/buttons/nineButton", "game/ui/carousel/carousel", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/cloudPopup/Popup"], function (require, exports, nineButton_1, carousel_1, masterManager_4, gameCommons_13, Popup_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -2201,195 +2535,142 @@ define("scenes/menus/mainMenu", ["require", "exports"], function (require, expor
         function MainMenu() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        MainMenu.prototype.create = function () {
-            /*
-            // gameCommons
-            let half_width : number = this.game.canvas.width * 0.5;
-    
-            // gets the Game Manager.
-            this.m_game_manager
-                = this.m_master.getManager<GameManager>(MANAGER_ID.kGameManager);
-            
-            // gets the DataManager from GameManager.
-            this.m_data_mng = this.m_game_manager.getDataManager();
-    
-            // Create the cloud poupup.
-            this.m_cloud_popup = new  CloudPopup(this);
-            this.m_cloud_popup.setMaxWidth(800);
-            this.m_cloud_popup.setPosition
-            (
-                half_width,
-                this.game.canvas.height * 0.9
-            );
-    
-            // display first tip.
-            this.m_tip_num = 0;
-            this.nextTip();
-            
-            ///////////////////////////////////
-            // Buttons
-    
-            // Time Preferences Buttons
-            this.m_pref_buttons = new Array<NineButton>();
-            
-            let but_pos = new  Phaser.Geom.Point
-            (
-                half_width,
-                this.game.canvas.height * 0.1
-            );
-    
-            let button : NineButton;
-            let a_times = [ 5, 3, 1 ];
-            
-            for(let index = 0; index < 3; ++index) {
-                button = NineButton.CreateDefault
-                (
-                    this,
-                    but_pos.x,
-                    but_pos.y,
-                    '' + a_times[index] + ' minutes',
-                    function() {
-                        this._onClick_minute_button(a_times[index] * 60);
-                    },
-                    this
-                );
-    
-                this.m_pref_buttons.push(button);
-                but_pos.y += button.getHeight() + 20;
-            }
-            this._close_prefs();
-    
-            // play
-            this.m_play_button = NineButton.CreateDefault
-            (
-                this,
-                half_width,
-                this.game.canvas.height * 0.1,
-                "Play",
-                this._onClick_play,
-                this
-            );
-    
-            // tip
-            NineButton.CreateDefault
-            (
-                this,
-                half_width,
-                this.game.canvas.height * 0.75,
-                "Next Tip",
-                this.nextTip,
-                this
-            );
-    
-            ///////////////////////////////////
-            // Carousel
-            
-            this.m_carousel = new Carousel
-            (
-                this,
-                half_width,
-                this.game.canvas.height * 0.5,
-                450,
-                'main_menu',
-                'clock_idx_',
-                '.png',
-                CLOCK_STYLE.kCount
-            );
-            this.m_carousel.addListener('active_changed', this._onCarouselChanged, this);
-            
-            // carousel title
-            let carousel_title = this.add.text
-            (
-                half_width,
-                this.game.canvas.height * 0.35,
-                this.m_data_mng.getString('choose_clock'),
-                { fontFamily: '"Roboto Condensed"' }
-            );
-    
-            carousel_title.setFontSize(50);
-            carousel_title.setColor('black');
-            carousel_title.setOrigin(0.5,0.5);
-    
-            // carousel item name.
-            this.m_carousel_item_name = this.add.text
-            (
-                half_width,
-                this.game.canvas.height * 0.65,
-                "",
-                { fontFamily: '"Roboto Condensed"' }
-            );
-    
-            this.m_carousel_item_name.setFontSize(50);
-            this.m_carousel_item_name.setColor('black');
-            this.m_carousel_item_name.setOrigin(0.5,0.5);
-    
-            // display default element
-            this.m_carousel.setActive
-            (
-                this.m_game_manager.getUserPreference().getClockStyle()
-            );
-                */
-            return;
-        };
         /****************************************************/
         /* Public                                           */
         /****************************************************/
+        MainMenu.prototype.create = function () {
+            // gameCommons
+            var half_width = this.game.canvas.width * 0.5;
+            // MasterManager
+            var master = masterManager_4.MasterManager.GetInstance();
+            // GameManager.
+            var gameManager = master.get_child(gameCommons_13.MANAGER_ID.kGameManager);
+            // GameController
+            this._m_gameController
+                = gameManager.getComponent(gameCommons_13.COMPONENT_ID.kGameController);
+            // DataController
+            this._m_dataController
+                = gameManager.getComponent(gameCommons_13.COMPONENT_ID.kDataController);
+            ///////////////////////////////////
+            // Cloud Popup
+            this._m_cloud_popup = Popup_1.Popup.CreateCloud(this, 1);
+            var popupController = this._m_cloud_popup.getComponent(gameCommons_13.COMPONENT_ID.kPopupController);
+            popupController.setMaxWidth(800);
+            this._m_cloud_popup.m_position.setTo(half_width, this.game.canvas.height * 0.9);
+            // display first tip.
+            this._m_tip_num = 0;
+            this._nextTip();
+            ///////////////////////////////////
+            // Buttons
+            // Time Preferences Buttons
+            this._m_a_preferenceButtons = new Array();
+            var but_pos = new Phaser.Geom.Point(half_width, this.game.canvas.height * 0.1);
+            var button;
+            var a_times = [5, 3, 1];
+            var _loop_1 = function (index) {
+                button = nineButton_1.NineButton.CreateDefault(this_1, but_pos.x, but_pos.y, '' + a_times[index] + ' minutes', function () {
+                    this._onClick_minute_button(a_times[index] * 60);
+                }, this_1);
+                this_1._m_a_preferenceButtons.push(button);
+                but_pos.y += button.getHeight() + 20;
+            };
+            var this_1 = this;
+            for (var index = 0; index < 3; ++index) {
+                _loop_1(index);
+            }
+            this._close_prefs();
+            // play
+            this._m_play_button = nineButton_1.NineButton.CreateDefault(this, half_width, this.game.canvas.height * 0.1, "Play", this._onClick_play, this);
+            // tip
+            nineButton_1.NineButton.CreateDefault(this, half_width, this.game.canvas.height * 0.75, "Next Tip", this._nextTip, this);
+            ///////////////////////////////////
+            // Carousel
+            this._m_carousel = new carousel_1.Carousel(this, half_width, this.game.canvas.height * 0.5, 450, 'main_menu', 'clock_idx_', '.png', gameCommons_13.CLOCK_STYLE.kCount);
+            this._m_carousel.addListener('active_changed', this._onCarouselChanged, this);
+            // carousel title
+            var carousel_title = this.add.text(half_width, this.game.canvas.height * 0.35, this._m_dataController.getString('choose_clock'), { fontFamily: '"Roboto Condensed"' });
+            carousel_title.setFontSize(50);
+            carousel_title.setColor('black');
+            carousel_title.setOrigin(0.5, 0.5);
+            // carousel item name.
+            this._m_carousel_item_name = this.add.text(half_width, this.game.canvas.height * 0.65, "", { fontFamily: '"Roboto Condensed"' });
+            this._m_carousel_item_name.setFontSize(50);
+            this._m_carousel_item_name.setColor('black');
+            this._m_carousel_item_name.setOrigin(0.5, 0.5);
+            // display default element
+            this._m_carousel.setActive(this._m_gameController._m_user_preferences.getClockStyle());
+            return;
+        };
+        /**
+         *
+         */
+        MainMenu.prototype.update = function () {
+            this._m_cloud_popup.update();
+            return;
+        };
         /**
         * Safely destroys the object.
         */
         MainMenu.prototype.destroy = function () {
-            this.m_carousel.destroy();
-            this.m_carousel = null;
-            this.m_cloud_popup.destroy();
-            this.m_cloud_popup = null;
-            this.m_play_button.destroy();
-            while (this.m_pref_buttons.length) {
-                var button = this.m_pref_buttons.pop();
+            this._m_carousel.destroy();
+            this._m_carousel = null;
+            this._m_cloud_popup.destroy();
+            this._m_cloud_popup = null;
+            this._m_play_button.destroy();
+            while (this._m_a_preferenceButtons.length) {
+                var button = this._m_a_preferenceButtons.pop();
                 button.destroy();
             }
-            this.m_pref_buttons = null;
-            this.m_game_manager = null;
-            //this.m_data_mng = null;        
+            this._m_a_preferenceButtons = null;
+            this._m_dataController = null;
+            this._m_gameController = null;
             return;
         };
         /****************************************************/
         /* Private                                          */
         /****************************************************/
         MainMenu.prototype._onClick_minute_button = function (_time) {
-            /*
-            let prefs : UserPreferences
-                = this.m_game_manager.getUserPreference();
-            prefs.chrono_value = _time;
-    
+            this._m_gameController._m_user_preferences.chrono_value = _time;
             // TODO : descomentar,hasta tener el skin de todos los relojes.
-            //prefs.setClockStyle(this.m_carousel.getCurrentIdx());
-            prefs.setClockStyle(0);
-    
+            //prefs.setClockStyle(this.m_carousel.getCurrentIdx()); 
+            this._m_gameController._m_user_preferences.setClockStyle(1);
             this.destroy();
             this.scene.start('mainGame');
-            return;*/
+            return;
         };
         MainMenu.prototype._onCarouselChanged = function () {
+            this._m_carousel_item_name.text
+                = this._m_dataController.getString('clock_name_' + this._m_carousel.getCurrentIdx());
             return;
         };
         MainMenu.prototype._close_prefs = function () {
-            this.m_pref_buttons.forEach(function (_button) {
+            this._m_a_preferenceButtons.forEach(function (_button) {
                 _button.close();
             }, this);
             return;
         };
         MainMenu.prototype._open_prefs = function () {
-            this.m_pref_buttons.forEach(function (_button) {
+            this._m_a_preferenceButtons.forEach(function (_button) {
                 _button.open();
             }, this);
             return;
         };
         MainMenu.prototype._onClick_play = function () {
             this._open_prefs();
-            this.m_play_button.close();
+            this._m_play_button.close();
             return;
         };
-        MainMenu.prototype.nextTip = function () {
+        MainMenu.prototype._nextTip = function () {
+            var popupController = this._m_cloud_popup.getComponent(gameCommons_13.COMPONENT_ID.kPopupController);
+            popupController.setText(this._m_dataController.getString('menu_tip_0' + this._m_tip_num));
+            popupController.close();
+            popupController.open();
+            // iterate over tips.
+            this._m_tip_num++;
+            if (this._m_tip_num > 5) {
+                this._m_tip_num = 0;
+            }
+            return;
         };
         return MainMenu;
     }(Phaser.Scene));
@@ -2573,7 +2854,7 @@ define("scenes/levels/game_level", ["require", "exports"], function (require, ex
     }(Phaser.Scene));
     exports.MainGame = MainGame;
 });
-define("scenes/localization", ["require", "exports", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, gameCommons_10, masterManager_4) {
+define("scenes/localization", ["require", "exports", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, gameCommons_14, masterManager_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var LocalizationScene = /** @class */ (function (_super) {
@@ -2601,19 +2882,19 @@ define("scenes/localization", ["require", "exports", "game/gameCommons", "game/m
         /* Private                                          */
         /****************************************************/
         LocalizationScene.prototype._onClick_english = function () {
-            var master = masterManager_4.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_10.MANAGER_ID.kGameManager);
-            var gameController = gameManager.getComponent(gameCommons_10.COMPONENT_ID.kGameController);
-            gameController.setLocalization(gameCommons_10.LOCALIZATION.kEnglish);
+            var master = masterManager_5.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_14.MANAGER_ID.kGameManager);
+            var gameController = gameManager.getComponent(gameCommons_14.COMPONENT_ID.kGameController);
+            gameController.setLocalization(gameCommons_14.LOCALIZATION.kEnglish);
             // TODO: start preload scene.
             this.scene.start('preloader');
             return;
         };
         LocalizationScene.prototype._onClick_spanish = function () {
-            var master = masterManager_4.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_10.MANAGER_ID.kGameManager);
-            var gameController = gameManager.getComponent(gameCommons_10.COMPONENT_ID.kGameController);
-            gameController.setLocalization(gameCommons_10.LOCALIZATION.KSpanish);
+            var master = masterManager_5.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_14.MANAGER_ID.kGameManager);
+            var gameController = gameManager.getComponent(gameCommons_14.COMPONENT_ID.kGameController);
+            gameController.setLocalization(gameCommons_14.LOCALIZATION.KSpanish);
             // TODO: start preload scene.
             this.scene.start('preloader');
             return;
@@ -2665,6 +2946,107 @@ define("game_init", ["require", "exports", "scenes/preloader", "scenes/boot", "s
         return GameInit;
     }());
     return GameInit;
+});
+define("game/components/spriteComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_10, gameCommons_15) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var SpriteComponent = /** @class */ (function (_super) {
+        __extends(SpriteComponent, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function SpriteComponent() {
+            var _this = _super.call(this, gameCommons_15.COMPONENT_ID.kSprite) || this;
+            _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
+            return _this;
+        }
+        SpriteComponent.prototype.update = function (_actor) {
+            this._m_sprite.x = _actor.m_position.x + this._m_local_position.x;
+            this._m_sprite.y = _actor.m_position.y + this._m_local_position.y;
+            return;
+        };
+        SpriteComponent.prototype.receive = function (_id, _data) {
+            if (_id == gameCommons_15.MESSAGE_ID.kOnAgentActive) {
+                this.setVisible(true);
+                this.setActive(true);
+                return;
+            }
+            else if (_id == gameCommons_15.MESSAGE_ID.kOnAgentDesactive) {
+                this.setVisible(false);
+                this.setActive(false);
+                return;
+            }
+        };
+        SpriteComponent.prototype.setSprite = function (_sprite) {
+            this._m_sprite = _sprite;
+            return;
+        };
+        SpriteComponent.prototype.setTexture = function (_texture_key) {
+            this._m_sprite.setTexture(_texture_key);
+            return;
+        };
+        SpriteComponent.prototype.setFrame = function (_frame) {
+            this._m_sprite.setFrame(_frame);
+            return;
+        };
+        SpriteComponent.prototype.getSprite = function () {
+            return this._m_sprite;
+        };
+        /**
+         * Move the sprite local position (relative to the MxActor position).
+         *
+         * @param _x {number} Steps in the x axis.
+         * @param _y {number} Steps in the y axis.
+         */
+        SpriteComponent.prototype.move = function (_x, _y) {
+            this._m_local_position.x += _x;
+            this._m_local_position.y += _y;
+            return;
+        };
+        /**
+         * Sets the local position (relative to the MxActor position) of the sprite.
+         *
+         * @param _x
+         * @param _y
+         */
+        SpriteComponent.prototype.setPosition = function (_x, _y) {
+            this._m_local_position.setTo(_x, _y);
+            return;
+        };
+        /**
+         * Gets the local position (relative to the MxActor position) of the sprite.
+         */
+        SpriteComponent.prototype.getPosition = function () {
+            return new Phaser.Math.Vector2(this._m_local_position.x, this._m_local_position.y);
+        };
+        /**
+         * The rotation of this Game Object, in degrees. Default 0.
+         * @param _degrees {number} degrees.
+         */
+        SpriteComponent.prototype.setAngle = function (_degrees) {
+            this._m_sprite.setAngle(_degrees);
+        };
+        SpriteComponent.prototype.setOrigin = function (_x, _y) {
+            this._m_sprite.setOrigin(_x, _y);
+            return;
+        };
+        SpriteComponent.prototype.setVisible = function (_visible) {
+            this._m_sprite.setVisible(_visible);
+            return;
+        };
+        SpriteComponent.prototype.setActive = function (_active) {
+            this._m_sprite.setActive(_active);
+            return;
+        };
+        SpriteComponent.prototype.destroy = function () {
+            this._m_sprite.destroy();
+            this._m_local_position = null;
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        return SpriteComponent;
+    }(mxComponent_10.MxComponent));
+    exports.SpriteComponent = SpriteComponent;
 });
 define("scenes/levels/testing/test_level_tiled", ["require", "exports"], function (require, exports) {
     "use strict";

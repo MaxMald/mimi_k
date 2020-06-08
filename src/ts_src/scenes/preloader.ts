@@ -217,6 +217,7 @@ export class Preloader extends Phaser.Scene
     }
 
     csv_file.destroy();
+    this.scene.start('mainMenu');
     return;
   }
 
@@ -231,8 +232,8 @@ export class Preloader extends Phaser.Scene
 
   _get_image_collection
   (
-      _map : Phaser.Tilemaps.Tilemap,
-      _name : string   
+    _map : Phaser.Tilemaps.Tilemap,
+    _name : string   
   ) 
   : Phaser.Tilemaps.ImageCollection {
         
@@ -251,7 +252,7 @@ export class Preloader extends Phaser.Scene
 
   _get_images_from_collection
   (
-      _img_collection : Phaser.Tilemaps.ImageCollection
+    _img_collection : Phaser.Tilemaps.ImageCollection
   ) : string[] {
     let images : string[] = new Array<string>();
     let images_from_collection = _img_collection.images;

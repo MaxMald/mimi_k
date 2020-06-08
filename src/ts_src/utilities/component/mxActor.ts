@@ -73,8 +73,7 @@ export class MxActor extends MxUObject
      * Prepare the Master Manager and NullObject.
      */
     static Prepare()
-    : void 
-    {
+    : void {
         if( MxActor._NULL_OBJECT === undefined 
             || MxActor._NULL_OBJECT == null )
         {
@@ -131,8 +130,7 @@ export class MxActor extends MxUObject
         _id : number,        
         _m_parent ?: MxActor 
     )
-    : MxActor
-    {
+    : MxActor {
         let actor : MxActor = new MxActor();
 
         actor._m_children_manager = new MxChildrenManager<MxActor>();
@@ -153,8 +151,7 @@ export class MxActor extends MxUObject
      * @param _id {number} MxManager identifier.
      */
     create(_id : number)
-    : MxActor
-    {
+    : MxActor {
         let actor : MxActor = MxActor.Create(_id, this);
         
         if(this._m_children_manager.add(actor) != OPRESULT.kOk) {
@@ -166,8 +163,7 @@ export class MxActor extends MxUObject
     }
 
     addChild(_child : MxActor)
-    : OPRESULT
-    {
+    : OPRESULT {
         if(this._m_children_manager.exists(_child.get_id())) {
             return OPRESULT.kObject_already_exists;
         }
@@ -207,9 +203,8 @@ export class MxActor extends MxUObject
         return this._m_component_mg;
     }
 
-    public addComponent(_component : MxComponent)
-    : OPRESULT
-    {
+    addComponent(_component : MxComponent)
+    : OPRESULT {
         return this._m_component_mg.addComponent(_component);
     }
 
@@ -244,8 +239,7 @@ export class MxActor extends MxUObject
         _data : unknown, 
         _recursive: boolean = false
     )
-    : void 
-    {
+    : void {
         this._m_component_mg.sendMessage(_id, _data);
 
         if(_recursive) {
@@ -280,7 +274,7 @@ export class MxActor extends MxUObject
         this._m_component_mg.destroy();
         super.destroy();
         return;
-    }    
+    }
 
     /**
      * Removes a child by its identifier.
@@ -288,8 +282,7 @@ export class MxActor extends MxUObject
      * @param _id MxManager identifier. 
      */
     public remove_child_by_id(_id : number)
-    : MxActor
-    {
+    : MxActor {
         let to_remove : MxActor =  
             this._m_children_manager.remove_by_id(_id);
         
@@ -305,8 +298,7 @@ export class MxActor extends MxUObject
      * @param _manager 
      */
     public remove_child(_manager : MxActor)
-    : void
-    {
+    : void {
         this._m_children_manager.remove(_manager);
         return;
     }
@@ -360,8 +352,7 @@ export class MxActor extends MxUObject
     /* Protected                                        */
     /****************************************************/
     
-    protected constructor() 
-    {
+    protected constructor() {
         super();
 
         this.m_position = new Phaser.Geom.Point(0.0, 0.0);

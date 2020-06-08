@@ -31,10 +31,10 @@ export type CLOCK_STYLE = EnumLiteralsOf<typeof CLOCK_STYLE>;
 
 export const CLOCK_STYLE = Object.freeze
 ({
-    kSand : 1 as 1,
-    kDigital : 2 as 2,
-    kAnalog : 3 as 3,
-    kCount : 4 as 4
+    kSand : 0 as 0,
+    kDigital : 1 as 1,
+    kAnalog : 2 as 2,
+    kCount : 3 as 3
 });
 
 ///////////////////////////////////
@@ -47,7 +47,11 @@ export const COMPONENT_ID = Object.freeze
     kChronoController : 1 as 1,
     kMasterController : 2 as 2,
     kGameController : 3 as 3,
-    kDataController : 4 as 4
+    kDataController : 4 as 4,
+    kSprite : 5 as 5,
+    kNineSlice : 6 as 6,
+    kText : 7 as 7,
+    kPopupController : 8 as 8
 });
 
 ///////////////////////////////////
