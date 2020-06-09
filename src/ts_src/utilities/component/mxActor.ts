@@ -21,12 +21,7 @@ export class MxActor extends MxUObject
     /**
      * Object's direction.
      */
-    m_direction : Phaser.Math.Vector2;
-
-    /**
-     * Object's position.
-     */
-    m_position : Phaser.Geom.Point;
+    m_direction : Phaser.Math.Vector2;    
 
     /**
      * Reference to the ObjecPool of this MxActor. This can be null.
@@ -59,6 +54,17 @@ export class MxActor extends MxUObject
      */
     _m_id : number;
 
+    /**
+     * Object's position in the world.
+     */
+    _m_position : Phaser.Geom.Point;
+
+    /**
+     * Object's relative position. f you want to modified the actor's position, use
+     * the method setPosition instead, so the relative position can be modified too.
+     */
+    _m_relative_position : Phaser.Geom.Point;
+
     /****************************************************/
     /* Private                                          */
     /****************************************************/
@@ -73,7 +79,8 @@ export class MxActor extends MxUObject
      * Prepare the Master Manager and NullObject.
      */
     static Prepare()
-    : void {
+    : void 
+    {
         if( MxActor._NULL_OBJECT === undefined 
             || MxActor._NULL_OBJECT == null )
         {
@@ -93,7 +100,8 @@ export class MxActor extends MxUObject
      * Shutdown Null Object.
      */
     static Shutdown()
-    : void {
+    : void 
+    {
         if (typeof MxActor._NULL_OBJECT == 'object')
         {
             this._NULL_OBJECT.destroy();
@@ -106,7 +114,8 @@ export class MxActor extends MxUObject
      * Check if the given object is the Null Object.
      */
     static IsNull(_obj : MxActor)
-    : boolean {
+    : boolean 
+    {
         let _obj_uuid : MxUUID = _obj.getUUID();
         return this._NULL_OBJECT.getUUID().compare(_obj_uuid);
     }
@@ -115,7 +124,8 @@ export class MxActor extends MxUObject
      * Get Object Null.
      */
     static GetNull()
-    : MxActor {
+    : MxActor 
+    {
         return this._NULL_OBJECT;
     }
 
@@ -130,16 +140,24 @@ export class MxActor extends MxUObject
         _id : number,        
         _m_parent ?: MxActor 
     )
-    : MxActor {
+    : MxActor 
+    {
         let actor : MxActor = new MxActor();
 
         actor._m_children_manager = new MxChildrenManager<MxActor>();
         actor._m_id = _id;
-        actor._m_tag = -1;
+        actor._m_tag = -1;       
       
-        actor._m_parent
-            = (typeof _m_parent == 'object' ? _m_parent : MxActor.GetNull());
+        if(typeof _m_parent == 'object') {
+          if(_m_parent.addChild(actor) == OPRESULT.kOk) {
+            actor._m_parent = MxActor.GetNull();
+          }
+        }
+        else {
+          actor._m_parent = MxActor.GetNull();
+        }
         
+        actor.setRelativePosition(0,0);
         return actor;
     }
 
@@ -151,7 +169,8 @@ export class MxActor extends MxUObject
      * @param _id {number} MxManager identifier.
      */
     create(_id : number)
-    : MxActor {
+    : MxActor 
+    {
         let actor : MxActor = MxActor.Create(_id, this);
         
         if(this._m_children_manager.add(actor) != OPRESULT.kOk) {
@@ -159,20 +178,27 @@ export class MxActor extends MxUObject
             return MxActor.GetNull();
         }
 
+        actor._m_parent = this;
         return actor;
     }
 
     addChild(_child : MxActor)
-    : OPRESULT {
+    : OPRESULT 
+    {
         if(this._m_children_manager.exists(_child.get_id())) {
             return OPRESULT.kObject_already_exists;
         }
 
-        return this._m_children_manager.add(_child);
+        let result : OPRESULT = this._m_children_manager.add(_child);
+        if(result == OPRESULT.kOk) {
+            _child._m_parent = this;
+        }
+        return result; 
     }
 
     init()
-    : void {
+    : void 
+    {
         this._m_component_mg.init();
         this._m_children_manager.forEach
         (
@@ -187,7 +213,9 @@ export class MxActor extends MxUObject
      * Update MxActor's components.
      */
     update()
-    : void  {
+    : void  
+    {
+        this.updatePosition();
         this._m_component_mg.update();
         this._m_children_manager.forEach (
             this._update_child
@@ -199,12 +227,14 @@ export class MxActor extends MxUObject
      * Get this MxActor's MxComponentManager.
      */
     getComponentMng()
-    : MxComponentMng {
+    : MxComponentMng 
+    {
         return this._m_component_mg;
     }
 
     addComponent(_component : MxComponent)
-    : OPRESULT {
+    : OPRESULT 
+    {
         return this._m_component_mg.addComponent(_component);
     }
 
@@ -212,18 +242,46 @@ export class MxActor extends MxUObject
      * Get this MxActor's MxComponent.
      * @param _id 
      */
-    public getComponent<T extends MxComponent>(_id : number)
-    : T {
+    getComponent<T extends MxComponent>(_id : number)
+    : T 
+    {
         return this._m_component_mg.getComponent<T>(_id);
     }
 
     /**
      * Clears de MxComponentManager.
      */
-    public clearComponentManager()
-    : void {
+    clearComponentManager()
+    : void 
+    {
         this._m_component_mg.clear();
         return;
+    }
+
+    setRelativePosition(_x : number, _y : number)
+    : void
+    {
+      this._m_relative_position.x = _x;
+      this._m_relative_position.y = _y;
+      
+      this.updatePosition();
+      return;
+    }
+
+    updatePosition()
+    : void
+    {
+      if(!MxActor.IsNull(this._m_parent))
+      {
+        this._m_position.x = this._m_parent._m_position.x + this._m_relative_position.x;
+        this._m_position.y = this._m_parent._m_position.y + this._m_relative_position.y;
+      }
+      else
+      {
+        this._m_position.x = this._m_relative_position.x;
+        this._m_position.y = this._m_relative_position.y;
+      }
+      return;
     }
 
     /**
@@ -233,13 +291,14 @@ export class MxActor extends MxUObject
      * @param _data Message data.
      * @param _recursive Send the message to the the MxActor's childrens.
      */
-    public sendMessage
+    sendMessage
     (
         _id : number, 
         _data : unknown, 
         _recursive: boolean = false
     )
-    : void {
+    : void 
+    {
         this._m_component_mg.sendMessage(_id, _data);
 
         if(_recursive) {
@@ -254,8 +313,9 @@ export class MxActor extends MxUObject
      * @param _id Message identifier. 
      * @param _data Message data.
      */
-    public sendMessage_to_children(_id : number, _data : unknown)
-    : void {
+    sendMessage_to_children(_id : number, _data : unknown)
+    : void 
+    {
         this._m_children_manager.forEach
         (
             function(_child : MxActor) {
@@ -268,8 +328,9 @@ export class MxActor extends MxUObject
     /**
      * Safely destroys this MxActor, children will be destroyed too.
      */
-    public destroy()
-    : void {
+    destroy()
+    : void 
+    {
         this._m_children_manager.destroy();
         this._m_component_mg.destroy();
         super.destroy();
@@ -281,8 +342,9 @@ export class MxActor extends MxUObject
      * 
      * @param _id MxManager identifier. 
      */
-    public remove_child_by_id(_id : number)
-    : MxActor {
+    remove_child_by_id(_id : number)
+    : MxActor 
+    {
         let to_remove : MxActor =  
             this._m_children_manager.remove_by_id(_id);
         
@@ -297,8 +359,9 @@ export class MxActor extends MxUObject
      * 
      * @param _manager 
      */
-    public remove_child(_manager : MxActor)
-    : void {
+    remove_child(_manager : MxActor)
+    : void 
+    {
         this._m_children_manager.remove(_manager);
         return;
     }
@@ -308,8 +371,9 @@ export class MxActor extends MxUObject
      * 
      * @param _id MxManager identifier. 
      */
-    public get_child(_id : number)
-    : MxActor {
+    get_child(_id : number)
+    : MxActor 
+    {
         if(typeof this._m_children_manager == 'object') {
             if(this._m_children_manager.exists(_id)) {
                 return this._m_children_manager.getChild(_id);
@@ -321,13 +385,15 @@ export class MxActor extends MxUObject
     /**
      * Gets this actor's identifier.
      */
-    public get_id()
-    : number {
+    get_id()
+    : number 
+    {
         return this._m_id;
     }
 
-    public mxActive()
-    : void {
+    mxActive()
+    : void 
+    {
         this.sendMessage
         (
             MESSAGE_ID.kOnAgentActive,
@@ -337,8 +403,9 @@ export class MxActor extends MxUObject
         return;
     }
 
-    public mxDesactive()
-    : void {
+    mxDesactive()
+    : void 
+    {
         this.sendMessage
         (
             MESSAGE_ID.kOnAgentDesactive,
@@ -352,10 +419,12 @@ export class MxActor extends MxUObject
     /* Protected                                        */
     /****************************************************/
     
-    protected constructor() {
+    protected constructor() 
+    {
         super();
 
-        this.m_position = new Phaser.Geom.Point(0.0, 0.0);
+        this._m_position = new Phaser.Geom.Point(0.0, 0.0);
+        this._m_relative_position = new Phaser.Geom.Point(0.0, 0.0);
         this.m_direction = new Phaser.Math.Vector2(1.0,0.0);
 
         this._m_component_mg = new MxComponentMng();
@@ -368,7 +437,8 @@ export class MxActor extends MxUObject
     /****************************************************/
     
     _update_child(_actor : MxActor)
-    : void {
+    : void 
+    {
         _actor.update();
         return;
     }

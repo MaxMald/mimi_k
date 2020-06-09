@@ -214,7 +214,7 @@ export class MainGame extends Phaser.Scene
 
     private _init_button_frame()
     : void {
-        this.m_pause_resume.setText('Start');
+        //this.m_pause_resume.setText('Start');
         return;
     }
 }

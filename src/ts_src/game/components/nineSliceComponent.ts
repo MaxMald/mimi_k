@@ -22,8 +22,8 @@ export class NineSliceComponent extends MxComponent
 
     this._m_local_position = new Phaser.Geom.Point
     (
-      _actor.m_position.x,
-      _actor.m_position.y
+      _actor._m_position.x,
+      _actor._m_position.y
     );
     return;
   }
@@ -61,8 +61,8 @@ export class NineSliceComponent extends MxComponent
   update(_actor : MxActor)
   : void 
   {
-    this._m_texture.x = _actor.m_position.x + this._m_local_position.x;
-    this._m_texture.y = _actor.m_position.y + this._m_local_position.y;
+    this._m_texture.x = _actor._m_position.x + this._m_local_position.x;
+    this._m_texture.y = _actor._m_position.y + this._m_local_position.y;
     return;
   }
 
@@ -79,6 +79,20 @@ export class NineSliceComponent extends MxComponent
       this.setActive(false);
       return;
     }
+  }
+
+  setInteractive()
+  : void
+  {
+    this._m_texture.setInteractive()
+    return;
+  }
+
+  on(_event : string, _fn : ()=>void, _context : any)
+  : void
+  {
+    this._m_texture.on(_event, _fn, _context);
+    return;
   }
 
   resize(_width : number, _height : number)

@@ -20,8 +20,8 @@ export class TextComponent extends MxComponent
   {
     this._m_local_position = new Phaser.Geom.Point
     (
-      _actor.m_position.x,
-      _actor.m_position.y
+      _actor._m_position.x,
+      _actor._m_position.y
     );
     return;
   }
@@ -47,8 +47,8 @@ export class TextComponent extends MxComponent
   update(_actor : MxActor)
   : void 
   {
-      this._m_text.x = _actor.m_position.x + this._m_local_position.x;
-      this._m_text.y = _actor.m_position.y + this._m_local_position.y;
+      this._m_text.x = _actor._m_position.x + this._m_local_position.x;
+      this._m_text.y = _actor._m_position.y + this._m_local_position.y;
       return;
   }
 

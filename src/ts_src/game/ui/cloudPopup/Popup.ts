@@ -60,6 +60,8 @@ export class Popup
     textComponent.setAlign('center');
 
     popupController.prepare(_scene);
+    popupController.setMaxWidth(800);
+    
     return actor;
   }
 }

@@ -1,4 +1,5 @@
 import { OPRESULT } from "../enum_commons";
+import { MxActor } from "../component/mxActor";
 
 interface IObject
 {
@@ -24,7 +25,7 @@ export class MxChildrenManager<T extends IObject>
     /* Protected                                        */
     /****************************************************/
     
-    protected _children_map : Map<number, T>;
+    _children_map : Map<number, T>;
 
     /****************************************************/
     /* Public                                           */

@@ -13,8 +13,8 @@ export class Preloader extends Phaser.Scene
   /****************************************************/
     
   preload ()
-  : void {
-
+  : void 
+  {
     ///////////////////////////////////
     // Atlas
         
@@ -23,6 +23,13 @@ export class Preloader extends Phaser.Scene
       'main_menu',
       'src/assets/images/atlas/main_menu.png',
       'src/assets/images/atlas/main_menu.js'
+    );
+
+    this.load.atlas
+    (
+      'landpage',
+      'src/assets/images/atlas/landpage.png',
+      'src/assets/images/atlas/landpage.js'
     );
 
     ///////////////////////////////////
@@ -217,7 +224,7 @@ export class Preloader extends Phaser.Scene
     }
 
     csv_file.destroy();
-    this.scene.start('mainMenu');
+    this.scene.start('welcomePage');
     return;
   }
 

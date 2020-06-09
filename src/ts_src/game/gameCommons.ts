@@ -51,7 +51,9 @@ export const COMPONENT_ID = Object.freeze
     kSprite : 5 as 5,
     kNineSlice : 6 as 6,
     kText : 7 as 7,
-    kPopupController : 8 as 8
+    kPopupController : 8 as 8,
+    kNineSliceButton : 9 as 9,
+    kCarouselController : 10 as 10
 });
 
 ///////////////////////////////////
@@ -65,4 +67,18 @@ export const MESSAGE_ID = Object.freeze
     kOnAgentDesactive : 2 as 2,
     kGameController : 3 as 3,
     kDataController : 4 as 4
+});
+
+///////////////////////////////////
+// Clock Carousel Children
+
+export type CAROUSEL_CHILD_ID = EnumLiteralsOf<typeof CAROUSEL_CHILD_ID>;
+
+export const CAROUSEL_CHILD_ID = Object.freeze
+({
+    kTitle : 1 as 1,
+    kPreview : 2 as 2,
+    kLeftButton : 3 as 3,
+    kRightButton : 4 as 4,
+    kClockName : 5 as 5
 });

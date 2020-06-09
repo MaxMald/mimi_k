@@ -1,98 +1,62 @@
-import { Button } from "./button";
+import { MxActor } from "../../../utilities/component/mxActor";
+import { SpriteComponent } from "../../components/spriteComponent";
+import { TextComponent } from "../../components/textComponent";
 
-export class ImgButton extends Button
+/**
+ * 
+ */
+export class Button 
 {
-    /****************************************************/
-    /* Private                                          */
-    /****************************************************/
-    
-    /**
-     * Button texture
-     */
-    private m_texture : Phaser.GameObjects.Sprite;
+  /**
+   * 
+   * @param _scene 
+   * @param _id 
+   * @param _x 
+   * @param _y 
+   * @param _texture 
+   * @param _frame 
+   * @param _fn 
+   * @param _context 
+   */
+  static CreateImageButton
+  (
+    _scene : Phaser.Scene, 
+    _id : number,
+    _x : number,
+    _y : number,
+    _texture : string,
+    _frame : string,    
+    _fn : ()=>void,
+    _context : any
+  )
+  : MxActor
+  {
+    let actor : MxActor = MxActor.Create(_id);
+    actor.setRelativePosition(_x, _y);
 
-    /****************************************************/
-    /* Public                                           */
-    /****************************************************/
+    ///////////////////////////////////
+    // Create Components
+
+    let spriteComponent : SpriteComponent = new SpriteComponent()
+    actor.addComponent(spriteComponent);
     
-    public constructor
+    actor.init();
+    
+    ///////////////////////////////////
+    // Prepare Components
+    
+    spriteComponent.setSprite
     (
-        _scene : Phaser.Scene,
-        _x : number,
-        _y : number,
-        _laber : string,
-        _atlas : string,
-        _base_spr : string,
-        _hover_spr : string,
-        _down_spr : string,
-        _fn : ()=>void,
-        _context : any
-    )
-    {
-        super();
-
-        // texture
-        this.m_texture = _scene.add.sprite
-        (
-            _x,
-            _y,
-            _atlas,
-            _base_spr
-        );
-
-        // interaction
-        this.m_texture.setInteractive();
-        this.m_texture.on('pointerdown', _fn, _context);
-        return;
-    }
-
-     /**
-     * 
-     */
-    public open()
-    : void {
-        this.m_texture.setActive(true);
-        this.m_texture.setVisible(true);
-        return;
-    }
-
-    /**
-     * 
-     */
-    public close()
-    : void {
-        this.m_texture.setActive(false);
-        this.m_texture.setVisible(false);
-        return;
-    }
-
-    /**
-     * 
-     */
-    public getWidth()
-    : number {
-        return this.m_texture.width;
-    }
-
-    /**
-     * 
-     */
-    public getHeight()
-    : number {
-        return this.m_texture.height;
-    }
-
-    public getTexture()
-    : Phaser.GameObjects.Sprite {
-        return this.m_texture;
-    }
-
-    /**
-    * Safely destroys the object.
-    */
-    public destroy()
-    : void {
-        this.m_texture = null;
-        return;
-    }
+      _scene.add.sprite
+      (
+        0, 0,
+        'main_menu',
+        'arrow_button.png'
+      )
+    );
+    spriteComponent.setInteractive();
+    spriteComponent.on('pointerdown', _fn, _context);
+    
+    return actor;
+  }
 }

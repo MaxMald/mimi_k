@@ -1,9 +1,9 @@
-import { GameManager } from "../game/managers/gameManager/gameManager";
-import { MANAGER_ID, LOCALIZATION, COMPONENT_ID } from "../game/gameCommons";
-import { MxActor } from "../utilities/component/mxActor";
-import { MasterManager } from "../game/managers/masteManager/masterManager";
-import { MxComponent } from "../utilities/component/mxComponent";
-import { GameController } from "../game/managers/gameManager/components/gameController";
+import { GameManager } from "../../game/managers/gameManager/gameManager";
+import { MANAGER_ID, LOCALIZATION, COMPONENT_ID } from "../../game/gameCommons";
+import { MxActor } from "../../utilities/component/mxActor";
+import { MasterManager } from "../../game/managers/masteManager/masterManager";
+import { MxComponent } from "../../utilities/component/mxComponent";
+import { GameController } from "../../game/managers/gameManager/components/gameController";
 
 export  class LocalizationScene extends Phaser.Scene
 {

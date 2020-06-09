@@ -18,9 +18,9 @@ export class SpriteComponent extends MxComponent
   update(_actor : MxActor)
   : void 
   {
-      this._m_sprite.x = _actor.m_position.x + this._m_local_position.x;
-      this._m_sprite.y = _actor.m_position.y + this._m_local_position.y;
-      return;
+    this._m_sprite.x = _actor._m_position.x + this._m_local_position.x;
+    this._m_sprite.y = _actor._m_position.y + this._m_local_position.y;
+    return;
   }
 
   receive(_id : number, _data : unknown)
@@ -65,6 +65,18 @@ export class SpriteComponent extends MxComponent
     return this._m_sprite;
   }
 
+  getWidth()
+  : number
+  {
+    return this._m_sprite.width;
+  }
+
+  getHeight()
+  : number
+  {
+    return this._m_sprite.height;
+  }
+
   /**
    * Move the sprite local position (relative to the MxActor position).
    * 
@@ -104,7 +116,35 @@ export class SpriteComponent extends MxComponent
       this._m_local_position.y
     );
   }
+  
+  /**
+   * 
+   */
+  setInteractive()
+  : void
+  {
+    this._m_sprite.setInteractive();
+    return;
+  }
 
+  /**
+   * 
+   * @param _event 
+   * @param _fn 
+   * @param _context 
+   */
+  on
+  (
+    _event : string,
+    _fn : Function,
+    _context : any
+  )
+  : void
+  {
+    this._m_sprite.on(_event, _fn, _context);
+    return;
+  }
+  
   /**
    * The rotation of this Game Object, in degrees. Default 0.
    * @param _degrees {number} degrees.
@@ -126,6 +166,13 @@ export class SpriteComponent extends MxComponent
   : void 
   {
     this._m_sprite.setVisible(_visible);
+    return;
+  }
+
+  setScale(_x : number, _y : number)
+  : void
+  {
+    this._m_sprite.setScale(_x, _y);
     return;
   }
 

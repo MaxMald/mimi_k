@@ -3,7 +3,8 @@ import { Boot } from "./scenes/boot";
 import { MainMenu } from "./scenes/menus/mainMenu";
 import { MainGame } from "./scenes/levels/game_level";
 import { Plugin } from "phaser3-nineslice";
-import { LocalizationScene } from "./scenes/localization";
+import { LocalizationScene } from "./scenes/menus/localization";
+import { WelcomePage } from "./scenes/menus/welcomePage";
 
 class GameInit
 {
@@ -49,6 +50,7 @@ class GameInit
         this.m_game.scene.add('mainMenu', MainMenu);
         this.m_game.scene.add('localization', LocalizationScene);
         this.m_game.scene.add('mainGame', MainGame);
+        this.m_game.scene.add('welcomePage', WelcomePage);
 
         ///////////////////////////////////
         // Start BOOT        

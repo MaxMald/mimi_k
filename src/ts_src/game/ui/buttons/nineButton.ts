@@ -1,137 +1,72 @@
-import { Button } from "./button";
+import { MxActor } from "../../../utilities/component/mxActor";
+import { TextComponent } from "../../components/textComponent";
+import { NineSliceComponent } from "../../components/nineSliceComponent";
 
-export class NineButton extends Button {
+/**
+ * 
+ */
+export class NineButton 
+{
+  /**
+   * 
+   * @param _scene 
+   * @param _id 
+   * @param _x 
+   * @param _y 
+   * @param _label 
+   * @param _fn 
+   * @param _context 
+   */
+  static CreateStandard
+  (
+    _scene : Phaser.Scene, 
+    _id : number,
+    _x : number,
+    _y : number,
+    _label : string,    
+    _fn : ()=>void,
+    _context : any
+  )
+  : MxActor
+  {
+    let actor : MxActor = MxActor.Create(_id);
+    actor.setRelativePosition(_x, _y);
 
-    /****************************************************/
-    /* Protected                                        */
-    /****************************************************/
+    ///////////////////////////////////
+    // Create Components
+
+    let nineSliceComponent : NineSliceComponent = new NineSliceComponent()
+    actor.addComponent(nineSliceComponent);
+
+    let textComponent : TextComponent = new TextComponent();
+    actor.addComponent(textComponent);
     
-    /**
-     * Nineslice obj
-     */
-    protected m_texture : Phaser.GameObjects.RenderTexture;
-
-    /**
-     * Phaser Text obj
-     */
-    protected m_text : Phaser.GameObjects.Text;
-
-    /****************************************************/
-    /* Public                                           */
-    /****************************************************/
+    actor.init();
     
-    public static CreateDefault
+    ///////////////////////////////////
+    // Prepare Components
+    
+    nineSliceComponent.prepare
     (
-        _scene : Phaser.Scene,
-        _x : number,
-        _y : number,
-        _label : string, 
-        _fn : ()=>void, 
-        _context : any
-    )
-    : NineButton {
-        let button = new NineButton();
+      _scene,
+      'main_menu',
+      'button_bg.png',
+      [70, 70, 70, 70]
+    );
+    nineSliceComponent.setInteractive();
+    nineSliceComponent.on('pointerdown', _fn, _context);
 
-        button.m_texture = _scene.add.nineslice
-        (
-           _x,
-           _y,            
-            145,
-            145,
-            {key : 'main_menu', frame: 'button_bg.png'},
-            [70, 70, 70, 70]
-        );
-
-        button.m_texture.resize(500, 145);
-        button.m_texture.setOrigin(0.5, 0.5);
-
-        button.m_texture.setInteractive();
-        button.m_texture.on('pointerdown', _fn, _context);
-        
-        button.m_text = _scene.add.text
-        (
-            _x,
-            _y, 
-            _label, 
-            { fontFamily: '"Roboto Condensed"' }
-        );
-        
-        button.m_text.setFontSize(50);
-        button.m_text.setColor('black');
-        button.m_text.setOrigin(0.5,0.5);
-
-        return button
-    }
-
-    /**
-     * 
-     */
-    protected constructor(){
-        super();
-        return;
-    }
-
-    /**
-     * 
-     */
-    public open()
-    : void {
-        this.m_texture.setActive(true);
-        this.m_texture.setVisible(true);
-        this.m_text.setActive(true);
-        this.m_text.setVisible(true);
-        return;
-    }
-
-    /**
-     * 
-     */
-    public close()
-    : void {
-        this.m_texture.setActive(false);
-        this.m_texture.setVisible(false);
-        this.m_text.setActive(false);
-        this.m_text.setVisible(false);
-        return;
-    }
-
-    public getWidth()
-    : number {
-        return this.m_texture.width;
-    }
-
-    public getHeight()
-    : number {
-        return this.m_texture.height;
-    }
-
-    /**
-    * Safely destroys the object.
-    */
-    public destroy()
-    : void {
-        super.destroy();
-        this.m_text = null;
-        this.m_texture = null;
-        return;
-    }
-
-    /**
-     * 
-     * @param _text 
-     */
-    public setText(_text : string)
-    : void {
-        this.m_text.text = _text;
-        return;
-    }
-
-    /**
-     * 
-     */
-    public getTextObject()
-    : Phaser.GameObjects.Text {
-        return this.m_text;
-    }
-   
+    textComponent.prepare
+    (
+      _scene,
+      _label, 
+      { fontFamily: '"Roboto Condensed"' }
+    );
+    textComponent.setFontSize(30);
+    textComponent.setOrigin(0.5, 0.5);
+    textComponent.setFontColor('black');
+    textComponent.setAlign('center');
+    
+    return actor;
+  }
 }
