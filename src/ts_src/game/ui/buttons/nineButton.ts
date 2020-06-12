@@ -49,9 +49,9 @@ export class NineButton
     nineSliceComponent.prepare
     (
       _scene,
-      'main_menu',
-      'button_bg.png',
-      [70, 70, 70, 70]
+      'landpage',
+      'button.png',
+      [67, 70, 67, 70]
     );
     nineSliceComponent.setInteractive();
     nineSliceComponent.on('pointerdown', _fn, _context);

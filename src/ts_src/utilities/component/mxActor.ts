@@ -149,7 +149,7 @@ export class MxActor extends MxUObject
         actor._m_tag = -1;       
       
         if(typeof _m_parent == 'object') {
-          if(_m_parent.addChild(actor) == OPRESULT.kOk) {
+          if(_m_parent.addChild(actor) != OPRESULT.kOk) {
             actor._m_parent = MxActor.GetNull();
           }
         }

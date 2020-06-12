@@ -1,16 +1,16 @@
 import { MxComponent } from "../../utilities/component/mxComponent";
-import { MxActor } from "../../utilities/component/mxActor";
 import { COMPONENT_ID, MESSAGE_ID } from "../gameCommons";
+import { MxActor } from "../../utilities/component/mxActor";
 
-export class TextComponent extends MxComponent
+export class BitmapTextComponent extends MxComponent
 {
   /****************************************************/
   /* Public                                           */
   /****************************************************/
-    
+  
   constructor()
   {
-    super(COMPONENT_ID.kText);
+    super(COMPONENT_ID.kBitmapText);
     this._m_local_position = new Phaser.Geom.Point(0.0,0.0);
     return;
   }
@@ -24,17 +24,19 @@ export class TextComponent extends MxComponent
   prepare
   (
     _scene : Phaser.Scene,
+    _fontkey : string,
     _text : string,
-    _style : object
+    _size : number
   )
   : void
   {
-    this._m_text = _scene.add.text
+    this._m_bitmap_text = _scene.add.bitmapText
     (
       this._m_local_position.x,
       this._m_local_position.y,
+      _fontkey,
       _text,
-      _style
+      _size
     );    
     return;
   }
@@ -42,8 +44,8 @@ export class TextComponent extends MxComponent
   update(_actor : MxActor)
   : void 
   {
-      this._m_text.x = _actor._m_position.x + this._m_local_position.x;
-      this._m_text.y = _actor._m_position.y + this._m_local_position.y;
+      this._m_bitmap_text.x = _actor._m_position.x + this._m_local_position.x;
+      this._m_bitmap_text.y = _actor._m_position.y + this._m_local_position.y;
       return;
   }
 
@@ -69,18 +71,7 @@ export class TextComponent extends MxComponent
   setFontSize(_size : number)
   : void
   {
-    this._m_text.setFontSize(_size);
-    return;
-  }
-
-  /**
-   * 
-   * @param _color 
-   */
-  setFontColor(_color : string)
-  : void
-  {
-    this._m_text.setColor(_color);
+    this._m_bitmap_text.setFontSize(_size);
     return;
   }
 
@@ -91,21 +82,35 @@ export class TextComponent extends MxComponent
   setTint(_color : number)
   : void
   {
-    this._m_text.setTint(_color);
+    this._m_bitmap_text.setTint(_color);
     return;
   }
 
-  /**
-   * Set the alignment of the text in this Text object.
-  * The argument can be one of: left, right, center or justify.
-  * Alignment only works if the Text object has more than one line of text.
-  * 
-  * @param align — The text alignment for multi-line text. Default 'left'.
-   */
-  setAlign(_align : string = "left")
+  setAlpha(_alpha : number)
   : void
   {
-    this._m_text.setAlign(_align);
+    this._m_bitmap_text.setAlpha(_alpha);
+    return;
+  }
+
+  setLeftAlign()
+  : void
+  {
+    this._m_bitmap_text.setLeftAlign();
+    return;
+  }
+
+  setRightAlign()
+  : void
+  {
+    this._m_bitmap_text.setRightAlign();
+    return;
+  }
+
+  setCenterAlign()
+  : void
+  {
+    this._m_bitmap_text.setCenterAlign();
     return;
   }
 
@@ -116,41 +121,42 @@ export class TextComponent extends MxComponent
   setText(_text : string)
   : void
   {
-    this._m_text.text = _text;
+    this._m_bitmap_text.text = _text;
     return;
   }
 
-  setTextObject(_text : Phaser.GameObjects.Text)
+  setBitmapTextObject(_text : Phaser.GameObjects.BitmapText)
   : void 
   {
-    this._m_text = _text;
+    this._m_bitmap_text = _text;
     return;
   }
 
   getSize()
   : Phaser.Geom.Point
   {
-    return new Phaser.Geom.Point(this._m_text.width, this._m_text.height);
+    return new Phaser.Geom.Point(this._m_bitmap_text.width, this._m_bitmap_text.height);
   }
 
-  getTextObject()
-  : Phaser.GameObjects.Text 
+  getBitmapTextObject()
+  : Phaser.GameObjects.BitmapText 
   {
-    return this._m_text;
+    return this._m_bitmap_text;
   }
 
   /**
-  * Set the width (in pixels) to use for wrapping lines. Pass in null to remove wrapping by width.
-  *
-  * @param _width — The maximum width of a line in pixels. Set to null to remove wrapping.
-  *
-  * @param _useAdvancedWrap — Whether or not to use the advanced wrapping algorithm. If true, spaces are collapsed and whitespace is trimmed from lines. If false, 
-  * spaces and whitespace are left as is. Default false. 
+  * Sets the maximum display width of this BitmapText in pixels.
+  * 
+  * If BitmapText.text is longer than maxWidth then the lines will be automatically wrapped based on the previous whitespace character found in the line.
+  * 
+  * If no whitespace was found then no wrapping will take place and consequently the maxWidth value will not be honored.
+  * 
+  * Disable maxWidth by setting the value to 0.
   */
-  setWordWrapWidth(_width : number, _useAdvanceWrap : boolean = false)
+  setMaxWidth(_width : number)
   : void
   {
-    this._m_text.setWordWrapWidth(_width, _useAdvanceWrap);
+    this._m_bitmap_text.setMaxWidth(_width)
     return;
   }
 
@@ -201,50 +207,50 @@ export class TextComponent extends MxComponent
   setAngle(_degrees : number)
   : void
   {
-    this._m_text.setAngle(_degrees);
+    this._m_bitmap_text.setAngle(_degrees);
   }
 
   setOrigin(_x : number, _y : number)
   : void 
   {
-    this._m_text.setOrigin(_x, _y);
+    this._m_bitmap_text.setOrigin(_x, _y);
     return;
   }
 
   setVisible(_visible : boolean)
   : void 
   {
-    this._m_text.setVisible(_visible);
+    this._m_bitmap_text.setVisible(_visible);
     return;
   }
 
   setActive(_active : boolean)
   : void 
   {
-    this._m_text.setActive(_active);
+    this._m_bitmap_text.setActive(_active);
     return;
   }
 
   destroy()
   : void 
   {
-    this._m_text.destroy();
+    this._m_bitmap_text.destroy();
     this._m_local_position = null;
     super.destroy();
     return;
   }
 
   /****************************************************/
-  /* Protected                                        */
+  /* Private                                          */
   /****************************************************/
-    
+  
   /**
    * Sprite's position relative to the MxActor's position.
    */
   _m_local_position : Phaser.Geom.Point;
-    
+  
   /**
-   * Phaser Sprite Gameobject.
+   * Reference to Phaser Gameobject.
    */
-  _m_text : Phaser.GameObjects.Text; 
+  _m_bitmap_text : Phaser.GameObjects.BitmapText;
 }

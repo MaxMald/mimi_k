@@ -18,29 +18,14 @@ export class Boot extends Phaser.Scene
   preload ()
   : void
   { 
-    this.load.atlas
-    (
-      'preloader',
-      'src/assets/images/atlas/preloader.png',
-      'src/assets/images/atlas/preloader.js'
-    );
-
     ///////////////////////////////////
-    // Metta Puzzle Preloader
+    // Mimi-k Loader
 
-    // atlas
     this.load.atlas
     (
-      'metta_puzzle_loader',
-      'src/assets/images/atlas/metta_puzzle_loader.png',
-      'src/assets/images/atlas/metta_puzzle_loader.js'
-    );
-
-    // tiled map
-    this.load.tilemapTiledJSON
-    (
-      'metta_puzzle_loader', 
-      'src/assets/images/atlas/metta_puzzle_loader.json'
+      'mimik_loader',
+      'src/assets/images/atlas/loader.png',
+      'src/assets/images/atlas/loader.js' 
     );
     return;
   }
@@ -51,7 +36,7 @@ export class Boot extends Phaser.Scene
     // Fit the game canvas to parent container
     this.game.scale.scaleMode = Phaser.Scale.ScaleModes.FIT;
 
-    // prepare modules
+    // Prepare modules
     MxComponent.Prepare();
     MxActor.Prepare();    
 
@@ -77,5 +62,5 @@ export class Boot extends Phaser.Scene
     // next scene
     this.scene.start('preloader');
     return;
-  }    
+  }      
 }

@@ -34,7 +34,7 @@ class GameInit
             plugins: {
                 global: [ Plugin.DefaultCfg ],
               },   
-            backgroundColor: 0x008aff        
+            backgroundColor: 0x0a0136        
         }
 
         ///////////////////////////////////

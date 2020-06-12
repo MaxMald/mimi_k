@@ -11,20 +11,13 @@ export class NineSliceComponent extends MxComponent
   constructor()
   {
     super(COMPONENT_ID.kNineSlice);
+    this._m_local_position = new Phaser.Geom.Point(0.0,0.0);
     return;
   }
 
   init(_actor : MxActor)
   : void 
   {
-    this._m_min_width = 0;
-    this._m_min_height = 0;
-
-    this._m_local_position = new Phaser.Geom.Point
-    (
-      _actor._m_position.x,
-      _actor._m_position.y
-    );
     return;
   }
 

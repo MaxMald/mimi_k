@@ -2,6 +2,8 @@ import { MxActor } from "../../../utilities/component/mxActor";
 import { NineSliceComponent } from "../../components/nineSliceComponent";
 import { TextComponent } from "../../components/textComponent";
 import { PopupController } from "./components/popupController";
+import { BitmapTextComponent } from "../../components/bitmapTextComponent";
+import { UIBitmapText } from "../text/uiBitmapText";
 
 /**
  * Popup Factories
@@ -32,36 +34,29 @@ export class Popup
     let nineSliceComponent : NineSliceComponent = new NineSliceComponent()
     actor.addComponent(nineSliceComponent);
 
-    let textComponent : TextComponent = new TextComponent();
-    actor.addComponent(textComponent);
+    nineSliceComponent.prepare
+    (
+      _scene,
+      'landpage',
+      'msg_cloud.png',
+      [140, 128, 5, 128 ]
+    );
+
+    let textComponent : BitmapTextComponent =
+      UIBitmapText.AddStandard(_scene, '', actor);
     
+    textComponent.setFontSize(50);
+    textComponent.setOrigin(0.5, 0.5);
+    textComponent.setTint(0x0a0136);
+    textComponent.setCenterAlign();
+    textComponent._m_local_position.setTo(0, -100);
+
     actor.init();
     
     ///////////////////////////////////
     // Prepare Components
-    
-    nineSliceComponent.prepare
-    (
-      _scene,
-      'main_menu',
-      'msg_cloud.png',
-      [61, 72, 69, 59]
-    );
 
-    textComponent.prepare
-    (
-      _scene,
-      "", 
-      { fontFamily: '"Roboto Condensed"' }
-    );
-    textComponent.setFontSize(30);
-    textComponent.setOrigin(0.5, 0.5);
-    textComponent.setFontColor('black');
-    textComponent.setAlign('center');
-
-    popupController.prepare(_scene);
-    popupController.setMaxWidth(800);
-    
+    popupController.prepare(_scene);    
     return actor;
   }
 }

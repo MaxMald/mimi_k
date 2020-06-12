@@ -53,7 +53,8 @@ export const COMPONENT_ID = Object.freeze
     kText : 7 as 7,
     kPopupController : 8 as 8,
     kNineSliceButton : 9 as 9,
-    kCarouselController : 10 as 10
+    kCarouselController : 10 as 10,
+    kBitmapText : 11 as 11
 });
 
 ///////////////////////////////////
@@ -80,5 +81,6 @@ export const CAROUSEL_CHILD_ID = Object.freeze
     kPreview : 2 as 2,
     kLeftButton : 3 as 3,
     kRightButton : 4 as 4,
-    kClockName : 5 as 5
+    kClockName : 5 as 5,
+    kPreviewBackground : 6 as 6
 });

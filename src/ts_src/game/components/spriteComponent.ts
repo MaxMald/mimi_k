@@ -59,6 +59,12 @@ export class SpriteComponent extends MxComponent
     return;
   }
 
+  setTint(_color : number)
+  : void
+  {
+    this._m_sprite.setTint(_color);
+  }
+
   getSprite()
   : Phaser.GameObjects.Sprite 
   {

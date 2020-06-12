@@ -1,11 +1,11 @@
 import { MxComponent } from "../../../../utilities/component/mxComponent";
 import { COMPONENT_ID, CAROUSEL_CHILD_ID, MANAGER_ID, CLOCK_STYLE } from "../../../gameCommons";
 import { MxActor } from "../../../../utilities/component/mxActor";
-import { TextComponent } from "../../../components/textComponent";
 import { SpriteComponent } from "../../../components/spriteComponent";
 import { GameController } from "../../../managers/gameManager/components/gameController";
 import { MasterManager } from "../../../managers/masteManager/masterManager";
 import { DataController } from "../../../managers/gameManager/components/dataController";
+import { BitmapTextComponent } from "../../../components/bitmapTextComponent";
 
 export class CarouselController extends MxComponent
 {
@@ -28,14 +28,18 @@ export class CarouselController extends MxComponent
     let master : MxActor = MasterManager.GetInstance();
     let gameManager : MxActor = master.get_child(MANAGER_ID.kGameManager);
     
-    this._gameController 
-      = gameManager.getComponent<GameController>(COMPONENT_ID.kGameController);
+    this._gameController = gameManager.getComponent<GameController>
+    (
+      COMPONENT_ID.kGameController
+    );
     
     ///////////////////////////////////
     // DataController
 
-    this._dataController
-      = gameManager.getComponent<DataController>(COMPONENT_ID.kDataController);
+    this._dataController = gameManager.getComponent<DataController>
+    (
+      COMPONENT_ID.kDataController
+    );
     
     ///////////////////////////////////
     // Left Button
@@ -69,7 +73,10 @@ export class CarouselController extends MxComponent
     // ClockName Text
 
     let clockName : MxActor = _actor.get_child(CAROUSEL_CHILD_ID.kClockName);
-    this._clockName_text = clockName.getComponent<TextComponent>(COMPONENT_ID.kText);
+    this._clockName_text = clockName.getComponent<BitmapTextComponent>
+    (
+      COMPONENT_ID.kBitmapText
+    );
 
     ///////////////////////////////////
     // Preview SpriteComponent
@@ -109,7 +116,8 @@ export class CarouselController extends MxComponent
   }
 
   _setActiveItem(_idx : number)
-  : void {
+  : void 
+  {
     // Set clock name.
     this._clockName_text.setText(this._dataController.getString('clock_name_' + _idx));
     
@@ -129,7 +137,7 @@ export class CarouselController extends MxComponent
 
   _dataController : DataController;
 
-  _clockName_text : TextComponent;
+  _clockName_text : BitmapTextComponent;
 
   _carouselSprite : SpriteComponent;
 }

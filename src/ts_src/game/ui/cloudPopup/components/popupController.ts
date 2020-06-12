@@ -1,8 +1,8 @@
 import { MxComponent } from "../../../../utilities/component/mxComponent"
 import { COMPONENT_ID } from "../../../gameCommons"
 import { MxActor } from "../../../../utilities/component/mxActor";
-import { TextComponent } from "../../../components/textComponent";
 import { NineSliceComponent } from "../../../components/nineSliceComponent";
+import { BitmapTextComponent } from "../../../components/bitmapTextComponent";
 
 export class PopupController extends MxComponent
 {
@@ -21,7 +21,7 @@ export class PopupController extends MxComponent
   {
     // get components.
     this._m_nineSliceComponent = _actor.getComponent<NineSliceComponent>(COMPONENT_ID.kNineSlice);
-    this._m_textComponent = _actor.getComponent<TextComponent>(COMPONENT_ID.kText);   
+    this._m_textComponent = _actor.getComponent<BitmapTextComponent>(COMPONENT_ID.kBitmapText);   
     return;
   }
 
@@ -42,8 +42,9 @@ export class PopupController extends MxComponent
     this._m_right_padding = this._m_min_height * 0.25;
 
     // sets maximum size from the orinal texture
-    this.setMaxWidth(this._m_min_width);
+    this.setMaxWidth(1080);
 
+    this._m_nineSliceComponent.resize(1080, 530);
     this._m_isOpen = false;
     return;
   }
@@ -53,25 +54,15 @@ export class PopupController extends MxComponent
   {
     if(!this._m_isOpen) { 
       
-      let nineTexture : Phaser.GameObjects.RenderTexture 
-        = this._m_nineSliceComponent.getTexture();
+      let text : Phaser.GameObjects.BitmapText 
+        = this._m_textComponent.getBitmapTextObject();
       
-      nineTexture.setScale(0,0);
-      this._m_texture_tween = this._m_scene.tweens.add({
-        targets: nineTexture,
-        scale: 1,
-        duration: 400,
-        ease: 'Bounce'
-      });
-
-      let text : Phaser.GameObjects.Text = this._m_textComponent.getTextObject();
-      
-      text.setScale(0,0);
+      text.setAlpha(0.0);
       this._m_text_tween = this._m_scene.tweens.add({
         targets: text,
-        scale: 1,
+        alpha: 1.0,
         duration: 400,
-        ease: 'Bounce'
+        ease: 'Linear'
       });
 
       this._m_isOpen = !this._m_isOpen;
@@ -82,11 +73,7 @@ export class PopupController extends MxComponent
   close()
   : void 
   {
-    if(this._m_isOpen) {
-      
-      if(this._m_texture_tween.isPlaying()) {
-        this._m_texture_tween.stop();
-      }
+    if(this._m_isOpen) {    
 
       if(this._m_text_tween.isPlaying()) {
         this._m_text_tween.stop();
@@ -101,7 +88,7 @@ export class PopupController extends MxComponent
   : void 
   {        
     this._m_max_width = this._check_minimum_value(_width, this._m_min_width);
-    this._m_textComponent.setWordWrapWidth
+    this._m_textComponent.setMaxWidth
     (
       this._m_max_width - this._m_left_padding - this._m_right_padding
     );
@@ -112,13 +99,6 @@ export class PopupController extends MxComponent
   : void 
   {
     this._m_textComponent.setText(_text);
-    let textSize : Phaser.Geom.Point = this._m_textComponent.getSize();
-
-    this.setSize
-    (
-      textSize.x + this._m_left_padding + this._m_right_padding, 
-      textSize.y + this._m_top_padding + this._m_bottom_padding
-    );
     return;
   }    
 
@@ -146,10 +126,6 @@ export class PopupController extends MxComponent
       this._m_text_tween = null;
     }
 
-    if(this._m_texture_tween != null) {
-      this._m_texture_tween.destroy();
-      this._m_texture_tween = null;
-    }
     super.destroy();
     return;
   }
@@ -184,17 +160,12 @@ export class PopupController extends MxComponent
   /**
    * Reference to component.
    */
-  _m_textComponent : TextComponent;
+  _m_textComponent : BitmapTextComponent;
 
   /**
    * Reference to component.
    */
-  _m_nineSliceComponent : NineSliceComponent;
-
-  /**
-   * Texture tween.
-   */
-  _m_texture_tween : Phaser.Tweens.Tween;
+  _m_nineSliceComponent : NineSliceComponent;  
 
   /**
    * 

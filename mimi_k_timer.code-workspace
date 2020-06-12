@@ -6,7 +6,6 @@
 	],
 	"settings": {
 		"editor.tabSize": 2,
-		"editor.wordWrap": "on",
-		"editor.rulers": [80,120]
+		"editor.rulers": [80,95]
 	}	
 }
