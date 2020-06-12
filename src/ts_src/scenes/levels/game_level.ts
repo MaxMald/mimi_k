@@ -1,220 +1,188 @@
-import { ChronoClock } from "../../game/ui/clocks/chronoClock";
-import { GameManager } from "../../game/managers/gameManager/gameManager";
-import { MANAGER_ID, CLOCK_STYLE } from "../../game/gameCommons";
-import { UserPreferences } from "../../game/managers/userPreferences/userPreferences";
-import { SandClock } from "../../game/ui/clocks/sandClock";
-import { DigitalClock } from "../../game/ui/clocks/digitalClock";
-import { AnalogClock } from "../../game/ui/clocks/analogClock";
-import { NineButton } from "../../game/ui/buttons/nineButton";
-import { TimeOutPop } from "../../game/ui/timeOutPop/timeOutPop";
+import { MxActor } from "../../utilities/component/mxActor";
+import { DataController } from "../../game/managers/gameManager/components/dataController";
+import { GameController } from "../../game/managers/gameManager/components/gameController";
+import { MasterManager } from "../../game/managers/masteManager/masterManager";
+import { MANAGER_ID, COMPONENT_ID } from "../../game/gameCommons";
+import { Button } from "../../game/ui/buttons/imgButton";
+import { SpriteComponent } from "../../game/components/spriteComponent";
+import { BitmapTextComponent } from "../../game/components/bitmapTextComponent";
 
 export class MainGame extends Phaser.Scene
 {
   /****************************************************/
-  /* Private                                          */
-  /****************************************************/
-
-  private m_chrono_clock : ChronoClock;
-
-  private m_game_mng : GameManager;  
-
-  private m_user_pref : UserPreferences;
-
-  private m_pause_resume : NineButton;
-
-  private m_reset : NineButton;
-
-  private m_main_menu : NineButton;
-
-  private m_pop_up : TimeOutPop;
-
-  /****************************************************/
   /* Public                                           */
   /****************************************************/
 
-  public create()
-  : void {/*
+  create()
+  : void 
+  {
+    // Get Controllers
 
-    let half_width : number = this.game.canvas.width * 0.5;
+    let master : MxActor = MasterManager.GetInstance();
+    let gameManager : MxActor = master.get_child(MANAGER_ID.kGameManager);
 
-    // get GameManager. 
-    this.m_game_mng 
-      = this.m_master.getManager<GameManager>(MANAGER_ID.kGameManager);
+    this._m_dataController 
+      = gameManager.getComponent<DataController>(COMPONENT_ID.kDataController);
 
-    // initalize Gameplay.
-    this.m_game_mng.initGamePlay();
+    this._m_gameController
+      = gameManager.getComponent<GameController>(COMPONENT_ID.kGameController);      
+    
+    /****************************************************/
+    /* Main Menu Button                                 */
+    /****************************************************/
 
-    // get DataManager.
-    this.m_data_mng = this.m_game_mng.getDataManager();
+    let halfWidth : number = this.game.canvas.width * 0.5;
 
-    // get ChronoManager.
-    this.m_chrono_mng = this.m_game_mng.getChronoManager();
-    
-    // get user preferences
-    this.m_user_pref = this.m_game_mng.getUserPreference();
-    
-    ///////////////////////////////////
-    // Chrono Display
-    let clock_x : number = this.game.canvas.width * 0.5;
-    let clocl_y : number = this.game.canvas.height * 0.5;
-    switch(this.m_user_pref.getClockStyle()){
-        case CLOCK_STYLE.kSand:
-            this.m_chrono_clock = new SandClock(this, clock_x, clocl_y);
-            break;
-        case CLOCK_STYLE.kDigital:
-            this.m_chrono_clock = new DigitalClock(this, clock_x, clocl_y);
-            break;
-        case CLOCK_STYLE.kAnalog:
-            this.m_chrono_clock = new AnalogClock(this, clock_x, clocl_y);
-            break;
-        default:
-            this.m_chrono_clock = new SandClock(this, clock_x, clocl_y);
-            break;
-    }
-    
-    // set manager to chrono display
-    this.m_chrono_clock.setChronoManager(this.m_chrono_mng);
-    
-    ///////////////////////////////////
-    // Buttons
-    
-    this.m_pause_resume = NineButton.CreateDefault
+    this._m_mainMenuButton = Button.CreateStandard
     (
-        this,
-        half_width,
-        this.game.canvas.height * 0.8,
-        "Start",
-        this._on_click_pause_resume,
-        this
+      this,
+      0,
+      halfWidth, 200,
+      'landpage',
+      'button.png',
+      this._m_dataController.getString('back_to_menu'),
+      this._onClick_mainMenu,
+      this
+    );
+
+    let mainMenuButtonSprite 
+      = this._m_mainMenuButton.getComponent<SpriteComponent>(COMPONENT_ID.kSprite);
+
+    mainMenuButtonSprite.setTint(0xface01);
+
+    let mainMenuButtonText
+      = this._m_mainMenuButton.getComponent<BitmapTextComponent>(COMPONENT_ID.kBitmapText);
+      
+    mainMenuButtonText.setTint(0x0a0136);
+
+    /****************************************************/
+    /* Pause Button                                     */
+    /****************************************************/
+
+    this._m_pauseButton = Button.CreateStandard
+    (
+      this,
+      0,
+      halfWidth, 1600,
+      'landpage',
+      'button.png',
+      this._m_dataController.getString('pause'),
+      this._on_click_pause_resume,
+      this
     );
     
-    this.m_reset = NineButton.CreateDefault
+    let pauseButtonSprite
+      = this._m_pauseButton.getComponent<SpriteComponent>(COMPONENT_ID.kSprite);
+
+    pauseButtonSprite.setTint(0x31a13b);
+
+    let pauseButtonText
+      = this._m_pauseButton.getComponent<BitmapTextComponent>(COMPONENT_ID.kBitmapText);
+
+    pauseButtonText.setTint(0xffffff);
+
+    /****************************************************/
+    /* Reset Button                                     */
+    /****************************************************/
+
+    this._m_resetButton = Button.CreateStandard
     (
-        this,
-        half_width,
-        this.game.canvas.height * 0.9,
-        "Reset",
-        this._reset_clock,
-        this
+      this,
+      0,
+      halfWidth, 1800,
+      'landpage',
+      'button.png',
+      this._m_dataController.getString('reset'),
+      this._onClick_Reset,
+      this
     );
-    this.m_main_menu = NineButton.CreateDefault
-    (
-        this,
-        half_width,
-        this.game.canvas.height * 0.1,
-        "Main_Menu",
-        this._on_click_main_menu,
-        this
-    );
-    ///////////////////////////////////
-    // Popup
-    this.m_pop_up = new TimeOutPop
-    (
-        this,
-        half_width,
-        this.game.canvas.height * 0.5,
-        this.m_data_mng
-    );
-    this.m_chrono_mng.addListener('on_mark', this._on_reach_mark, this);
-    this.m_chrono_mng.addListener('on_finish', this._on_chrono_finish, this);
-    this._reset_clock();
+    
+    let resetButtonSprite
+      = this._m_pauseButton.getComponent<SpriteComponent>(COMPONENT_ID.kSprite);
+
+    resetButtonSprite.setTint(0x31a13b);
+
+    let resetButtonText
+      = this._m_pauseButton.getComponent<BitmapTextComponent>(COMPONENT_ID.kBitmapText);
+
+    resetButtonText.setTint(0xffffff);
+
     return;
-    }
+  }
 
-    public update(_step : number , _dt : number)
-    : void {
-        super.update(_step, _dt);
-        this.m_chrono_clock.update();
-        return;
-    }
+  update()
+  : void
+  {
+    this._m_pauseButton.update();
+    this._m_mainMenuButton.update();
+    this._m_resetButton.update();
+    return;
+  }
 
-    public destroy()
-    : void {
-        this.m_pop_up.destroy();
-        this.m_pop_up = null;
+  destroy()
+  : void
+  {
+    this._m_pauseButton.destroy();
+    this._m_mainMenuButton.destroy();
+    this._m_resetButton.destroy();
+    return;
+  }
 
-        this.m_pause_resume.destroy();
-        this.m_pause_resume = null;
+  /****************************************************/
+  /* Private                                          */
+  /****************************************************/
 
-        this.m_reset.destroy();
-        this.m_reset = null;
+  /**
+   * Pause or resume time.
+   */
+  _on_click_pause_resume()
+  : void 
+  {
+    return;
+  }
 
-        this.m_data_mng = null;        
+  /**
+   * Returns to the Mainmenu scene.
+   */
+  _onClick_mainMenu()
+  : void
+  {
+    this.destroy();
+    this.scene.start('mainMenu');
+    return;
+  }
 
-        this.m_user_pref = null;
+  /**
+   * Reset time.
+   */
+  _onClick_Reset()
+  : void
+  {
+    return;
+  }
 
-        // destroy clock display.
-        this.m_chrono_clock.destroy();
-        this.m_chrono_clock = null;
-        
-        // shutdown Gameplay.
-        //this.m_game_mng.shutdownGameplay();
-        this.m_game_mng = null;
-        return;
-    }
-*/
-    /****************************************************/
-    /* Private                                          */
-    /****************************************************/
-  /*  
-    private _on_click_main_menu()
-    : void {
-        this.destroy();
-        this.scene.start('mainMenu');
-        return;
-    }
+  /**
+   * 
+   */
+  _m_gameController : GameController;
 
-    private _on_chrono_finish()
-    : void {
-        this._reset_clock();
-        this.m_pop_up.open();        
-        return;
-    }
+  /**
+   * 
+   */
+  _m_dataController : DataController;
 
-    private _on_reach_mark()
-    : void {
-        this.m_chrono_clock.hotClock();        
-        return;
-    }
+  /**
+   * 
+   */
+  _m_mainMenuButton : MxActor;
 
-    private _reset_clock()
-    : void { /*
-        this.m_chrono_mng.reset
-        (
-            this.m_user_pref.chrono_value,
-            //15,
-            10
-        )
+  /**
+   * 
+   */
+  _m_pauseButton : MxActor;
 
-        this._init_button_frame();
-        this.m_chrono_clock.reset();
-        
-        if(this.m_pop_up.isOpen()){
-            this.m_pop_up.close();
-        }
-        return;*/
-    }
-
-    private _on_click_pause_resume()
-    : void {/*
-        if(this.m_chrono_mng.isRunning()){
-            this.m_chrono_mng.pause();
-            this.m_pause_resume.setText('Resumen');
-        } 
-        else {
-            this.m_chrono_mng.start();
-            this.m_pause_resume.setText('Pause');
-        }
-        
-        if(this.m_pop_up.isOpen()){
-            this.m_pop_up.close();
-        }
-        return;*/
-    }
-
-    private _init_button_frame()
-    : void {
-        //this.m_pause_resume.setText('Start');
-        return;
-    }
+  /**
+   * 
+   */
+  _m_resetButton : MxActor;
 }

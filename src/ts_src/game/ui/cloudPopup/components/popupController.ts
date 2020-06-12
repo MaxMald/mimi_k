@@ -119,12 +119,7 @@ export class PopupController extends MxComponent
   : void
   {
     this._m_nineSliceComponent = null;
-    this._m_textComponent = null;
-    
-    if(this._m_text_tween != null) {
-      this._m_text_tween.destroy();
-      this._m_text_tween = null;
-    }
+    this._m_textComponent = null;   
 
     super.destroy();
     return;

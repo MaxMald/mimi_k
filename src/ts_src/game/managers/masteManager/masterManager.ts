@@ -33,6 +33,11 @@ export class MasterManager
         return this._INSTANCE;
     }
 
+    /**
+     * Deltatime
+     */
+    _m_dt : number;
+
     /****************************************************/
     /* Private                                          */
     /****************************************************/

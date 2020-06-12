@@ -221,13 +221,10 @@ export class MainMenu extends Phaser.Scene
   _onClick_minute_button(_time : number)
   : void 
   {
-    this._m_gameController._m_user_preferences.chrono_value = _time; 
+    this._m_gameController._m_user_preferences.chrono_value = _time;  
     
-    // TODO erase the next line, so user preference can have other clock styles.
-    this._m_gameController._m_user_preferences.setClockStyle(CLOCK_STYLE.kSand);
-    
-    //this.destroy();
-    //this.scene.start('mainGame');
+    this.destroy();
+    this.scene.start('mainGame');
     return;
   }
 

@@ -1521,6 +1521,7 @@ define("scenes/preloader", ["require", "exports", "game/managers/masteManager/ma
             // Fonts
             this.load.bitmapFont('avant_bold', 'src/assets/images/bitmapFonts/avent_bold-export.png', 'src/assets/images/bitmapFonts/avent_bold-export.xml');
             this.load.bitmapFont('avant_garde_bk', 'src/assets/images/bitmapFonts/avant_garde_bk-export.png', 'src/assets/images/bitmapFonts/avant_garde_bk-export.xml');
+            this.load.bitmapFont('digital_dream', 'src/assets/images/bitmapFonts/digital_dream-export.png', 'src/assets/images/bitmapFonts/digital_dream-export.xml');
             ///////////////////////////////////
             // Text
             this.load.text('game_text', 'src/assets/csv_files/Mimi_k_data - game_texts.tsv');
@@ -2154,10 +2155,6 @@ define("game/ui/cloudPopup/components/popupController", ["require", "exports", "
         PopupController.prototype.destroy = function () {
             this._m_nineSliceComponent = null;
             this._m_textComponent = null;
-            if (this._m_text_tween != null) {
-                this._m_text_tween.destroy();
-                this._m_text_tween = null;
-            }
             _super.prototype.destroy.call(this);
             return;
         };
@@ -2733,10 +2730,8 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
         /****************************************************/
         MainMenu.prototype._onClick_minute_button = function (_time) {
             this._m_gameController._m_user_preferences.chrono_value = _time;
-            // TODO erase the next line, so user preference can have other clock styles.
-            this._m_gameController._m_user_preferences.setClockStyle(gameCommons_18.CLOCK_STYLE.kSand);
-            //this.destroy();
-            //this.scene.start('mainGame');
+            this.destroy();
+            this.scene.start('mainGame');
             return;
         };
         MainMenu.prototype._close_prefs = function () {
@@ -2772,167 +2767,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
     }(Phaser.Scene));
     exports.MainMenu = MainMenu;
 });
-define("game/ui/clocks/chronoClock", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var ChronoClock = /** @class */ (function () {
-        function ChronoClock() {
-        }
-        return ChronoClock;
-    }());
-    exports.ChronoClock = ChronoClock;
-});
-define("game/ui/clocks/sandClock", ["require", "exports", "game/ui/clocks/chronoClock"], function (require, exports, chronoClock_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var SandClock = /** @class */ (function (_super) {
-        __extends(SandClock, _super);
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function SandClock(_scene, _x, _y) {
-            var _this = _super.call(this) || this;
-            _this.m_text = _scene.add.text(_x, _y, '', { fontFamily: '"Roboto Condensed"' });
-            _this.m_text.setFontSize(50);
-            _this.m_text.setColor('black');
-            _this.m_text.setOrigin(0.5, 0.5);
-            return _this;
-        }
-        SandClock.prototype.update = function () {
-            //this.m_text.text = this.m_chrono_mng.getCurrentTime().toString();
-            return;
-        };
-        SandClock.prototype.reset = function () {
-            this.m_text.setColor('black');
-            return;
-        };
-        SandClock.prototype.hotClock = function () {
-            this.m_text.setColor('red');
-            return;
-        };
-        return SandClock;
-    }(chronoClock_1.ChronoClock));
-    exports.SandClock = SandClock;
-});
-define("game/ui/clocks/digitalClock", ["require", "exports", "game/ui/clocks/chronoClock"], function (require, exports, chronoClock_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var DigitalClock = /** @class */ (function (_super) {
-        __extends(DigitalClock, _super);
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function DigitalClock(_scene, _x, _y) {
-            var _this = _super.call(this) || this;
-            return _this;
-        }
-        return DigitalClock;
-    }(chronoClock_2.ChronoClock));
-    exports.DigitalClock = DigitalClock;
-});
-define("game/ui/clocks/analogClock", ["require", "exports", "game/ui/clocks/chronoClock"], function (require, exports, chronoClock_3) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var AnalogClock = /** @class */ (function (_super) {
-        __extends(AnalogClock, _super);
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function AnalogClock(_scene, _x, _y) {
-            var _this = _super.call(this) || this;
-            return _this;
-        }
-        return AnalogClock;
-    }(chronoClock_3.ChronoClock));
-    exports.AnalogClock = AnalogClock;
-});
-define("game/ui/buttons/nineButton", ["require", "exports", "utilities/component/mxActor", "game/components/textComponent", "game/components/nineSliceComponent"], function (require, exports, mxActor_7, textComponent_2, nineSliceComponent_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    /**
-     *
-     */
-    var NineButton = /** @class */ (function () {
-        function NineButton() {
-        }
-        /**
-         *
-         * @param _scene
-         * @param _id
-         * @param _x
-         * @param _y
-         * @param _label
-         * @param _fn
-         * @param _context
-         */
-        NineButton.CreateStandard = function (_scene, _id, _x, _y, _label, _fn, _context) {
-            var actor = mxActor_7.MxActor.Create(_id);
-            actor.setRelativePosition(_x, _y);
-            ///////////////////////////////////
-            // Create Components
-            var nineSliceComponent = new nineSliceComponent_2.NineSliceComponent();
-            actor.addComponent(nineSliceComponent);
-            var textComponent = new textComponent_2.TextComponent();
-            actor.addComponent(textComponent);
-            actor.init();
-            ///////////////////////////////////
-            // Prepare Components
-            nineSliceComponent.prepare(_scene, 'landpage', 'button.png', [67, 70, 67, 70]);
-            nineSliceComponent.setInteractive();
-            nineSliceComponent.on('pointerdown', _fn, _context);
-            textComponent.prepare(_scene, _label, { fontFamily: '"Roboto Condensed"' });
-            textComponent.setFontSize(30);
-            textComponent.setOrigin(0.5, 0.5);
-            textComponent.setFontColor('black');
-            textComponent.setAlign('center');
-            return actor;
-        };
-        return NineButton;
-    }());
-    exports.NineButton = NineButton;
-});
-define("game/ui/timeOutPop/timeOutPop", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var TimeOutPop = /** @class */ (function () {
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function TimeOutPop(_scene, _x, _y) {
-        }
-        TimeOutPop.prototype.open = function () {
-            if (!this.m_isOpen) {
-                this.m_group.setVisible(true);
-                var rnd = 1 + (Math.floor(Math.random() * 5));
-                if (rnd > 4) {
-                    rnd = 4;
-                }
-                //this.m_msg.text = this.m_data_mng.getString('time_out_' + rnd);
-                this.m_isOpen = !this.m_isOpen;
-            }
-            return;
-        };
-        TimeOutPop.prototype.close = function () {
-            if (this.m_isOpen) {
-                this.m_group.setVisible(false);
-                this.m_isOpen = !this.m_isOpen;
-            }
-            return;
-        };
-        TimeOutPop.prototype.isOpen = function () {
-            return this.m_isOpen;
-        };
-        /**
-        * Safely destroys the object.
-        */
-        TimeOutPop.prototype.destroy = function () {
-            return;
-        };
-        return TimeOutPop;
-    }());
-    exports.TimeOutPop = TimeOutPop;
-});
-define("scenes/levels/game_level", ["require", "exports"], function (require, exports) {
+define("scenes/levels/game_level", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/buttons/imgButton"], function (require, exports, masterManager_7, gameCommons_19, imgButton_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MainGame = /** @class */ (function (_super) {
@@ -2944,58 +2779,80 @@ define("scenes/levels/game_level", ["require", "exports"], function (require, ex
         /* Public                                           */
         /****************************************************/
         MainGame.prototype.create = function () {
+            // Get Controllers
+            var master = masterManager_7.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_19.MANAGER_ID.kGameManager);
+            this._m_dataController
+                = gameManager.getComponent(gameCommons_19.COMPONENT_ID.kDataController);
+            this._m_gameController
+                = gameManager.getComponent(gameCommons_19.COMPONENT_ID.kGameController);
             /****************************************************/
-            /* Private                                          */
+            /* Main Menu Button                                 */
             /****************************************************/
-            /*
-              private _on_click_main_menu()
-              : void {
-                  this.destroy();
-                  this.scene.start('mainMenu');
-                  return;
-              }
-          
-              private _on_chrono_finish()
-              : void {
-                  this._reset_clock();
-                  this.m_pop_up.open();
-                  return;
-              }
-          
-              private _on_reach_mark()
-              : void {
-                  this.m_chrono_clock.hotClock();
-                  return;
-              }
-          
-              private _reset_clock()
-              : void { /*
-                  this.m_chrono_mng.reset
-                  (
-                      this.m_user_pref.chrono_value,
-                      //15,
-                      10
-                  )
-          
-                  this._init_button_frame();
-                  this.m_chrono_clock.reset();
-                  
-                  if(this.m_pop_up.isOpen()){
-                      this.m_pop_up.close();
-                  }
-                  return;*/
+            var halfWidth = this.game.canvas.width * 0.5;
+            this._m_mainMenuButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 200, 'landpage', 'button.png', this._m_dataController.getString('back_to_menu'), this._onClick_mainMenu, this);
+            var mainMenuButtonSprite = this._m_mainMenuButton.getComponent(gameCommons_19.COMPONENT_ID.kSprite);
+            mainMenuButtonSprite.setTint(0xface01);
+            var mainMenuButtonText = this._m_mainMenuButton.getComponent(gameCommons_19.COMPONENT_ID.kBitmapText);
+            mainMenuButtonText.setTint(0x0a0136);
+            /****************************************************/
+            /* Pause Button                                     */
+            /****************************************************/
+            this._m_pauseButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1600, 'landpage', 'button.png', this._m_dataController.getString('pause'), this._on_click_pause_resume, this);
+            var pauseButtonSprite = this._m_pauseButton.getComponent(gameCommons_19.COMPONENT_ID.kSprite);
+            pauseButtonSprite.setTint(0x31a13b);
+            var pauseButtonText = this._m_pauseButton.getComponent(gameCommons_19.COMPONENT_ID.kBitmapText);
+            pauseButtonText.setTint(0xffffff);
+            /****************************************************/
+            /* Reset Button                                     */
+            /****************************************************/
+            this._m_resetButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1800, 'landpage', 'button.png', this._m_dataController.getString('reset'), this._onClick_Reset, this);
+            var resetButtonSprite = this._m_pauseButton.getComponent(gameCommons_19.COMPONENT_ID.kSprite);
+            resetButtonSprite.setTint(0x31a13b);
+            var resetButtonText = this._m_pauseButton.getComponent(gameCommons_19.COMPONENT_ID.kBitmapText);
+            resetButtonText.setTint(0xffffff);
+            return;
         };
+        MainGame.prototype.update = function () {
+            this._m_pauseButton.update();
+            this._m_mainMenuButton.update();
+            this._m_resetButton.update();
+            return;
+        };
+        MainGame.prototype.destroy = function () {
+            this._m_pauseButton.destroy();
+            this._m_mainMenuButton.destroy();
+            this._m_resetButton.destroy();
+            return;
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        /**
+         * Pause or resume time.
+         */
         MainGame.prototype._on_click_pause_resume = function () {
+            return;
         };
-        MainGame.prototype._init_button_frame = function () {
-            //this.m_pause_resume.setText('Start');
+        /**
+         * Returns to the Mainmenu scene.
+         */
+        MainGame.prototype._onClick_mainMenu = function () {
+            this.destroy();
+            this.scene.start('mainMenu');
+            return;
+        };
+        /**
+         * Reset time.
+         */
+        MainGame.prototype._onClick_Reset = function () {
             return;
         };
         return MainGame;
     }(Phaser.Scene));
     exports.MainGame = MainGame;
 });
-define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, gameCommons_19, mxActor_8, masterManager_7, spriteComponent_3, uiBitmapText_4) {
+define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, gameCommons_20, mxActor_7, masterManager_8, spriteComponent_3, uiBitmapText_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var LocalizationScene = /** @class */ (function (_super) {
@@ -3015,20 +2872,20 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             /****************************************************/
             /* Title                                            */
             /****************************************************/
-            this._m_language_icon = mxActor_8.MxActor.Create(0);
+            this._m_language_icon = mxActor_7.MxActor.Create(0);
             var language_sprite = new spriteComponent_3.SpriteComponent();
             language_sprite.setSprite(this.add.sprite(0, 0, 'landpage', 'language_button.png'));
             language_sprite.setTint(0x0c0138);
             this._m_language_icon.addComponent(language_sprite);
             this._m_language_icon.init();
             this._m_language_icon.setRelativePosition(half_width, 200);
-            this._m_laguage_title = mxActor_8.MxActor.Create(0, this._m_language_icon);
-            var master = masterManager_7.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_19.MANAGER_ID.kGameManager);
+            this._m_laguage_title = mxActor_7.MxActor.Create(0, this._m_language_icon);
+            var master = masterManager_8.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_20.MANAGER_ID.kGameManager);
             this._m_dataController
-                = gameManager.getComponent(gameCommons_19.COMPONENT_ID.kDataController);
+                = gameManager.getComponent(gameCommons_20.COMPONENT_ID.kDataController);
             this._m_gameController
-                = gameManager.getComponent(gameCommons_19.COMPONENT_ID.kGameController);
+                = gameManager.getComponent(gameCommons_20.COMPONENT_ID.kGameController);
             var languageTitleText = uiBitmapText_4.UIBitmapText.AddStandard(this, this._m_dataController.getString('choose_language'), this._m_laguage_title);
             languageTitleText.setTint(0x0c0138);
             languageTitleText.setCenterAlign();
@@ -3038,7 +2895,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             /****************************************************/
             /* English Button                                   */
             /****************************************************/
-            this._m_english_button = mxActor_8.MxActor.Create(0);
+            this._m_english_button = mxActor_7.MxActor.Create(0);
             var enlgishButtonSprite = new spriteComponent_3.SpriteComponent();
             enlgishButtonSprite.setSprite(this.add.sprite(0, 0, 'landpage', 'english_map.png'));
             enlgishButtonSprite.setOrigin(0.5, 0.0);
@@ -3047,7 +2904,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             this._m_english_button.addComponent(enlgishButtonSprite);
             this._m_english_button.init();
             this._m_english_button.setRelativePosition(half_width, 475);
-            var english_label = mxActor_8.MxActor.Create(1, this._m_english_button);
+            var english_label = mxActor_7.MxActor.Create(1, this._m_english_button);
             var englishLabelText = uiBitmapText_4.UIBitmapText.AddStandard(this, this._m_dataController.getString('english'), english_label);
             englishLabelText.setOrigin(0.5, 0.5);
             englishLabelText.setFontSize(60);
@@ -3057,7 +2914,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             /****************************************************/
             /* Latam Button                                     */
             /****************************************************/
-            this._m_spanish_button = mxActor_8.MxActor.Create(0);
+            this._m_spanish_button = mxActor_7.MxActor.Create(0);
             var spanishButtonSprite = new spriteComponent_3.SpriteComponent();
             spanishButtonSprite.setSprite(this.add.sprite(0, 0, 'landpage', 'spanish_map.png'));
             spanishButtonSprite.setOrigin(0.5, 0.0);
@@ -3066,7 +2923,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             this._m_spanish_button.addComponent(spanishButtonSprite);
             this._m_spanish_button.init();
             this._m_spanish_button.setRelativePosition(half_width, 1200);
-            var spanish_label = mxActor_8.MxActor.Create(1, this._m_spanish_button);
+            var spanish_label = mxActor_7.MxActor.Create(1, this._m_spanish_button);
             var spanishLabelText = uiBitmapText_4.UIBitmapText.AddStandard(this, this._m_dataController.getString('spanish'), spanish_label);
             spanishLabelText.setOrigin(0.5, 0.5);
             spanishLabelText.setFontSize(60);
@@ -3094,14 +2951,14 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
         /* Private                                          */
         /****************************************************/
         LocalizationScene.prototype._onClick_english = function () {
-            this._m_gameController.setLocalization(gameCommons_19.LOCALIZATION.kEnglish);
+            this._m_gameController.setLocalization(gameCommons_20.LOCALIZATION.kEnglish);
             this._m_dataController.initLanguage(this.game);
             this.destroy();
             this.scene.start('welcomePage');
             return;
         };
         LocalizationScene.prototype._onClick_spanish = function () {
-            this._m_gameController.setLocalization(gameCommons_19.LOCALIZATION.KSpanish);
+            this._m_gameController.setLocalization(gameCommons_20.LOCALIZATION.KSpanish);
             this._m_dataController.initLanguage(this.game);
             this.destroy();
             this.scene.start('welcomePage');
@@ -3111,7 +2968,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
     }(Phaser.Scene));
     exports.LocalizationScene = LocalizationScene;
 });
-define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/buttons/imgButton", "game/gameCommons", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager"], function (require, exports, mxActor_9, spriteComponent_4, imgButton_3, gameCommons_20, uiBitmapText_5, masterManager_8) {
+define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/buttons/imgButton", "game/gameCommons", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager"], function (require, exports, mxActor_8, spriteComponent_4, imgButton_4, gameCommons_21, uiBitmapText_5, masterManager_9) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var WelcomePage = /** @class */ (function (_super) {
@@ -3128,14 +2985,14 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /****************************************************/
             /* Language Button                                  */
             /****************************************************/
-            this._m_language_button = imgButton_3.Button.CreateImageButton(this, 0, 60, 60, 'landpage', 'language_button.png', this._onClick_language, this);
-            var _m_language_sprite = this._m_language_button.getComponent(gameCommons_20.COMPONENT_ID.kSprite);
+            this._m_language_button = imgButton_4.Button.CreateImageButton(this, 0, 60, 60, 'landpage', 'language_button.png', this._onClick_language, this);
+            var _m_language_sprite = this._m_language_button.getComponent(gameCommons_21.COMPONENT_ID.kSprite);
             _m_language_sprite.setTint(0xface01);
             _m_language_sprite.setOrigin(0.0, 0.0);
             /****************************************************/
             /* Website                                          */
             /****************************************************/
-            this._m_website_url = mxActor_9.MxActor.Create(0);
+            this._m_website_url = mxActor_8.MxActor.Create(0);
             var urlTextComponent = uiBitmapText_5.UIBitmapText.AddStandard(this, 'juegosmetta.com', this._m_website_url);
             urlTextComponent.setCenterAlign();
             urlTextComponent.setOrigin(0.5, 0.5);
@@ -3144,7 +3001,7 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /****************************************************/
             /* Welcome Phrase                                   */
             /****************************************************/
-            this._m_welcome_title = mxActor_9.MxActor.Create(0);
+            this._m_welcome_title = mxActor_8.MxActor.Create(0);
             var welcome_sprite = new spriteComponent_4.SpriteComponent();
             welcome_sprite.setSprite(this.add.sprite(0, 0, 'landpage', 'welcome_phrase_0.png'));
             this._m_welcome_title.addComponent(welcome_sprite);
@@ -3153,14 +3010,14 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /****************************************************/
             /* Start Button                                     */
             /****************************************************/
-            var master = masterManager_8.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_20.MANAGER_ID.kGameManager);
-            var dataController = gameManager.getComponent(gameCommons_20.COMPONENT_ID.kDataController);
-            this._m_start_button = imgButton_3.Button.CreateStandard(this, 0, screenHalfWidth, screenHeight * 0.4, 'landpage', 'button.png', dataController.getString('start_to_play'), this._onClick_start, this);
+            var master = masterManager_9.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_21.MANAGER_ID.kGameManager);
+            var dataController = gameManager.getComponent(gameCommons_21.COMPONENT_ID.kDataController);
+            this._m_start_button = imgButton_4.Button.CreateStandard(this, 0, screenHalfWidth, screenHeight * 0.4, 'landpage', 'button.png', dataController.getString('start_to_play'), this._onClick_start, this);
             /****************************************************/
             /* Cat                                              */
             /****************************************************/
-            this._m_cat = mxActor_9.MxActor.Create(0);
+            this._m_cat = mxActor_8.MxActor.Create(0);
             var cat_spriteComponent = new spriteComponent_4.SpriteComponent();
             cat_spriteComponent.setSprite(this.add.sprite(0, 0, 'landpage', 'cat.png'));
             this._m_cat.addComponent(cat_spriteComponent);
@@ -3251,6 +3108,166 @@ define("game_init", ["require", "exports", "scenes/preloader", "scenes/boot", "s
         return GameInit;
     }());
     return GameInit;
+});
+define("game/ui/buttons/nineButton", ["require", "exports", "utilities/component/mxActor", "game/components/textComponent", "game/components/nineSliceComponent"], function (require, exports, mxActor_9, textComponent_2, nineSliceComponent_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     *
+     */
+    var NineButton = /** @class */ (function () {
+        function NineButton() {
+        }
+        /**
+         *
+         * @param _scene
+         * @param _id
+         * @param _x
+         * @param _y
+         * @param _label
+         * @param _fn
+         * @param _context
+         */
+        NineButton.CreateStandard = function (_scene, _id, _x, _y, _label, _fn, _context) {
+            var actor = mxActor_9.MxActor.Create(_id);
+            actor.setRelativePosition(_x, _y);
+            ///////////////////////////////////
+            // Create Components
+            var nineSliceComponent = new nineSliceComponent_2.NineSliceComponent();
+            actor.addComponent(nineSliceComponent);
+            var textComponent = new textComponent_2.TextComponent();
+            actor.addComponent(textComponent);
+            actor.init();
+            ///////////////////////////////////
+            // Prepare Components
+            nineSliceComponent.prepare(_scene, 'landpage', 'button.png', [67, 70, 67, 70]);
+            nineSliceComponent.setInteractive();
+            nineSliceComponent.on('pointerdown', _fn, _context);
+            textComponent.prepare(_scene, _label, { fontFamily: '"Roboto Condensed"' });
+            textComponent.setFontSize(30);
+            textComponent.setOrigin(0.5, 0.5);
+            textComponent.setFontColor('black');
+            textComponent.setAlign('center');
+            return actor;
+        };
+        return NineButton;
+    }());
+    exports.NineButton = NineButton;
+});
+define("game/ui/clocks/chronoClock", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var ChronoClock = /** @class */ (function () {
+        function ChronoClock() {
+        }
+        return ChronoClock;
+    }());
+    exports.ChronoClock = ChronoClock;
+});
+define("game/ui/clocks/analogClock", ["require", "exports", "game/ui/clocks/chronoClock"], function (require, exports, chronoClock_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var AnalogClock = /** @class */ (function (_super) {
+        __extends(AnalogClock, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function AnalogClock(_scene, _x, _y) {
+            var _this = _super.call(this) || this;
+            return _this;
+        }
+        return AnalogClock;
+    }(chronoClock_1.ChronoClock));
+    exports.AnalogClock = AnalogClock;
+});
+define("game/ui/clocks/digitalClock", ["require", "exports", "game/ui/clocks/chronoClock"], function (require, exports, chronoClock_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var DigitalClock = /** @class */ (function (_super) {
+        __extends(DigitalClock, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function DigitalClock(_scene, _x, _y) {
+            var _this = _super.call(this) || this;
+            return _this;
+        }
+        return DigitalClock;
+    }(chronoClock_2.ChronoClock));
+    exports.DigitalClock = DigitalClock;
+});
+define("game/ui/clocks/sandClock", ["require", "exports", "game/ui/clocks/chronoClock"], function (require, exports, chronoClock_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var SandClock = /** @class */ (function (_super) {
+        __extends(SandClock, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function SandClock(_scene, _x, _y) {
+            var _this = _super.call(this) || this;
+            _this.m_text = _scene.add.text(_x, _y, '', { fontFamily: '"Roboto Condensed"' });
+            _this.m_text.setFontSize(50);
+            _this.m_text.setColor('black');
+            _this.m_text.setOrigin(0.5, 0.5);
+            return _this;
+        }
+        SandClock.prototype.update = function () {
+            //this.m_text.text = this.m_chrono_mng.getCurrentTime().toString();
+            return;
+        };
+        SandClock.prototype.reset = function () {
+            this.m_text.setColor('black');
+            return;
+        };
+        SandClock.prototype.hotClock = function () {
+            this.m_text.setColor('red');
+            return;
+        };
+        return SandClock;
+    }(chronoClock_3.ChronoClock));
+    exports.SandClock = SandClock;
+});
+define("game/ui/timeOutPop/timeOutPop", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var TimeOutPop = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function TimeOutPop(_scene, _x, _y) {
+        }
+        TimeOutPop.prototype.open = function () {
+            if (!this.m_isOpen) {
+                this.m_group.setVisible(true);
+                var rnd = 1 + (Math.floor(Math.random() * 5));
+                if (rnd > 4) {
+                    rnd = 4;
+                }
+                //this.m_msg.text = this.m_data_mng.getString('time_out_' + rnd);
+                this.m_isOpen = !this.m_isOpen;
+            }
+            return;
+        };
+        TimeOutPop.prototype.close = function () {
+            if (this.m_isOpen) {
+                this.m_group.setVisible(false);
+                this.m_isOpen = !this.m_isOpen;
+            }
+            return;
+        };
+        TimeOutPop.prototype.isOpen = function () {
+            return this.m_isOpen;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        TimeOutPop.prototype.destroy = function () {
+            return;
+        };
+        return TimeOutPop;
+    }());
+    exports.TimeOutPop = TimeOutPop;
 });
 define("utilities/fsm_state", ["require", "exports"], function (require, exports) {
     "use strict";

@@ -42,6 +42,13 @@ export class Preloader extends Phaser.Scene
       'src/assets/images/bitmapFonts/avant_garde_bk-export.xml'
     );
 
+    this.load.bitmapFont
+    (
+      'digital_dream',
+      'src/assets/images/bitmapFonts/digital_dream-export.png', 
+      'src/assets/images/bitmapFonts/digital_dream-export.xml'
+    );
+
     ///////////////////////////////////
     // Text
 
