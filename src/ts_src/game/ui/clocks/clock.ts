@@ -3,6 +3,8 @@ import { ClockController } from "./components/clockController";
 import { SpriteComponent } from "../../components/spriteComponent";
 import { BitmapTextComponent } from "../../components/bitmapTextComponent";
 import { DigitalController } from "./components/digitalController";
+import { GraphicsComponent } from "../../components/graphicsComponent";
+import { AnalogClockController } from "./components/analogClockController";
 
 /**
  * Clock factories.
@@ -46,7 +48,7 @@ export class Clock
     (
       _scene,
       'digital_dream',
-      '3:00',
+      '03:00',
       160
     )
     clockText.setOrigin(0.5, 0.5);
@@ -67,7 +69,54 @@ export class Clock
   {
     let clock : MxActor = MxActor.Create(_id);
 
+    ///////////////////////////////////
+    // Background Object
+
+    let backgroundObject : MxActor = MxActor.Create(1, clock);
+
+    let backgroundSprite : SpriteComponent = new SpriteComponent();
+    backgroundSprite.setSprite
+    (
+      _scene.add.sprite
+      (
+        0, 0,
+        'landpage_2',
+        'analog_clock_background.png'
+      )
+    );
+
+    backgroundObject.addComponent(backgroundSprite);
+
+    ///////////////////////////////////
+    // Radial Fill
+
+    let graphicsComponent : GraphicsComponent
+      = new GraphicsComponent();
+
+    graphicsComponent.prepare(_scene);
+
+    clock.addComponent(graphicsComponent);
     clock.addComponent(new ClockController());
+    clock.addComponent(new AnalogClockController());
+
+    ///////////////////////////////////
+    // Foreground Object
+
+    let foregroundObject : MxActor = MxActor.Create(2 , clock);
+
+    let foregroundSprite : SpriteComponent = new SpriteComponent();
+    foregroundSprite.setSprite
+    (
+      _scene.add.sprite
+      (
+        0, 0,
+        'landpage_2',
+        'analog_clock_front.png'
+      )
+    );
+
+    foregroundObject.addComponent(foregroundSprite);
+
     clock.init();
     return clock;
   }

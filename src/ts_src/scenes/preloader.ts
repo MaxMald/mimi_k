@@ -1,9 +1,6 @@
-import { CSVFile } from "../utilities/fs/csv_file";
 import { MxActor } from "../utilities/component/mxActor";
 import { MasterManager } from "../game/managers/masteManager/masterManager";
-import { MANAGER_ID, COMPONENT_ID, LOCALIZATION } from "../game/gameCommons";
-import { GameController } from "../game/managers/gameManager/components/gameController";
-import { CSVRow } from "../utilities/fs/csv_row";
+import { MANAGER_ID, COMPONENT_ID } from "../game/gameCommons";
 import { DataController } from "../game/managers/gameManager/components/dataController";
 
 export class Preloader extends Phaser.Scene
@@ -23,6 +20,13 @@ export class Preloader extends Phaser.Scene
       'landpage',
       'src/assets/images/atlas/landpage.png',
       'src/assets/images/atlas/landpage.js'
+    );
+
+    this.load.atlas
+    (
+      'landpage_2',
+      'src/assets/images/atlas/landpage_2.png',
+      'src/assets/images/atlas/landpage_2.js'
     );
 
     ///////////////////////////////////

@@ -76,301 +76,7 @@ define("utilities/gameObjects/mxUObject", ["require", "exports", "utilities/mxUU
     }());
     exports.MxUObject = MxUObject;
 });
-define("utilities/asserts", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function AssertString(_input) {
-        if (typeof _input === 'string')
-            return;
-        else
-            throw new Error('Input must be a string.');
-    }
-    exports.AssertString = AssertString;
-    function AssertFunction(_input) {
-        if (typeof _input === 'function')
-            return;
-        else
-            throw new Error('Input must be a function.');
-    }
-    exports.AssertFunction = AssertFunction;
-    function AssertNumber(_input) {
-        if (typeof _input === 'number')
-            return;
-        else
-            throw new Error('Input must be a number.');
-    }
-    exports.AssertNumber = AssertNumber;
-    function AssertObject(_input) {
-        if (typeof _input === 'object')
-            return;
-        else
-            throw new Error('Input must be an object.');
-    }
-    exports.AssertObject = AssertObject;
-    function AssertBoolean(_input) {
-        if (typeof _input === 'boolean')
-            return;
-        else
-            throw new Error('Input must be a boolean.');
-    }
-    exports.AssertBoolean = AssertBoolean;
-    function AssertPositiveNoNZeroNumber(_number) {
-        if (_number <= 0) {
-            throw new Error('Number cant has a negative or zero value');
-        }
-        return;
-    }
-    exports.AssertPositiveNoNZeroNumber = AssertPositiveNoNZeroNumber;
-});
-define("utilities/fs/csv_row", ["require", "exports", "utilities/gameObjects/mxUObject", "utilities/fs/csv_file", "utilities/asserts"], function (require, exports, mxUObject_1, csv_file_1, asserts_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var CSVRow = /** @class */ (function (_super) {
-        __extends(CSVRow, _super);
-        function CSVRow(_csv_file) {
-            var _this = _super.call(this) || this;
-            _this._m_a_cells = new Array();
-            _this._m_a_csv_file = _csv_file;
-            return _this;
-        }
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        CSVRow.GetNull = function () {
-            if (CSVRow._NULL_OBJ == null || CSVRow === undefined) {
-                CSVRow._NULL_OBJ = new CSVRow(csv_file_1.CSVFile.GetNull());
-            }
-            return CSVRow._NULL_OBJ;
-        };
-        CSVRow.IsNull = function (_row) {
-            var null_id = CSVRow.GetNull().getUUID();
-            var param_id = _row.getUUID();
-            return param_id.compare(null_id);
-        };
-        /**
-         * Gets the value of one of this Row's cell.
-         * Returns an empty string if it doesn't has the required cell.
-         *
-         * @param _index {string | number} Index can be the header's name or the cell's index.
-         */
-        CSVRow.prototype.getCell = function (_index) {
-            if (_index === undefined || _index == null) {
-                console.warn("CSVRow: null or undefined parameter.");
-                return "";
-            }
-            if (typeof _index === 'number') {
-                if (this._validate_idx(_index)) {
-                    return this._m_a_cells[_index];
-                }
-            }
-            else if (typeof _index === 'string') {
-                var array_index = this._m_a_csv_file.getHeaderIdx(_index);
-                if (this._validate_idx(array_index)) {
-                    return this._m_a_cells[array_index];
-                }
-            }
-            return "";
-        };
-        /**
-         * Adds a new cell to this row.
-         * @param _data {string} New cell's data.
-         */
-        CSVRow.prototype.addCell = function (_data) {
-            this._m_a_cells.push(_data);
-            return;
-        };
-        /**
-         * Adds multiple cells from raw data.
-         *
-         * @param _data {string} cells raw data.
-         * @param _delimiter {char} Delimiter character for cells. i.e. ',' for CSV or '\t' for TSV.
-         */
-        CSVRow.prototype.addCellsFromRaw = function (_data, _delimiter) {
-            if (_delimiter === void 0) { _delimiter = ','; }
-            asserts_1.AssertString(_data);
-            asserts_1.AssertString(_delimiter);
-            var a_cells_data = _data.split(_delimiter);
-            for (var index = 0; index < a_cells_data.length; ++index) {
-                this._m_a_cells.push(a_cells_data[index]);
-            }
-            return;
-        };
-        CSVRow.prototype.getRowSize = function () {
-            return this._m_a_cells.length;
-        };
-        /**
-        * Safely destroys the object.
-        */
-        CSVRow.prototype.destroy = function () {
-            _super.prototype.destroy.call(this);
-            this._m_a_cells = null;
-            this._m_a_csv_file = null;
-            return;
-        };
-        /****************************************************/
-        /* Private                                          */
-        /****************************************************/
-        CSVRow.prototype._validate_idx = function (_index) {
-            return (0 <= _index && _index < this._m_a_cells.length);
-        };
-        return CSVRow;
-    }(mxUObject_1.MxUObject));
-    exports.CSVRow = CSVRow;
-});
-define("utilities/fs/csv_file", ["require", "exports", "utilities/fs/csv_row", "utilities/gameObjects/mxUObject", "utilities/asserts"], function (require, exports, csv_row_1, mxUObject_2, asserts_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var CSVFile = /** @class */ (function (_super) {
-        __extends(CSVFile, _super);
-        /****************************************************/
-        /* Private                                          */
-        /****************************************************/
-        function CSVFile() {
-            var _this = _super.call(this) || this;
-            _this._m_a_headers = new Array();
-            _this._m_a_rows = new Array();
-            return _this;
-        }
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        CSVFile.GetNull = function () {
-            if (CSVFile._NULL_OBJ == null || CSVFile._NULL_OBJ === undefined) {
-                CSVFile._NULL_OBJ = new CSVFile();
-            }
-            return CSVFile._NULL_OBJ;
-        };
-        CSVFile.IsNull = function (_csv_file) {
-            var null_id = this.GetNull().getUUID();
-            var obj_id = _csv_file.getUUID();
-            return obj_id.compare(null_id);
-        };
-        /**
-         * Creates an useful CSVFile object to handle a raw csv data.
-         *
-         * @param _csv_data {string} Raw CSV data.
-         * @param _has_header_row {boolean} Does data has a header row? It takes the first row as headers.
-         * @param _cell_delimiter {char} Delimiter character for cells. i.e. ',' for CSV or '\t' for TSV.
-         * @param _row_delimiter {char} Delimiter character for rows, usually it is the line break ('\n') character.
-         */
-        CSVFile.Create = function (_csv_data, _has_header_row, _cell_delimiter, _row_delimiter) {
-            if (_has_header_row === void 0) { _has_header_row = true; }
-            if (_cell_delimiter === void 0) { _cell_delimiter = ','; }
-            if (_row_delimiter === void 0) { _row_delimiter = '\n'; }
-            var csv_file = new CSVFile();
-            asserts_2.AssertString(_csv_data);
-            asserts_2.AssertString(_cell_delimiter);
-            asserts_2.AssertString(_row_delimiter);
-            if (_csv_data == "") {
-                return csv_file;
-            }
-            // Remove any Carriage Character
-            _csv_data = _csv_data.replace('\r', '');
-            var row;
-            var a_row_raw_data = _csv_data.split(_row_delimiter);
-            var rows_start_position = 0;
-            // Get the headers from the csv file.
-            if (_has_header_row) {
-                if (a_row_raw_data.length > 0) {
-                    var a_cell_data = a_row_raw_data[0].split(_cell_delimiter);
-                    var value = void 0;
-                    for (var index = 0; index < a_cell_data.length; ++index) {
-                        csv_file._m_a_headers.push(a_cell_data[index]);
-                    }
-                    rows_start_position++;
-                }
-            }
-            // Get rows data.
-            for (var index = rows_start_position; index < a_row_raw_data.length; ++index) {
-                row = new csv_row_1.CSVRow(csv_file);
-                csv_file._m_a_rows.push(row);
-                row.addCellsFromRaw(a_row_raw_data[index], _cell_delimiter);
-            }
-            return csv_file;
-        };
-        /**
-         * Gets a row from the CSVFile. If the row_index is out of range, it will returns
-         * a Null Object.
-         *
-         * @param _row_index
-         */
-        CSVFile.prototype.getRow = function (_row_index) {
-            if (0 <= _row_index && _row_index < this._m_a_rows.length) {
-                return this._m_a_rows[_row_index];
-            }
-            console.warn("Can't get the row from the CSVFile: Index out of range.");
-            return csv_row_1.CSVRow.GetNull();
-        };
-        /**
-         * Gets the first Row with given value in a specific header column. Return a
-         * Null Object if doesn't found a row with the given specifications.
-         *
-         * @param _key_header {string} key header's name
-         * @param _value {string} value.
-         */
-        CSVFile.prototype.getRowByKey = function (_key_header, _value) {
-            asserts_2.AssertString(_key_header);
-            asserts_2.AssertString(_value);
-            var header_idx = this.getHeaderIdx(_key_header);
-            if (header_idx < 0) {
-                console.warn("Can't get the row from the CSVFile: Header doesn't exists: " + _key_header);
-                return csv_row_1.CSVRow.GetNull();
-            }
-            for (var index = 0; index < this._m_a_rows.length; ++index) {
-                if (this._m_a_rows[index].getCell(header_idx) == _value) {
-                    return this._m_a_rows[index];
-                }
-            }
-            return csv_row_1.CSVRow.GetNull();
-        };
-        /**
-         * Returns the header column position (0 based). Returns -1 if the header
-         * doesn't exists.
-         *
-         * @param _header
-         */
-        CSVFile.prototype.getHeaderIdx = function (_header_name) {
-            var value;
-            for (var index = 0; index < this._m_a_headers.length; ++index) {
-                value = this._m_a_headers[index];
-                if (value === _header_name) {
-                    return index;
-                }
-            }
-            console.warn("Can't get the Header Index:" + _header_name + " Header doesn't exists in the CSVFile.");
-            return -1;
-        };
-        /**
-         * Check if the header exists in the CSVFile. Returns true if it does.
-         *
-         * @param _header_name
-         */
-        CSVFile.prototype.hasHeader = function (_header_name) {
-            for (var index = 0; index < this._m_a_headers.length; ++index) {
-                if (this._m_a_headers[index] == _header_name) {
-                    return true;
-                }
-            }
-            return false;
-        };
-        CSVFile.prototype.getNumberHeaders = function () {
-            return this._m_a_headers.length;
-        };
-        CSVFile.prototype.getNumberRows = function () {
-            return this._m_a_rows.length;
-        };
-        /**
-        * Safely destroys the object.
-        */
-        CSVFile.prototype.destroy = function () {
-            _super.prototype.destroy.call(this);
-            return;
-        };
-        return CSVFile;
-    }(mxUObject_2.MxUObject));
-    exports.CSVFile = CSVFile;
-});
-define("utilities/component/mxComponent", ["require", "exports", "utilities/gameObjects/mxUObject"], function (require, exports, mxUObject_3) {
+define("utilities/component/mxComponent", ["require", "exports", "utilities/gameObjects/mxUObject"], function (require, exports, mxUObject_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MxComponent = /** @class */ (function (_super) {
@@ -421,8 +127,54 @@ define("utilities/component/mxComponent", ["require", "exports", "utilities/game
             return;
         };
         return MxComponent;
-    }(mxUObject_3.MxUObject));
+    }(mxUObject_1.MxUObject));
     exports.MxComponent = MxComponent;
+});
+define("utilities/asserts", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function AssertString(_input) {
+        if (typeof _input === 'string')
+            return;
+        else
+            throw new Error('Input must be a string.');
+    }
+    exports.AssertString = AssertString;
+    function AssertFunction(_input) {
+        if (typeof _input === 'function')
+            return;
+        else
+            throw new Error('Input must be a function.');
+    }
+    exports.AssertFunction = AssertFunction;
+    function AssertNumber(_input) {
+        if (typeof _input === 'number')
+            return;
+        else
+            throw new Error('Input must be a number.');
+    }
+    exports.AssertNumber = AssertNumber;
+    function AssertObject(_input) {
+        if (typeof _input === 'object')
+            return;
+        else
+            throw new Error('Input must be an object.');
+    }
+    exports.AssertObject = AssertObject;
+    function AssertBoolean(_input) {
+        if (typeof _input === 'boolean')
+            return;
+        else
+            throw new Error('Input must be a boolean.');
+    }
+    exports.AssertBoolean = AssertBoolean;
+    function AssertPositiveNoNZeroNumber(_number) {
+        if (_number <= 0) {
+            throw new Error('Number cant has a negative or zero value');
+        }
+        return;
+    }
+    exports.AssertPositiveNoNZeroNumber = AssertPositiveNoNZeroNumber;
 });
 define("utilities/enum_commons", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -441,7 +193,7 @@ define("utilities/enum_commons", ["require", "exports"], function (require, expo
         OPRESULT[OPRESULT["kCount"] = 8] = "kCount";
     })(OPRESULT = exports.OPRESULT || (exports.OPRESULT = {}));
 });
-define("utilities/component/mxComponentMng", ["require", "exports", "utilities/component/mxComponent", "utilities/asserts", "utilities/enum_commons"], function (require, exports, mxComponent_1, asserts_3, enum_commons_1) {
+define("utilities/component/mxComponentMng", ["require", "exports", "utilities/component/mxComponent", "utilities/asserts", "utilities/enum_commons"], function (require, exports, mxComponent_1, asserts_1, enum_commons_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MxComponentMng = /** @class */ (function () {
@@ -514,7 +266,7 @@ define("utilities/component/mxComponentMng", ["require", "exports", "utilities/c
             return;
         };
         MxComponentMng.prototype.getComponentsWithTag = function (_tag) {
-            asserts_3.AssertNumber(_tag);
+            asserts_1.AssertNumber(_tag);
             var a_cmp = new Array();
             this.m_component_map.forEach(function (_component) {
                 if (_component.m_tag == null || _component.m_tag === undefined) {
@@ -695,7 +447,7 @@ define("utilities/data/mxChildrenManager", ["require", "exports", "utilities/enu
     }());
     exports.MxChildrenManager = MxChildrenManager;
 });
-define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_4) {
+define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var OBJECT_POOL_TYPE;
@@ -724,8 +476,8 @@ define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], fu
          * @param _create_fn Fuction used to create a new element, this should return an element.
          */
         ObjectPool.CreateDynamic = function (_max, _create_fn, _context) {
-            asserts_4.AssertFunction(_create_fn);
-            asserts_4.AssertNumber(_max);
+            asserts_2.AssertFunction(_create_fn);
+            asserts_2.AssertNumber(_max);
             var pool = new ObjectPool();
             pool.m_a_active = new Array();
             pool.m_a_desactive = new Array();
@@ -774,7 +526,7 @@ define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], fu
             return;
         };
         ObjectPool.prototype.setOnActiveFn = function (_fn, _context) {
-            asserts_4.AssertFunction(_fn);
+            asserts_2.AssertFunction(_fn);
             this.m_on_active = _fn;
             if (_context != undefined) {
                 this.m_on_active_context = _context;
@@ -782,7 +534,7 @@ define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], fu
             return;
         };
         ObjectPool.prototype.setOnDesactiveFn = function (_fn, _context) {
-            asserts_4.AssertFunction(_fn);
+            asserts_2.AssertFunction(_fn);
             this.m_on_desactive = _fn;
             if (_context != undefined) {
                 this.m_on_desactive_context = _context;
@@ -890,7 +642,7 @@ define("utilities/mxObjectPool", ["require", "exports", "utilities/asserts"], fu
             return;
         };
         ObjectPool.prototype._create_element = function () {
-            asserts_4.AssertFunction(this.m_create_fn);
+            asserts_2.AssertFunction(this.m_create_fn);
             var element = this.m_create_fn.call(this.m_fn_create_context, this);
             this.m_size++;
             return element;
@@ -931,7 +683,9 @@ define("game/gameCommons", ["require", "exports"], function (require, exports) {
         kCarouselController: 10,
         kBitmapText: 11,
         kClockController: 12,
-        kDigitalClockController: 13
+        kDigitalClockController: 13,
+        kGraphicsComponent: 14,
+        kAnalogClockController: 15
     });
     exports.MESSAGE_ID = Object.freeze({
         kOnAgentActive: 1,
@@ -951,7 +705,7 @@ define("game/gameCommons", ["require", "exports"], function (require, exports) {
         kPreviewBackground: 6
     });
 });
-define("utilities/component/mxActor", ["require", "exports", "utilities/component/mxComponentMng", "utilities/gameObjects/mxUObject", "utilities/data/mxChildrenManager", "utilities/enum_commons", "game/gameCommons"], function (require, exports, mxComponentMng_1, mxUObject_4, mxChildrenManager_1, enum_commons_3, gameCommons_1) {
+define("utilities/component/mxActor", ["require", "exports", "utilities/component/mxComponentMng", "utilities/gameObjects/mxUObject", "utilities/data/mxChildrenManager", "utilities/enum_commons", "game/gameCommons"], function (require, exports, mxComponentMng_1, mxUObject_2, mxChildrenManager_1, enum_commons_3, gameCommons_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MxActor = /** @class */ (function (_super) {
@@ -1205,7 +959,7 @@ define("utilities/component/mxActor", ["require", "exports", "utilities/componen
             return;
         };
         return MxActor;
-    }(mxUObject_4.MxUObject));
+    }(mxUObject_2.MxUObject));
     exports.MxActor = MxActor;
 });
 define("game/managers/masteManager/masterManager", ["require", "exports", "utilities/component/mxActor", "game/gameCommons"], function (require, exports, mxActor_1, gameCommons_2) {
@@ -1266,7 +1020,7 @@ define("game/managers/masteManager/components/MasterController", ["require", "ex
     }(mxComponent_2.MxComponent));
     exports.MasterController = MasterController;
 });
-define("game/managers/gameManager/components/chronoController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager", "utilities/asserts"], function (require, exports, mxComponent_3, gameCommons_4, masterManager_1, asserts_5) {
+define("game/managers/gameManager/components/chronoController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager", "utilities/asserts"], function (require, exports, mxComponent_3, gameCommons_4, masterManager_1, asserts_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ChronoController = /** @class */ (function (_super) {
@@ -1313,10 +1067,10 @@ define("game/managers/gameManager/components/chronoController", ["require", "exp
             return;
         };
         ChronoController.prototype.reset = function (_chrono_value, _chrono_mark) {
-            asserts_5.AssertNumber(_chrono_value);
+            asserts_3.AssertNumber(_chrono_value);
             this._m_chrono = _chrono_value;
             this._m_chrono_current = this._m_chrono;
-            asserts_5.AssertNumber(_chrono_mark);
+            asserts_3.AssertNumber(_chrono_mark);
             this._m_chrono_mark = _chrono_mark;
             this._m_reach_mark = false;
             this.pause();
@@ -1453,6 +1207,254 @@ define("game/managers/gameManager/components/gameController", ["require", "expor
     }(mxComponent_4.MxComponent));
     exports.GameController = GameController;
 });
+define("utilities/fs/csv_row", ["require", "exports", "utilities/gameObjects/mxUObject", "utilities/fs/csv_file", "utilities/asserts"], function (require, exports, mxUObject_3, csv_file_1, asserts_4) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var CSVRow = /** @class */ (function (_super) {
+        __extends(CSVRow, _super);
+        function CSVRow(_csv_file) {
+            var _this = _super.call(this) || this;
+            _this._m_a_cells = new Array();
+            _this._m_a_csv_file = _csv_file;
+            return _this;
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        CSVRow.GetNull = function () {
+            if (CSVRow._NULL_OBJ == null || CSVRow === undefined) {
+                CSVRow._NULL_OBJ = new CSVRow(csv_file_1.CSVFile.GetNull());
+            }
+            return CSVRow._NULL_OBJ;
+        };
+        CSVRow.IsNull = function (_row) {
+            var null_id = CSVRow.GetNull().getUUID();
+            var param_id = _row.getUUID();
+            return param_id.compare(null_id);
+        };
+        /**
+         * Gets the value of one of this Row's cell.
+         * Returns an empty string if it doesn't has the required cell.
+         *
+         * @param _index {string | number} Index can be the header's name or the cell's index.
+         */
+        CSVRow.prototype.getCell = function (_index) {
+            if (_index === undefined || _index == null) {
+                console.warn("CSVRow: null or undefined parameter.");
+                return "";
+            }
+            if (typeof _index === 'number') {
+                if (this._validate_idx(_index)) {
+                    return this._m_a_cells[_index];
+                }
+            }
+            else if (typeof _index === 'string') {
+                var array_index = this._m_a_csv_file.getHeaderIdx(_index);
+                if (this._validate_idx(array_index)) {
+                    return this._m_a_cells[array_index];
+                }
+            }
+            return "";
+        };
+        /**
+         * Adds a new cell to this row.
+         * @param _data {string} New cell's data.
+         */
+        CSVRow.prototype.addCell = function (_data) {
+            this._m_a_cells.push(_data);
+            return;
+        };
+        /**
+         * Adds multiple cells from raw data.
+         *
+         * @param _data {string} cells raw data.
+         * @param _delimiter {char} Delimiter character for cells. i.e. ',' for CSV or '\t' for TSV.
+         */
+        CSVRow.prototype.addCellsFromRaw = function (_data, _delimiter) {
+            if (_delimiter === void 0) { _delimiter = ','; }
+            asserts_4.AssertString(_data);
+            asserts_4.AssertString(_delimiter);
+            var a_cells_data = _data.split(_delimiter);
+            for (var index = 0; index < a_cells_data.length; ++index) {
+                this._m_a_cells.push(a_cells_data[index]);
+            }
+            return;
+        };
+        CSVRow.prototype.getRowSize = function () {
+            return this._m_a_cells.length;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        CSVRow.prototype.destroy = function () {
+            _super.prototype.destroy.call(this);
+            this._m_a_cells = null;
+            this._m_a_csv_file = null;
+            return;
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        CSVRow.prototype._validate_idx = function (_index) {
+            return (0 <= _index && _index < this._m_a_cells.length);
+        };
+        return CSVRow;
+    }(mxUObject_3.MxUObject));
+    exports.CSVRow = CSVRow;
+});
+define("utilities/fs/csv_file", ["require", "exports", "utilities/fs/csv_row", "utilities/gameObjects/mxUObject", "utilities/asserts"], function (require, exports, csv_row_1, mxUObject_4, asserts_5) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var CSVFile = /** @class */ (function (_super) {
+        __extends(CSVFile, _super);
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        function CSVFile() {
+            var _this = _super.call(this) || this;
+            _this._m_a_headers = new Array();
+            _this._m_a_rows = new Array();
+            return _this;
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        CSVFile.GetNull = function () {
+            if (CSVFile._NULL_OBJ == null || CSVFile._NULL_OBJ === undefined) {
+                CSVFile._NULL_OBJ = new CSVFile();
+            }
+            return CSVFile._NULL_OBJ;
+        };
+        CSVFile.IsNull = function (_csv_file) {
+            var null_id = this.GetNull().getUUID();
+            var obj_id = _csv_file.getUUID();
+            return obj_id.compare(null_id);
+        };
+        /**
+         * Creates an useful CSVFile object to handle a raw csv data.
+         *
+         * @param _csv_data {string} Raw CSV data.
+         * @param _has_header_row {boolean} Does data has a header row? It takes the first row as headers.
+         * @param _cell_delimiter {char} Delimiter character for cells. i.e. ',' for CSV or '\t' for TSV.
+         * @param _row_delimiter {char} Delimiter character for rows, usually it is the line break ('\n') character.
+         */
+        CSVFile.Create = function (_csv_data, _has_header_row, _cell_delimiter, _row_delimiter) {
+            if (_has_header_row === void 0) { _has_header_row = true; }
+            if (_cell_delimiter === void 0) { _cell_delimiter = ','; }
+            if (_row_delimiter === void 0) { _row_delimiter = '\n'; }
+            var csv_file = new CSVFile();
+            asserts_5.AssertString(_csv_data);
+            asserts_5.AssertString(_cell_delimiter);
+            asserts_5.AssertString(_row_delimiter);
+            if (_csv_data == "") {
+                return csv_file;
+            }
+            // Remove any Carriage Character
+            _csv_data = _csv_data.replace('\r', '');
+            var row;
+            var a_row_raw_data = _csv_data.split(_row_delimiter);
+            var rows_start_position = 0;
+            // Get the headers from the csv file.
+            if (_has_header_row) {
+                if (a_row_raw_data.length > 0) {
+                    var a_cell_data = a_row_raw_data[0].split(_cell_delimiter);
+                    var value = void 0;
+                    for (var index = 0; index < a_cell_data.length; ++index) {
+                        csv_file._m_a_headers.push(a_cell_data[index]);
+                    }
+                    rows_start_position++;
+                }
+            }
+            // Get rows data.
+            for (var index = rows_start_position; index < a_row_raw_data.length; ++index) {
+                row = new csv_row_1.CSVRow(csv_file);
+                csv_file._m_a_rows.push(row);
+                row.addCellsFromRaw(a_row_raw_data[index], _cell_delimiter);
+            }
+            return csv_file;
+        };
+        /**
+         * Gets a row from the CSVFile. If the row_index is out of range, it will returns
+         * a Null Object.
+         *
+         * @param _row_index
+         */
+        CSVFile.prototype.getRow = function (_row_index) {
+            if (0 <= _row_index && _row_index < this._m_a_rows.length) {
+                return this._m_a_rows[_row_index];
+            }
+            console.warn("Can't get the row from the CSVFile: Index out of range.");
+            return csv_row_1.CSVRow.GetNull();
+        };
+        /**
+         * Gets the first Row with given value in a specific header column. Return a
+         * Null Object if doesn't found a row with the given specifications.
+         *
+         * @param _key_header {string} key header's name
+         * @param _value {string} value.
+         */
+        CSVFile.prototype.getRowByKey = function (_key_header, _value) {
+            asserts_5.AssertString(_key_header);
+            asserts_5.AssertString(_value);
+            var header_idx = this.getHeaderIdx(_key_header);
+            if (header_idx < 0) {
+                console.warn("Can't get the row from the CSVFile: Header doesn't exists: " + _key_header);
+                return csv_row_1.CSVRow.GetNull();
+            }
+            for (var index = 0; index < this._m_a_rows.length; ++index) {
+                if (this._m_a_rows[index].getCell(header_idx) == _value) {
+                    return this._m_a_rows[index];
+                }
+            }
+            return csv_row_1.CSVRow.GetNull();
+        };
+        /**
+         * Returns the header column position (0 based). Returns -1 if the header
+         * doesn't exists.
+         *
+         * @param _header
+         */
+        CSVFile.prototype.getHeaderIdx = function (_header_name) {
+            var value;
+            for (var index = 0; index < this._m_a_headers.length; ++index) {
+                value = this._m_a_headers[index];
+                if (value === _header_name) {
+                    return index;
+                }
+            }
+            console.warn("Can't get the Header Index:" + _header_name + " Header doesn't exists in the CSVFile.");
+            return -1;
+        };
+        /**
+         * Check if the header exists in the CSVFile. Returns true if it does.
+         *
+         * @param _header_name
+         */
+        CSVFile.prototype.hasHeader = function (_header_name) {
+            for (var index = 0; index < this._m_a_headers.length; ++index) {
+                if (this._m_a_headers[index] == _header_name) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        CSVFile.prototype.getNumberHeaders = function () {
+            return this._m_a_headers.length;
+        };
+        CSVFile.prototype.getNumberRows = function () {
+            return this._m_a_rows.length;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        CSVFile.prototype.destroy = function () {
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        return CSVFile;
+    }(mxUObject_4.MxUObject));
+    exports.CSVFile = CSVFile;
+});
 define("game/managers/gameManager/components/dataController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "utilities/fs/csv_file", "utilities/fs/csv_row"], function (require, exports, mxComponent_5, gameCommons_7, csv_file_2, csv_row_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1522,6 +1524,7 @@ define("scenes/preloader", ["require", "exports", "game/managers/masteManager/ma
             ///////////////////////////////////
             // Atlas     
             this.load.atlas('landpage', 'src/assets/images/atlas/landpage.png', 'src/assets/images/atlas/landpage.js');
+            this.load.atlas('landpage_2', 'src/assets/images/atlas/landpage_2.png', 'src/assets/images/atlas/landpage_2.js');
             ///////////////////////////////////
             // Fonts
             this.load.bitmapFont('avant_bold', 'src/assets/images/bitmapFonts/avent_bold-export.png', 'src/assets/images/bitmapFonts/avent_bold-export.xml');
@@ -2924,7 +2927,156 @@ define("game/ui/clocks/components/digitalController", ["require", "exports", "ut
     }(mxComponent_14.MxComponent));
     exports.DigitalController = DigitalController;
 });
-define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxActor", "game/ui/clocks/components/clockController", "game/components/spriteComponent", "game/components/bitmapTextComponent", "game/ui/clocks/components/digitalController"], function (require, exports, mxActor_7, clockController_1, spriteComponent_3, bitmapTextComponent_2, digitalController_1) {
+define("game/components/graphicsComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_15, gameCommons_21) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var GraphicsComponent = /** @class */ (function (_super) {
+        __extends(GraphicsComponent, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function GraphicsComponent() {
+            var _this = _super.call(this, gameCommons_21.COMPONENT_ID.kGraphicsComponent) || this;
+            _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
+            return _this;
+        }
+        GraphicsComponent.prototype.prepare = function (_scene) {
+            this._m_graphic = _scene.add.graphics();
+            return;
+        };
+        GraphicsComponent.prototype.update = function (_actor) {
+            this._m_graphic.x = _actor._m_position.x + this._m_local_position.x;
+            this._m_graphic.y = _actor._m_position.y + this._m_local_position.y;
+            return;
+        };
+        GraphicsComponent.prototype.receive = function (_id, _data) {
+            if (_id == gameCommons_21.MESSAGE_ID.kOnAgentActive) {
+                this.setVisible(true);
+                this.setActive(true);
+                return;
+            }
+            else if (_id == gameCommons_21.MESSAGE_ID.kOnAgentDesactive) {
+                this.setVisible(false);
+                this.setActive(false);
+                return;
+            }
+        };
+        GraphicsComponent.prototype.getGraphic = function () {
+            return this._m_graphic;
+        };
+        GraphicsComponent.prototype.setTexture = function (_texture_key) {
+            this._m_graphic.setTexture(_texture_key);
+            return;
+        };
+        /**
+         * Move the sprite local position (relative to the MxActor position).
+         *
+         * @param _x {number} Steps in the x axis.
+         * @param _y {number} Steps in the y axis.
+         */
+        GraphicsComponent.prototype.move = function (_x, _y) {
+            this._m_local_position.x += _x;
+            this._m_local_position.y += _y;
+            return;
+        };
+        /**
+         * Sets the local position (relative to the MxActor position) of the sprite.
+         *
+         * @param _x
+         * @param _y
+         */
+        GraphicsComponent.prototype.setPosition = function (_x, _y) {
+            this._m_local_position.setTo(_x, _y);
+            return;
+        };
+        /**
+         * Gets the local position (relative to the MxActor position) of the sprite.
+         */
+        GraphicsComponent.prototype.getPosition = function () {
+            return new Phaser.Math.Vector2(this._m_local_position.x, this._m_local_position.y);
+        };
+        /**
+         *
+         */
+        GraphicsComponent.prototype.setInteractive = function () {
+            this._m_graphic.setInteractive();
+            return;
+        };
+        /**
+         *
+         * @param _event
+         * @param _fn
+         * @param _context
+         */
+        GraphicsComponent.prototype.on = function (_event, _fn, _context) {
+            this._m_graphic.on(_event, _fn, _context);
+            return;
+        };
+        /**
+         * The rotation of this Game Object, in degrees. Default 0.
+         * @param _degrees {number} degrees.
+         */
+        GraphicsComponent.prototype.setAngle = function (_degrees) {
+            this._m_graphic.setAngle(_degrees);
+        };
+        GraphicsComponent.prototype.setVisible = function (_visible) {
+            this._m_graphic.setVisible(_visible);
+            return;
+        };
+        GraphicsComponent.prototype.setScale = function (_x, _y) {
+            this._m_graphic.setScale(_x, _y);
+            return;
+        };
+        GraphicsComponent.prototype.setActive = function (_active) {
+            this._m_graphic.setActive(_active);
+            return;
+        };
+        GraphicsComponent.prototype.destroy = function () {
+            this._m_graphic.destroy();
+            this._m_local_position = null;
+            _super.prototype.destroy.call(this);
+            return;
+        };
+        return GraphicsComponent;
+    }(mxComponent_15.MxComponent));
+    exports.GraphicsComponent = GraphicsComponent;
+});
+define("game/ui/clocks/components/analogClockController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_16, gameCommons_22) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var AnalogClockController = /** @class */ (function (_super) {
+        __extends(AnalogClockController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function AnalogClockController() {
+            var _this = _super.call(this, gameCommons_22.COMPONENT_ID.kAnalogClockController) || this;
+            return _this;
+        }
+        AnalogClockController.prototype.init = function (_actor) {
+            this._m_startAngle = -Math.PI * 0.5;
+            this._m_maxAngle = Math.PI * 1.5;
+            var graphicsComponent = _actor.getComponent(gameCommons_22.COMPONENT_ID.kGraphicsComponent);
+            this._m_graphics = graphicsComponent.getGraphic();
+            this._m_clockController = _actor.getComponent(gameCommons_22.COMPONENT_ID.kClockController);
+            return;
+        };
+        AnalogClockController.prototype.update = function (_actor) {
+            var percent = this._m_clockController.m_current_time
+                / this._m_clockController._m_totalSeconds;
+            this._m_graphics.clear();
+            this._m_graphics.lineStyle(308, 0x31a13b, 1);
+            this._m_graphics.beginPath();
+            this._m_graphics.arc(0, 0, 173.5, this._m_startAngle, this._m_maxAngle - (Phaser.Math.PI2 * percent));
+            this._m_graphics.strokePath();
+            this._m_graphics.closePath();
+            return;
+        };
+        return AnalogClockController;
+    }(mxComponent_16.MxComponent));
+    exports.AnalogClockController = AnalogClockController;
+});
+define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxActor", "game/ui/clocks/components/clockController", "game/components/spriteComponent", "game/components/bitmapTextComponent", "game/ui/clocks/components/digitalController", "game/components/graphicsComponent", "game/ui/clocks/components/analogClockController"], function (require, exports, mxActor_7, clockController_1, spriteComponent_3, bitmapTextComponent_2, digitalController_1, graphicsComponent_1, analogClockController_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -2948,7 +3100,7 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
             spriteComponent.setSprite(_scene.add.sprite(0, 0, 'landpage', 'digital_clock.png'));
             clock.addComponent(spriteComponent);
             var clockText = new bitmapTextComponent_2.BitmapTextComponent();
-            clockText.prepare(_scene, 'digital_dream', '3:00', 160);
+            clockText.prepare(_scene, 'digital_dream', '03:00', 160);
             clockText.setOrigin(0.5, 0.5);
             clockText.setCenterAlign();
             clockText.setTint(0x31a13b);
@@ -2961,7 +3113,25 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
         };
         Clock.CreateAnalog = function (_scene, _id) {
             var clock = mxActor_7.MxActor.Create(_id);
+            ///////////////////////////////////
+            // Background Object
+            var backgroundObject = mxActor_7.MxActor.Create(1, clock);
+            var backgroundSprite = new spriteComponent_3.SpriteComponent();
+            backgroundSprite.setSprite(_scene.add.sprite(0, 0, 'landpage_2', 'analog_clock_background.png'));
+            backgroundObject.addComponent(backgroundSprite);
+            ///////////////////////////////////
+            // Radial Fill
+            var graphicsComponent = new graphicsComponent_1.GraphicsComponent();
+            graphicsComponent.prepare(_scene);
+            clock.addComponent(graphicsComponent);
             clock.addComponent(new clockController_1.ClockController());
+            clock.addComponent(new analogClockController_1.AnalogClockController());
+            ///////////////////////////////////
+            // Foreground Object
+            var foregroundObject = mxActor_7.MxActor.Create(2, clock);
+            var foregroundSprite = new spriteComponent_3.SpriteComponent();
+            foregroundSprite.setSprite(_scene.add.sprite(0, 0, 'landpage_2', 'analog_clock_front.png'));
+            foregroundObject.addComponent(foregroundSprite);
             clock.init();
             return clock;
         };
@@ -2969,7 +3139,7 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
     }());
     exports.Clock = Clock;
 });
-define("scenes/levels/game_level", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/buttons/imgButton", "game/ui/clocks/clock"], function (require, exports, masterManager_8, gameCommons_21, imgButton_3, clock_1) {
+define("scenes/levels/game_level", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/buttons/imgButton", "game/ui/clocks/clock"], function (require, exports, masterManager_8, gameCommons_23, imgButton_3, clock_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MainGame = /** @class */ (function (_super) {
@@ -2983,48 +3153,48 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
         MainGame.prototype.create = function () {
             // Get Controllers
             var master = masterManager_8.MasterManager.GetInstance();
-            this._m_masterController = master.getComponent(gameCommons_21.COMPONENT_ID.kMasterController);
-            var gameManager = master.get_child(gameCommons_21.MANAGER_ID.kGameManager);
+            this._m_masterController = master.getComponent(gameCommons_23.COMPONENT_ID.kMasterController);
+            var gameManager = master.get_child(gameCommons_23.MANAGER_ID.kGameManager);
             this._m_dataController
-                = gameManager.getComponent(gameCommons_21.COMPONENT_ID.kDataController);
+                = gameManager.getComponent(gameCommons_23.COMPONENT_ID.kDataController);
             this._m_gameController
-                = gameManager.getComponent(gameCommons_21.COMPONENT_ID.kGameController);
+                = gameManager.getComponent(gameCommons_23.COMPONENT_ID.kGameController);
             /****************************************************/
             /* Main Menu Button                                 */
             /****************************************************/
             var halfWidth = this.game.canvas.width * 0.5;
             this._m_mainMenuButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 200, 'landpage', 'button.png', this._m_dataController.getString('back_to_menu'), this._onClick_mainMenu, this);
-            var mainMenuButtonSprite = this._m_mainMenuButton.getComponent(gameCommons_21.COMPONENT_ID.kSprite);
+            var mainMenuButtonSprite = this._m_mainMenuButton.getComponent(gameCommons_23.COMPONENT_ID.kSprite);
             mainMenuButtonSprite.setTint(0xface01);
-            var mainMenuButtonText = this._m_mainMenuButton.getComponent(gameCommons_21.COMPONENT_ID.kBitmapText);
+            var mainMenuButtonText = this._m_mainMenuButton.getComponent(gameCommons_23.COMPONENT_ID.kBitmapText);
             mainMenuButtonText.setTint(0x0a0136);
             /****************************************************/
             /* Pause Button                                     */
             /****************************************************/
             this._m_pauseButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1600, 'landpage', 'button.png', this._m_dataController.getString('pause'), this._on_click_pause_resume, this);
-            var pauseButtonSprite = this._m_pauseButton.getComponent(gameCommons_21.COMPONENT_ID.kSprite);
+            var pauseButtonSprite = this._m_pauseButton.getComponent(gameCommons_23.COMPONENT_ID.kSprite);
             pauseButtonSprite.setTint(0x31a13b);
-            var pauseButtonText = this._m_pauseButton.getComponent(gameCommons_21.COMPONENT_ID.kBitmapText);
+            var pauseButtonText = this._m_pauseButton.getComponent(gameCommons_23.COMPONENT_ID.kBitmapText);
             pauseButtonText.setTint(0xffffff);
             /****************************************************/
             /* Reset Button                                     */
             /****************************************************/
             this._m_resetButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1800, 'landpage', 'button.png', this._m_dataController.getString('reset'), this._onClick_Reset, this);
-            var resetButtonSprite = this._m_pauseButton.getComponent(gameCommons_21.COMPONENT_ID.kSprite);
+            var resetButtonSprite = this._m_pauseButton.getComponent(gameCommons_23.COMPONENT_ID.kSprite);
             resetButtonSprite.setTint(0x31a13b);
-            var resetButtonText = this._m_pauseButton.getComponent(gameCommons_21.COMPONENT_ID.kBitmapText);
+            var resetButtonText = this._m_pauseButton.getComponent(gameCommons_23.COMPONENT_ID.kBitmapText);
             resetButtonText.setTint(0xffffff);
             /****************************************************/
             /* Clock                                            */
             /****************************************************/
             switch (this._m_gameController._m_user_preferences.getClockStyle()) {
-                case gameCommons_21.CLOCK_STYLE.kSand:
+                case gameCommons_23.CLOCK_STYLE.kSand:
                     this._m_clock = clock_1.Clock.CreateSand(this, 0);
                     break;
-                case gameCommons_21.CLOCK_STYLE.kDigital:
+                case gameCommons_23.CLOCK_STYLE.kDigital:
                     this._m_clock = clock_1.Clock.CreateDigital(this, 0);
                     break;
-                case gameCommons_21.CLOCK_STYLE.kAnalog:
+                case gameCommons_23.CLOCK_STYLE.kAnalog:
                     this._m_clock = clock_1.Clock.CreateAnalog(this, 0);
                     break;
                 default:
@@ -3032,7 +3202,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
                     break;
             }
             this._m_clock.setRelativePosition(halfWidth, this.game.canvas.height * 0.5);
-            this._m_clockController = this._m_clock.getComponent(gameCommons_21.COMPONENT_ID.kClockController);
+            this._m_clockController = this._m_clock.getComponent(gameCommons_23.COMPONENT_ID.kClockController);
             return;
         };
         MainGame.prototype.update = function (_time, _delta) {
@@ -3084,7 +3254,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
     }(Phaser.Scene));
     exports.MainGame = MainGame;
 });
-define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, gameCommons_22, mxActor_8, masterManager_9, spriteComponent_4, uiBitmapText_4) {
+define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, gameCommons_24, mxActor_8, masterManager_9, spriteComponent_4, uiBitmapText_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var LocalizationScene = /** @class */ (function (_super) {
@@ -3113,11 +3283,11 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             this._m_language_icon.setRelativePosition(half_width, 200);
             this._m_laguage_title = mxActor_8.MxActor.Create(0, this._m_language_icon);
             var master = masterManager_9.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_22.MANAGER_ID.kGameManager);
+            var gameManager = master.get_child(gameCommons_24.MANAGER_ID.kGameManager);
             this._m_dataController
-                = gameManager.getComponent(gameCommons_22.COMPONENT_ID.kDataController);
+                = gameManager.getComponent(gameCommons_24.COMPONENT_ID.kDataController);
             this._m_gameController
-                = gameManager.getComponent(gameCommons_22.COMPONENT_ID.kGameController);
+                = gameManager.getComponent(gameCommons_24.COMPONENT_ID.kGameController);
             var languageTitleText = uiBitmapText_4.UIBitmapText.AddStandard(this, this._m_dataController.getString('choose_language'), this._m_laguage_title);
             languageTitleText.setTint(0x0c0138);
             languageTitleText.setCenterAlign();
@@ -3183,14 +3353,14 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
         /* Private                                          */
         /****************************************************/
         LocalizationScene.prototype._onClick_english = function () {
-            this._m_gameController.setLocalization(gameCommons_22.LOCALIZATION.kEnglish);
+            this._m_gameController.setLocalization(gameCommons_24.LOCALIZATION.kEnglish);
             this._m_dataController.initLanguage(this.game);
             this.destroy();
             this.scene.start('welcomePage');
             return;
         };
         LocalizationScene.prototype._onClick_spanish = function () {
-            this._m_gameController.setLocalization(gameCommons_22.LOCALIZATION.KSpanish);
+            this._m_gameController.setLocalization(gameCommons_24.LOCALIZATION.KSpanish);
             this._m_dataController.initLanguage(this.game);
             this.destroy();
             this.scene.start('welcomePage');
@@ -3200,7 +3370,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
     }(Phaser.Scene));
     exports.LocalizationScene = LocalizationScene;
 });
-define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/buttons/imgButton", "game/gameCommons", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager"], function (require, exports, mxActor_9, spriteComponent_5, imgButton_4, gameCommons_23, uiBitmapText_5, masterManager_10) {
+define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/buttons/imgButton", "game/gameCommons", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager"], function (require, exports, mxActor_9, spriteComponent_5, imgButton_4, gameCommons_25, uiBitmapText_5, masterManager_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var WelcomePage = /** @class */ (function (_super) {
@@ -3218,7 +3388,7 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /* Language Button                                  */
             /****************************************************/
             this._m_language_button = imgButton_4.Button.CreateImageButton(this, 0, 60, 60, 'landpage', 'language_button.png', this._onClick_language, this);
-            var _m_language_sprite = this._m_language_button.getComponent(gameCommons_23.COMPONENT_ID.kSprite);
+            var _m_language_sprite = this._m_language_button.getComponent(gameCommons_25.COMPONENT_ID.kSprite);
             _m_language_sprite.setTint(0xface01);
             _m_language_sprite.setOrigin(0.0, 0.0);
             /****************************************************/
@@ -3243,8 +3413,8 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /* Start Button                                     */
             /****************************************************/
             var master = masterManager_10.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_23.MANAGER_ID.kGameManager);
-            var dataController = gameManager.getComponent(gameCommons_23.COMPONENT_ID.kDataController);
+            var gameManager = master.get_child(gameCommons_25.MANAGER_ID.kGameManager);
+            var dataController = gameManager.getComponent(gameCommons_25.COMPONENT_ID.kDataController);
             this._m_start_button = imgButton_4.Button.CreateStandard(this, 0, screenHalfWidth, screenHeight * 0.4, 'landpage', 'button.png', dataController.getString('start_to_play'), this._onClick_start, this);
             /****************************************************/
             /* Cat                                              */

@@ -56,7 +56,9 @@ export const COMPONENT_ID = Object.freeze
     kCarouselController : 10 as 10,
     kBitmapText : 11 as 11,
     kClockController : 12 as 12,
-    kDigitalClockController : 13 as 13
+    kDigitalClockController : 13 as 13,
+    kGraphicsComponent : 14 as 14,
+    kAnalogClockController : 15 as 15
 });
 
 ///////////////////////////////////
