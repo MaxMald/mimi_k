@@ -2,10 +2,13 @@ import { MxActor } from "../../utilities/component/mxActor";
 import { DataController } from "../../game/managers/gameManager/components/dataController";
 import { GameController } from "../../game/managers/gameManager/components/gameController";
 import { MasterManager } from "../../game/managers/masteManager/masterManager";
-import { MANAGER_ID, COMPONENT_ID } from "../../game/gameCommons";
+import { MANAGER_ID, COMPONENT_ID, CLOCK_STYLE } from "../../game/gameCommons";
 import { Button } from "../../game/ui/buttons/imgButton";
 import { SpriteComponent } from "../../game/components/spriteComponent";
 import { BitmapTextComponent } from "../../game/components/bitmapTextComponent";
+import { ClockController } from "../../game/ui/clocks/components/clockController";
+import { Clock } from "../../game/ui/clocks/clock";
+import { MasterController } from "../../game/managers/masteManager/components/MasterController";
 
 export class MainGame extends Phaser.Scene
 {
@@ -19,6 +22,12 @@ export class MainGame extends Phaser.Scene
     // Get Controllers
 
     let master : MxActor = MasterManager.GetInstance();
+
+    this._m_masterController = master.getComponent<MasterController>
+    (
+      COMPONENT_ID.kMasterController
+    );
+
     let gameManager : MxActor = master.get_child(MANAGER_ID.kGameManager);
 
     this._m_dataController 
@@ -107,12 +116,41 @@ export class MainGame extends Phaser.Scene
 
     resetButtonText.setTint(0xffffff);
 
+    /****************************************************/
+    /* Clock                                            */
+    /****************************************************/
+
+    switch(this._m_gameController._m_user_preferences.getClockStyle())
+    {
+      case CLOCK_STYLE.kSand :
+        this._m_clock = Clock.CreateSand(this, 0);
+        break;
+      case CLOCK_STYLE.kDigital :
+        this._m_clock = Clock.CreateDigital(this, 0);
+        break;
+      case CLOCK_STYLE.kAnalog :
+        this._m_clock = Clock.CreateAnalog(this, 0);
+        break;
+      default :
+        this._m_clock = Clock.CreateDigital(this, 0);
+        break;
+    }
+
+    this._m_clock.setRelativePosition(halfWidth, this.game.canvas.height * 0.5);
+    this._m_clockController = this._m_clock.getComponent<ClockController>
+    (
+      COMPONENT_ID.kClockController
+    );
+
     return;
   }
 
-  update()
+  update(_time : number, _delta : number)
   : void
   {
+    this._m_masterController.m_dt = _delta / 1000.0;
+
+    this._m_clock.update();
     this._m_pauseButton.update();
     this._m_mainMenuButton.update();
     this._m_resetButton.update();
@@ -122,6 +160,7 @@ export class MainGame extends Phaser.Scene
   destroy()
   : void
   {
+    this._m_clock.destroy();
     this._m_pauseButton.destroy();
     this._m_mainMenuButton.destroy();
     this._m_resetButton.destroy();
@@ -138,6 +177,12 @@ export class MainGame extends Phaser.Scene
   _on_click_pause_resume()
   : void 
   {
+    if(this._m_clockController.m_isPaused) {
+      this._m_clockController.resume();
+    }
+    else {
+      this._m_clockController.pause();
+    }
     return;
   }
 
@@ -158,8 +203,14 @@ export class MainGame extends Phaser.Scene
   _onClick_Reset()
   : void
   {
+    this._m_clockController.reset();
     return;
   }
+
+  /**
+   * 
+   */
+  _m_masterController : MasterController;
 
   /**
    * 
@@ -185,4 +236,14 @@ export class MainGame extends Phaser.Scene
    * 
    */
   _m_resetButton : MxActor;
+
+  /**
+   * 
+   */
+  _m_clockController : ClockController;
+
+  /**
+   * 
+   */
+  _m_clock : MxActor;
 }

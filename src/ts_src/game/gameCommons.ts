@@ -54,7 +54,9 @@ export const COMPONENT_ID = Object.freeze
     kPopupController : 8 as 8,
     kNineSliceButton : 9 as 9,
     kCarouselController : 10 as 10,
-    kBitmapText : 11 as 11
+    kBitmapText : 11 as 11,
+    kClockController : 12 as 12,
+    kDigitalClockController : 13 as 13
 });
 
 ///////////////////////////////////
@@ -66,8 +68,11 @@ export const MESSAGE_ID = Object.freeze
 ({
     kOnAgentActive : 1 as 1,
     kOnAgentDesactive : 2 as 2,
-    kGameController : 3 as 3,
-    kDataController : 4 as 4
+    kClockPaused : 3 as 3,
+    kClockResumed : 4 as 4,
+    kClockReset : 5 as 5,
+    kPlaySound : 6 as 6,
+    kTimeOut : 7 as 7
 });
 
 ///////////////////////////////////
