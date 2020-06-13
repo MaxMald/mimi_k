@@ -2678,7 +2678,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
             var a_times = [5, 3, 1];
             var a_buttonColors = [0x31a13b, 0x205e40, 0x14293d];
             var _loop_1 = function (index) {
-                button = imgButton_2.Button.CreateStandard(this_1, index, but_pos.x, but_pos.y, 'landpage', 'button.png', '' + a_times[index] + this_1._m_dataController.getString('minutes'), function () {
+                button = imgButton_2.Button.CreateStandard(this_1, index, but_pos.x, but_pos.y, 'landpage', 'button.png', '' + a_times[index] + ' ' + this_1._m_dataController.getString('minutes'), function () {
                     this._onClick_minute_button(a_times[index] * 60);
                 }, this_1);
                 this_1._m_a_preferenceButtons.push(button);
@@ -3292,17 +3292,18 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
             /* Pause Button                                     */
             /****************************************************/
             this._m_pauseButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1600, 'landpage', 'button.png', this._m_dataController.getString('pause'), this._on_click_pause_resume, this);
-            var pauseButtonSprite = this._m_pauseButton.getComponent(gameCommons_25.COMPONENT_ID.kSprite);
-            pauseButtonSprite.setTint(0x31a13b);
-            var pauseButtonText = this._m_pauseButton.getComponent(gameCommons_25.COMPONENT_ID.kBitmapText);
-            pauseButtonText.setTint(0xffffff);
+            this._m_pauseButtonTexture
+                = this._m_pauseButton.getComponent(gameCommons_25.COMPONENT_ID.kSprite);
+            this._m_pauseButtonText
+                = this._m_pauseButton.getComponent(gameCommons_25.COMPONENT_ID.kBitmapText);
+            this._m_pauseButtonText.setTint(0xffffff);
             /****************************************************/
             /* Reset Button                                     */
             /****************************************************/
             this._m_resetButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1800, 'landpage', 'button.png', this._m_dataController.getString('reset'), this._onClick_Reset, this);
-            var resetButtonSprite = this._m_pauseButton.getComponent(gameCommons_25.COMPONENT_ID.kSprite);
-            resetButtonSprite.setTint(0x31a13b);
-            var resetButtonText = this._m_pauseButton.getComponent(gameCommons_25.COMPONENT_ID.kBitmapText);
+            var resetButtonSprite = this._m_resetButton.getComponent(gameCommons_25.COMPONENT_ID.kSprite);
+            resetButtonSprite.setTint(0xff5709);
+            var resetButtonText = this._m_resetButton.getComponent(gameCommons_25.COMPONENT_ID.kBitmapText);
             resetButtonText.setTint(0xffffff);
             /****************************************************/
             /* Clock                                            */
@@ -3323,6 +3324,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
             }
             this._m_clock.setRelativePosition(halfWidth, this.game.canvas.height * 0.5);
             this._m_clockController = this._m_clock.getComponent(gameCommons_25.COMPONENT_ID.kClockController);
+            this._onClick_Reset();
             return;
         };
         MainGame.prototype.update = function (_time, _delta) {
@@ -3349,9 +3351,13 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
         MainGame.prototype._on_click_pause_resume = function () {
             if (this._m_clockController.m_isPaused) {
                 this._m_clockController.resume();
+                this._m_pauseButtonText.setText(this._m_dataController.getString('pause'));
+                this._m_pauseButtonTexture.setTint(0xff0013);
             }
             else {
                 this._m_clockController.pause();
+                this._m_pauseButtonText.setText(this._m_dataController.getString('resume'));
+                this._m_pauseButtonTexture.setTint(0x31a13b);
             }
             return;
         };
@@ -3368,6 +3374,8 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
          */
         MainGame.prototype._onClick_Reset = function () {
             this._m_clockController.reset();
+            this._m_pauseButtonText.setText(this._m_dataController.getString('start'));
+            this._m_pauseButtonTexture.setTint(0x31a13b);
             return;
         };
         return MainGame;

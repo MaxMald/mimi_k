@@ -82,7 +82,7 @@ export class MainMenu extends Phaser.Scene
         but_pos.y,
         'landpage',
         'button.png',
-        '' + a_times[index] + this._m_dataController.getString('minutes'),
+        '' + a_times[index] + ' ' + this._m_dataController.getString('minutes'),
         function() {
           this._onClick_minute_button(a_times[index] * 60);
         },

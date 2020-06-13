@@ -80,15 +80,18 @@ export class MainGame extends Phaser.Scene
       this
     );
     
-    let pauseButtonSprite
-      = this._m_pauseButton.getComponent<SpriteComponent>(COMPONENT_ID.kSprite);
+    this._m_pauseButtonTexture
+      = this._m_pauseButton.getComponent<SpriteComponent>
+      (
+        COMPONENT_ID.kSprite
+      );
 
-    pauseButtonSprite.setTint(0x31a13b);
-
-    let pauseButtonText
-      = this._m_pauseButton.getComponent<BitmapTextComponent>(COMPONENT_ID.kBitmapText);
-
-    pauseButtonText.setTint(0xffffff);
+    this._m_pauseButtonText
+      = this._m_pauseButton.getComponent<BitmapTextComponent>
+      (
+        COMPONENT_ID.kBitmapText
+      );    
+    this._m_pauseButtonText.setTint(0xffffff);
 
     /****************************************************/
     /* Reset Button                                     */
@@ -107,13 +110,18 @@ export class MainGame extends Phaser.Scene
     );
     
     let resetButtonSprite
-      = this._m_pauseButton.getComponent<SpriteComponent>(COMPONENT_ID.kSprite);
+      = this._m_resetButton.getComponent<SpriteComponent>
+      (
+        COMPONENT_ID.kSprite
+      );
 
-    resetButtonSprite.setTint(0x31a13b);
+    resetButtonSprite.setTint(0xff5709);
 
     let resetButtonText
-      = this._m_pauseButton.getComponent<BitmapTextComponent>(COMPONENT_ID.kBitmapText);
-
+      = this._m_resetButton.getComponent<BitmapTextComponent>
+      (
+        COMPONENT_ID.kBitmapText
+      );
     resetButtonText.setTint(0xffffff);
 
     /****************************************************/
@@ -142,6 +150,7 @@ export class MainGame extends Phaser.Scene
       COMPONENT_ID.kClockController
     );
 
+    this._onClick_Reset();
     return;
   }
 
@@ -179,9 +188,15 @@ export class MainGame extends Phaser.Scene
   {
     if(this._m_clockController.m_isPaused) {
       this._m_clockController.resume();
+
+      this._m_pauseButtonText.setText(this._m_dataController.getString('pause'));
+      this._m_pauseButtonTexture.setTint(0xff0013);
     }
-    else {
+    else {      
       this._m_clockController.pause();
+
+      this._m_pauseButtonText.setText(this._m_dataController.getString('resume'));
+      this._m_pauseButtonTexture.setTint(0x31a13b);
     }
     return;
   }
@@ -203,7 +218,10 @@ export class MainGame extends Phaser.Scene
   _onClick_Reset()
   : void
   {
-    this._m_clockController.reset();
+    this._m_clockController.reset();  
+    
+    this._m_pauseButtonText.setText(this._m_dataController.getString('start'));
+    this._m_pauseButtonTexture.setTint(0x31a13b);
     return;
   }
 
@@ -231,6 +249,16 @@ export class MainGame extends Phaser.Scene
    * 
    */
   _m_pauseButton : MxActor;
+
+  /**
+   * 
+   */
+  _m_pauseButtonTexture : SpriteComponent;
+
+  /**
+   * 
+   */
+  _m_pauseButtonText : BitmapTextComponent;
 
   /**
    * 
