@@ -23,7 +23,10 @@
 body {
   margin: 0;
   background-color: gray;
-  background-image: url("texture.png");
+  background-image: url("web_pattern_01.jpg");
+  -webkit-background-size: 33%;
+  -o-background-size:33%;
+  -moz-background-size: 33%; 
   background-size: 33%;
   background-repeat: repeat;
   height: 100%;

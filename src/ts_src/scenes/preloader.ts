@@ -30,6 +30,15 @@ export class Preloader extends Phaser.Scene
     );
 
     ///////////////////////////////////
+    // Images
+
+    this.load.image
+    (
+      'sand_clock_mask',
+      'src/assets/images/atlas/sand_clock_mask.png'
+    );
+
+    ///////////////////////////////////
     // Fonts
 
     this.load.bitmapFont

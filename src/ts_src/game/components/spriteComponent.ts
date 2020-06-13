@@ -59,6 +59,19 @@ export class SpriteComponent extends MxComponent
     return;
   }
 
+  setMask(_mask : Phaser.Display.Masks.BitmapMask)
+  : void
+  {
+    this._m_sprite.setMask(_mask);
+    return;
+  }
+
+  createMask()
+  : Phaser.Display.Masks.BitmapMask
+  {
+    return this._m_sprite.createBitmapMask();
+  }
+
   setTint(_color : number)
   : void
   {

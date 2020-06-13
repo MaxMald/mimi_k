@@ -58,7 +58,8 @@ export const COMPONENT_ID = Object.freeze
     kClockController : 12 as 12,
     kDigitalClockController : 13 as 13,
     kGraphicsComponent : 14 as 14,
-    kAnalogClockController : 15 as 15
+    kAnalogClockController : 15 as 15,
+    kSandClockController : 16 as 16
 });
 
 ///////////////////////////////////
@@ -90,4 +91,18 @@ export const CAROUSEL_CHILD_ID = Object.freeze
     kRightButton : 4 as 4,
     kClockName : 5 as 5,
     kPreviewBackground : 6 as 6
+});
+
+///////////////////////////////////
+// Sand Clock Children
+
+export type SAND_CLOCK_PART_ID = EnumLiteralsOf<typeof SAND_CLOCK_PART_ID>;
+
+export const SAND_CLOCK_PART_ID = Object.freeze
+({
+    kUpperMask : 0 as 0,
+    kUpperTexture : 1 as 1,
+    kLowerMask : 2 as 2,
+    kLowerTexture : 3 as 3,
+    kClockTexture : 4 as 4
 });

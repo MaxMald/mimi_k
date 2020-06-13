@@ -5,6 +5,8 @@ import { BitmapTextComponent } from "../../components/bitmapTextComponent";
 import { DigitalController } from "./components/digitalController";
 import { GraphicsComponent } from "../../components/graphicsComponent";
 import { AnalogClockController } from "./components/analogClockController";
+import { SAND_CLOCK_PART_ID } from "../../gameCommons";
+import { SandClockController } from "./components/sandClockController";
 
 /**
  * Clock factories.
@@ -15,16 +17,142 @@ export class Clock
   /* Public                                           */
   /****************************************************/
   
+  /**
+   * Creates a sand clock.
+   * 
+   * @param _scene 
+   * @param _id 
+   */
   static CreateSand(_scene : Phaser.Scene, _id : number)
   : MxActor
   {
     let clock : MxActor = MxActor.Create(_id);
 
+    ///////////////////////////////////
+    // Clock Texture
+
+    let clockTexture : MxActor = MxActor.Create
+    (
+      SAND_CLOCK_PART_ID.kClockTexture,
+      clock
+    );
+
+    let clockTextureSprite : SpriteComponent = new SpriteComponent();
+    clockTextureSprite.setSprite
+    (
+      _scene.add.sprite
+      (
+        0,0,
+        'landpage_2',
+        'sand_clock_background.png'
+      )
+    );
+
+    clockTexture.addComponent(clockTextureSprite);
+
+    ///////////////////////////////////
+    // Upper Sand
+    
+    let upperMask : MxActor = MxActor.Create
+    (
+      SAND_CLOCK_PART_ID.kUpperMask,
+      clock
+    );
+    upperMask.setRelativePosition(0, -175);
+
+    let upperMaskSprite : SpriteComponent = new SpriteComponent();
+    upperMaskSprite.setSprite
+    (
+      _scene.add.sprite
+      (
+        0, 0,
+        'sand_clock_mask'
+      )
+    );
+    upperMaskSprite.setVisible(false);
+    upperMask.addComponent(upperMaskSprite);
+
+    let upperTexture : MxActor = MxActor.Create
+    (
+      SAND_CLOCK_PART_ID.kUpperTexture,
+      clock
+    );
+    upperTexture.setRelativePosition(0, -175);
+    
+    let upperTextureSprite : SpriteComponent = new SpriteComponent();
+    upperTextureSprite.setSprite
+    (
+      _scene.add.sprite
+      (
+        0,0,
+        'sand_clock_mask',
+        'sand_clock_fill.png'
+      )
+    )
+    upperTexture.addComponent(upperTextureSprite);
+
+    let upperBitmapMask : Phaser.Display.Masks.BitmapMask = upperMaskSprite.createMask();
+    upperTextureSprite.setMask(upperBitmapMask);
+
+    ///////////////////////////////////
+    // Lower Sand
+
+    let lowerMask : MxActor = MxActor.Create
+    (
+      SAND_CLOCK_PART_ID.kLowerMask,
+      clock
+    );
+    lowerMask.setRelativePosition(0, 175);
+
+    let lowerMaskSprite : SpriteComponent = new SpriteComponent();
+    lowerMaskSprite.setSprite
+    (
+      _scene.add.sprite
+      (
+        0,0,
+        'sand_clock_mask'
+      )
+    );
+    lowerMaskSprite.setAngle(180);
+    lowerMaskSprite.setVisible(false);
+    lowerMask.addComponent(lowerMaskSprite);
+
+    let lowerTexture : MxActor = MxActor.Create
+    (
+      SAND_CLOCK_PART_ID.kLowerTexture,
+      clock
+    );
+    lowerTexture.setRelativePosition(0,175);
+    
+    let lowerTextureSprite : SpriteComponent = new SpriteComponent();
+    lowerTextureSprite.setSprite
+    (
+      _scene.add.sprite
+      (
+        0,0,
+        'landpage_2',
+        'sand_clock_fill.png'
+      )
+    )
+    lowerTextureSprite.setAngle(180);
+    lowerTexture.addComponent(lowerTextureSprite);
+
+    let lowerBitmapMask : Phaser.Display.Masks.BitmapMask = lowerMaskSprite.createMask();
+    lowerTextureSprite.setMask(lowerBitmapMask);
+    
     clock.addComponent(new ClockController());
+    clock.addComponent(new SandClockController());
+    
     clock.init();
     return clock;
   }
 
+  /**
+   * Creates a digital clock.
+   * 
+   * @param _scene 
+   * @param _id 
+   */
   static CreateDigital(_scene : Phaser.Scene, _id : number)
   : MxActor
   {
@@ -64,6 +192,12 @@ export class Clock
     return clock;
   }
 
+  /**
+   * Create an analog clock.
+   * 
+   * @param _scene 
+   * @param _id 
+   */
   static CreateAnalog(_scene : Phaser.Scene, _id : number)
   : MxActor
   {
