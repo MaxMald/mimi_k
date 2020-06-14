@@ -9,6 +9,8 @@ import { Carousel } from "../../game/ui/carousel/carousel";
 import { Button } from "../../game/ui/buttons/imgButton";
 import { BitmapTextComponent } from "../../game/components/bitmapTextComponent";
 import { SpriteComponent } from "../../game/components/spriteComponent";
+import { ShaderFactory } from "../../game/ui/shaders/shadersFactory";
+import { MasterController } from "../../game/managers/masteManager/components/MasterController";
 
 /**
  * 
@@ -28,6 +30,12 @@ export class MainMenu extends Phaser.Scene
     // MasterManager
     let master : MxActor = MasterManager.GetInstance();
 
+    // MasterController
+    this._m_masterController = master.getComponent<MasterController>
+    (
+      COMPONENT_ID.kMasterController
+    );
+
     // GameManager.
     let gameManager : MxActor = master.get_child(MANAGER_ID.kGameManager);
 
@@ -38,6 +46,17 @@ export class MainMenu extends Phaser.Scene
     // DataController
     this._m_dataController
       = gameManager.getComponent<DataController>(COMPONENT_ID.kDataController);
+
+    /****************************************************/
+    /* Background                                       */
+    /****************************************************/
+    
+    this._m_backgroundShader = ShaderFactory.CreateBackground(this, 0);
+
+    ///////////////////////////////////
+    // Particle Emitter
+
+    this._createParticleEmitter();
     
     /****************************************************/
     /* Tip Popup                                        */
@@ -168,9 +187,12 @@ export class MainMenu extends Phaser.Scene
   /**
    * 
    */
-  update()
+  update(_time : number, _delta : number)
   : void
   {
+    this._m_masterController.m_dt = _delta / 1000.0;
+
+    this._m_backgroundShader.update();
     this._m_nextTipButton.update();
     this._m_play_button.update();
     this._m_cloud_popup.update();
@@ -192,6 +214,8 @@ export class MainMenu extends Phaser.Scene
   destroy()
   : void 
   {
+    this._m_backgroundShader.destroy();
+    
     this._m_nextTipButton.destroy();
     this._m_nextTipButton = null;
 
@@ -282,6 +306,55 @@ export class MainMenu extends Phaser.Scene
     }
     return;
   }
+
+  _createParticleEmitter()
+  : void
+  {
+    let emitterShape : Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle
+    (
+      0, 0, 
+      this.game.canvas.width, 
+      this.game.canvas.height
+    );
+
+    this._m_particlesEmitterManager = this.add.particles('landpage');
+    this._m_particlesEmitter = this._m_particlesEmitterManager.createEmitter
+    ({
+      frame: ['particle_01.png', 'particle_02.png'],
+      x: 0, y: 0,
+      lifespan: 500,
+      scale : 0.5,
+      rotate : {min : 0.0, max : 90.0},
+      frequency : 50,
+      quantity : 1,
+      alpha: { start: 1, end: 0 },
+      blendMode: 'ADD',
+      tint : [0x0d5da4, 0x501160],
+      emitZone: { type: 'random', source: emitterShape }
+    });
+
+    return;
+  }
+
+  /**
+   * 
+   */
+  _m_particlesEmitterManager : Phaser.GameObjects.Particles.ParticleEmitterManager;
+
+  /**
+   * 
+   */
+  _m_particlesEmitter : Phaser.GameObjects.Particles.ParticleEmitter;
+
+  /**
+   * 
+   */
+  _m_masterController : MasterController;
+
+  /**
+   * 
+   */
+  _m_backgroundShader : MxActor;
 
   /**
    * Array of time preferences buttons 

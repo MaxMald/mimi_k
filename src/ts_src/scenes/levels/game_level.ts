@@ -9,6 +9,7 @@ import { BitmapTextComponent } from "../../game/components/bitmapTextComponent";
 import { ClockController } from "../../game/ui/clocks/components/clockController";
 import { Clock } from "../../game/ui/clocks/clock";
 import { MasterController } from "../../game/managers/masteManager/components/MasterController";
+import { ShaderFactory } from "../../game/ui/shaders/shadersFactory";
 
 export class MainGame extends Phaser.Scene
 {
@@ -34,7 +35,18 @@ export class MainGame extends Phaser.Scene
       = gameManager.getComponent<DataController>(COMPONENT_ID.kDataController);
 
     this._m_gameController
-      = gameManager.getComponent<GameController>(COMPONENT_ID.kGameController);      
+      = gameManager.getComponent<GameController>(COMPONENT_ID.kGameController);     
+
+    /****************************************************/
+    /* Background                                       */
+    /****************************************************/
+    
+    this._m_backgroundShader = ShaderFactory.CreateBackground(this, 0);
+
+    ///////////////////////////////////
+    // Particle Emitters
+
+    this._createParticleEmitter();
     
     /****************************************************/
     /* Main Menu Button                                 */
@@ -159,6 +171,7 @@ export class MainGame extends Phaser.Scene
   {
     this._m_masterController.m_dt = _delta / 1000.0;
 
+    this._m_backgroundShader.update();
     this._m_clock.update();
     this._m_pauseButton.update();
     this._m_mainMenuButton.update();
@@ -169,6 +182,7 @@ export class MainGame extends Phaser.Scene
   destroy()
   : void
   {
+    this._m_backgroundShader.destroy();
     this._m_clock.destroy();
     this._m_pauseButton.destroy();
     this._m_mainMenuButton.destroy();
@@ -225,6 +239,45 @@ export class MainGame extends Phaser.Scene
     return;
   }
 
+  _createParticleEmitter()
+  : void
+  {
+    let emitterShape : Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle
+    (
+      0, 0, 
+      this.game.canvas.width, 
+      this.game.canvas.height
+    );
+
+    this._m_particlesEmitterManager = this.add.particles('landpage');
+    this._m_particlesEmitter = this._m_particlesEmitterManager.createEmitter
+    ({
+      frame: ['particle_01.png', 'particle_02.png'],
+      x: 0, y: 0,
+      lifespan: 500,
+      scale : 0.5,
+      rotate : {min : 0.0, max : 90.0},
+      frequency : 50,
+      quantity : 1,
+      alpha: { start: 1, end: 0 },
+      blendMode: 'ADD',
+      tint : [0x0d5da4, 0x501160],
+      emitZone: { type: 'random', source: emitterShape }
+    });
+
+    return;
+  }
+
+  /**
+   * 
+   */
+  _m_particlesEmitterManager : Phaser.GameObjects.Particles.ParticleEmitterManager;
+
+  /**
+   * 
+   */
+  _m_particlesEmitter : Phaser.GameObjects.Particles.ParticleEmitter;
+
   /**
    * 
    */
@@ -239,6 +292,11 @@ export class MainGame extends Phaser.Scene
    * 
    */
   _m_dataController : DataController;
+
+  /**
+   * 
+   */
+  _m_backgroundShader : MxActor;
 
   /**
    * 

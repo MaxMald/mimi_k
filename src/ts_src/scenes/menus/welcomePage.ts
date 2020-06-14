@@ -6,6 +6,8 @@ import { UIBitmapText } from "../../game/ui/text/uiBitmapText";
 import { BitmapTextComponent } from "../../game/components/bitmapTextComponent";
 import { MasterManager } from "../../game/managers/masteManager/masterManager";
 import { DataController } from "../../game/managers/gameManager/components/dataController";
+import { ShaderFactory } from "../../game/ui/shaders/shadersFactory";
+import { MasterController } from "../../game/managers/masteManager/components/MasterController";
 
 export class WelcomePage extends Phaser.Scene
 {
@@ -19,6 +21,17 @@ export class WelcomePage extends Phaser.Scene
     let screenHalfWidth : number = this.game.canvas.width * 0.5;
     let screenHeight : number = this.game.canvas.height;
     
+    /****************************************************/
+    /* Background                                       */
+    /****************************************************/
+    
+    this._m_backgroundShader = ShaderFactory.CreateBackground(this, 0);
+    
+    ///////////////////////////////////
+    // Particles
+
+    this._createParticleEmitter();
+
     /****************************************************/
     /* Language Button                                  */
     /****************************************************/
@@ -83,6 +96,11 @@ export class WelcomePage extends Phaser.Scene
     /****************************************************/
 
     let master : MxActor = MasterManager.GetInstance();
+    this._m_masterController = master.getComponent<MasterController>
+    (
+      COMPONENT_ID.kMasterController
+    );
+
     let gameManager : MxActor = master.get_child(MANAGER_ID.kGameManager);
     let dataController : DataController  
       = gameManager.getComponent<DataController>(COMPONENT_ID.kDataController);
@@ -125,23 +143,27 @@ export class WelcomePage extends Phaser.Scene
       screenHeight - cat_spriteComponent.getHeight() * 0.5
     );
 
+    
     return;
   }
 
-  update()
+  update(_time : number, _delta : number)
   : void
   {
+    this._m_masterController.m_dt = _delta / 1000.0;
     this._m_language_button.update();
     this._m_website_url.update();
     this._m_welcome_title.update();
     this._m_start_button.update();
     this._m_cat.update();
+    this._m_backgroundShader.update();
     return;
   }
 
   destroy()
   : void
   {
+    this._m_backgroundShader.destroy();
     this._m_cat.destroy();
     this._m_website_url.destroy();
     this._m_welcome_title.destroy();
@@ -175,6 +197,55 @@ export class WelcomePage extends Phaser.Scene
     this.scene.start('localization');
     return;
   }
+
+  _createParticleEmitter()
+  : void
+  {
+    let emitterShape : Phaser.Geom.Rectangle = new Phaser.Geom.Rectangle
+    (
+      0, 0, 
+      this.game.canvas.width, 
+      this.game.canvas.height
+    );
+
+    this._m_particlesEmitterManager = this.add.particles('landpage');
+    this._m_particlesEmitter = this._m_particlesEmitterManager.createEmitter
+    ({
+      frame: ['particle_01.png', 'particle_02.png'],
+      x: 0, y: 0,
+      lifespan: 500,
+      scale : 0.5,
+      rotate : {min : 0.0, max : 90.0},
+      frequency : 50,
+      quantity : 1,
+      alpha: { start: 1, end: 0 },
+      blendMode: 'ADD',
+      tint : [0x0d5da4, 0x501160],
+      emitZone: { type: 'random', source: emitterShape }
+    });
+
+    return;
+  }
+
+  /**
+   * 
+   */
+  _m_particlesEmitterManager : Phaser.GameObjects.Particles.ParticleEmitterManager;
+
+  /**
+   * 
+   */
+  _m_particlesEmitter : Phaser.GameObjects.Particles.ParticleEmitter;
+
+  /**
+   * 
+   */
+  _m_masterController : MasterController;
+
+  /**
+   * 
+   */
+  _m_backgroundShader : MxActor;
 
   /**
    * 

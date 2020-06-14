@@ -46,7 +46,7 @@
 		"sourceSize": {"w":724,"h":406}
 	},
 	"english_map.png": {
-		"frame": {"x":685, "y":1311, "w":684, "h":429},
+		"frame": {"x":0, "y":1311, "w":684, "h":429},
 		"spriteSourceSize": {"x":0,"y":0,"w":684,"h":429},
 		"sourceSize": {"w":684,"h":429}
 	},
@@ -60,8 +60,18 @@
 		"spriteSourceSize": {"x":0,"y":0,"w":259,"h":151},
 		"sourceSize": {"w":259,"h":151}
 	},
+	"particle_01.png": {
+		"frame": {"x":772, "y":1246, "w":40, "h":46},
+		"spriteSourceSize": {"x":0,"y":0,"w":40,"h":46},
+		"sourceSize": {"w":40,"h":46}
+	},
+	"particle_02.png": {
+		"frame": {"x":725, "y":1246, "w":46, "h":40},
+		"spriteSourceSize": {"x":0,"y":0,"w":46,"h":40},
+		"sourceSize": {"w":46,"h":40}
+	},
 	"spanish_map.png": {
-		"frame": {"x":0, "y":1311, "w":684, "h":429},
+		"frame": {"x":685, "y":1311, "w":684, "h":429},
 		"spriteSourceSize": {"x":0,"y":0,"w":684,"h":429},
 		"sourceSize": {"w":684,"h":429}
 	},

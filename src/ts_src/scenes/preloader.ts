@@ -70,6 +70,18 @@ export class Preloader extends Phaser.Scene
       'game_text', 
       'src/assets/csv_files/Mimi_k_data - game_texts.tsv'
     );
+
+    ///////////////////////////////////
+    // Shader
+
+    this.load.glsl
+    (
+        {
+            key : 'background',
+            shaderType : 'fragment',
+            url : 'src/assets/shaders/background.frag' 
+        }
+    );
                   
     /****************************************************/
     /* Metta Loading                                    */
