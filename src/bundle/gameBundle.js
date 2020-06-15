@@ -688,7 +688,8 @@ define("game/gameCommons", ["require", "exports"], function (require, exports) {
         kAnalogClockController: 15,
         kSandClockController: 16,
         kShaderComponent: 17,
-        kBackgroundShaderComponent: 18
+        kBackgroundShaderComponent: 18,
+        kAlertPopupController: 19
     });
     exports.MESSAGE_ID = Object.freeze({
         kOnAgentActive: 1,
@@ -1007,111 +1008,7 @@ define("game/managers/masteManager/masterManager", ["require", "exports", "utili
     }());
     exports.MasterManager = MasterManager;
 });
-define("game/managers/masteManager/components/MasterController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_2, gameCommons_3) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MasterController = /** @class */ (function (_super) {
-        __extends(MasterController, _super);
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function MasterController() {
-            var _this = _super.call(this, gameCommons_3.COMPONENT_ID.kMasterController) || this;
-            return _this;
-        }
-        MasterController.prototype.init = function (_actor) {
-            this.m_dt = 0.0;
-            return;
-        };
-        MasterController.prototype.update = function (_actor) {
-            return;
-        };
-        return MasterController;
-    }(mxComponent_2.MxComponent));
-    exports.MasterController = MasterController;
-});
-define("game/managers/gameManager/components/chronoController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager", "utilities/asserts"], function (require, exports, mxComponent_3, gameCommons_4, masterManager_1, asserts_3) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var ChronoController = /** @class */ (function (_super) {
-        __extends(ChronoController, _super);
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function ChronoController() {
-            var _this = _super.call(this, gameCommons_4.COMPONENT_ID.kChronoController) || this;
-            return _this;
-        }
-        ChronoController.prototype.init = function (_actor) {
-            var master = masterManager_1.MasterManager.GetInstance();
-            this._m_master_controller
-                = master.getComponent(gameCommons_4.COMPONENT_ID.kMasterController);
-            if (mxComponent_3.MxComponent.IsNull(this._m_master_controller)) {
-                throw new Error('MasterController not founded!.');
-            }
-            this._m_isRunning = false;
-            this.reset(5, 1);
-            return;
-        };
-        ChronoController.prototype.update = function (_actor) {
-            if (this._m_isRunning) {
-                this._m_chrono_current -= this._m_master_controller.m_dt;
-                // check if the chrono reach the mark
-                if (!this._m_reach_mark) {
-                    if (this._m_chrono_current <= this._m_chrono_mark) {
-                        // TODO
-                        this._m_reach_mark = !this._m_reach_mark;
-                    }
-                }
-                // check if chrono reach zero.
-                if (this._m_chrono_current <= 0) {
-                    this._m_chrono_current = 0;
-                    this.pause();
-                }
-            }
-            return;
-        };
-        ChronoController.prototype.destroy = function () {
-            this._m_master_controller = null;
-            _super.prototype.destroy.call(this);
-            return;
-        };
-        ChronoController.prototype.reset = function (_chrono_value, _chrono_mark) {
-            asserts_3.AssertNumber(_chrono_value);
-            this._m_chrono = _chrono_value;
-            this._m_chrono_current = this._m_chrono;
-            asserts_3.AssertNumber(_chrono_mark);
-            this._m_chrono_mark = _chrono_mark;
-            this._m_reach_mark = false;
-            this.pause();
-            return;
-        };
-        ChronoController.prototype.start = function () {
-            if (!this._m_isRunning) {
-                this._m_isRunning = !this._m_isRunning;
-            }
-            return;
-        };
-        ChronoController.prototype.pause = function () {
-            if (this._m_isRunning) {
-                this._m_isRunning = !this._m_isRunning;
-            }
-            return;
-        };
-        ChronoController.prototype.getCurrentTime = function () {
-            return this._m_chrono_current;
-        };
-        ChronoController.prototype.getCurrentTimeNorm = function () {
-            return this._m_chrono_current / this._m_chrono;
-        };
-        ChronoController.prototype.isRunning = function () {
-            return this._m_isRunning;
-        };
-        return ChronoController;
-    }(mxComponent_3.MxComponent));
-    exports.ChronoController = ChronoController;
-});
-define("game/managers/userPreferences/userPreferences", ["require", "exports", "game/gameCommons"], function (require, exports, gameCommons_5) {
+define("game/managers/userPreferences/userPreferences", ["require", "exports", "game/gameCommons"], function (require, exports, gameCommons_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -1122,8 +1019,8 @@ define("game/managers/userPreferences/userPreferences", ["require", "exports", "
         /* Public                                           */
         /****************************************************/
         function UserPreferences() {
-            this.m_localization = gameCommons_5.LOCALIZATION.KSpanish;
-            this.m_clock_style = gameCommons_5.CLOCK_STYLE.kSand;
+            this.m_localization = gameCommons_3.LOCALIZATION.KSpanish;
+            this.m_clock_style = gameCommons_3.CLOCK_STYLE.kSand;
             this.chrono_value = 1;
             return;
         }
@@ -1148,7 +1045,96 @@ define("game/managers/userPreferences/userPreferences", ["require", "exports", "
     }());
     exports.UserPreferences = UserPreferences;
 });
-define("game/managers/gameManager/components/gameController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/userPreferences/userPreferences"], function (require, exports, mxComponent_4, gameCommons_6, userPreferences_1) {
+define("utilities/listeners/mxListener", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxListener = /** @class */ (function () {
+        function MxListener(_listener, _context) {
+            asserts_3.AssertFunction(_listener);
+            this.m_listener = _listener;
+            if (_context) {
+                this.m_context = _context;
+            }
+            return;
+        }
+        MxListener.prototype.call = function () {
+            if (this.m_context) {
+                this.m_listener.call(this.m_context);
+            }
+            else {
+                this.m_listener();
+            }
+            return;
+        };
+        MxListener.prototype.destroy = function () {
+            this.m_listener = null;
+            this.m_context = null;
+            return;
+        };
+        return MxListener;
+    }());
+    exports.MxListener = MxListener;
+});
+define("utilities/listeners/mxListenerManager", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MxListenerManager = /** @class */ (function () {
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MxListenerManager() {
+            this.m_listener_map = new Map();
+            return;
+        }
+        MxListenerManager.prototype.call = function (_event) {
+            if (this.m_listener_map.has(_event)) {
+                var event_1 = this.m_listener_map.get(_event);
+                var size = event_1.length;
+                for (var index = 0; index < size; ++index) {
+                    event_1[index].call();
+                }
+            }
+            return;
+        };
+        MxListenerManager.prototype.addEvent = function (_event) {
+            if (!this.m_listener_map.has(_event)) {
+                this.m_listener_map.set(_event, new Array());
+            }
+            return;
+        };
+        MxListenerManager.prototype.addListener = function (_event, _listener) {
+            if (this.m_listener_map.has(_event)) {
+                var event_2 = this.m_listener_map.get(_event);
+                event_2.push(_listener);
+            }
+            return;
+        };
+        MxListenerManager.prototype.clearEvent = function (_event) {
+            if (this.m_listener_map.has(_event)) {
+                var event_3 = this.m_listener_map.get(_event);
+                while (event_3.length) {
+                    var listener = event_3.pop();
+                    listener.destroy();
+                }
+            }
+            return;
+        };
+        /**
+        * Safely destroys the object.
+        */
+        MxListenerManager.prototype.destroy = function () {
+            this.m_listener_map.forEach(function (_a_listeners, _key) {
+                this.clearEvent(_key);
+                return;
+            }, this);
+            this.m_listener_map.clear();
+            return;
+        };
+        return MxListenerManager;
+    }());
+    exports.MxListenerManager = MxListenerManager;
+});
+define("game/managers/gameManager/components/gameController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/userPreferences/userPreferences", "utilities/listeners/mxListenerManager", "utilities/listeners/mxListener"], function (require, exports, mxComponent_2, gameCommons_4, userPreferences_1, mxListenerManager_1, mxListener_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var GameController = /** @class */ (function (_super) {
@@ -1157,15 +1143,13 @@ define("game/managers/gameManager/components/gameController", ["require", "expor
         /* Public                                           */
         /****************************************************/
         function GameController() {
-            var _this = _super.call(this, gameCommons_6.COMPONENT_ID.kGameController) || this;
+            var _this = _super.call(this, gameCommons_4.COMPONENT_ID.kGameController) || this;
             return _this;
         }
         GameController.prototype.init = function (_actor) {
-            this._m_chronoController = _actor.getComponent(gameCommons_6.COMPONENT_ID.kChronoController);
-            if (mxComponent_4.MxComponent.IsNull(this._m_chronoController)) {
-                throw new Error('ChronoController not founded!.');
-            }
             this._m_user_preferences = new userPreferences_1.UserPreferences();
+            this._m_events = new mxListenerManager_1.MxListenerManager();
+            this._m_events.addEvent('timeout');
             return;
         };
         GameController.prototype.update = function (_actor) {
@@ -1175,27 +1159,22 @@ define("game/managers/gameManager/components/gameController", ["require", "expor
             this._m_user_preferences.destroy();
             return;
         };
-        GameController.prototype.initGamePlay = function () {
-            if (!this._m_inGameplay) {
-            }
-            return;
-        };
         /**
-        * Reset the Gameplay
-        */
-        GameController.prototype.resetGameplay = function () {
-            if (this._m_inGameplay) {
-                this._m_chronoController.reset(this._m_user_preferences.chrono_value, this._m_user_preferences.chrono_value * 0.1);
-            }
-            return;
-        };
-        /**
-         * Shutdown Gameplay
+         * Events: 'timeout'
+         *
+         * @param _event
+         * @param _fn
+         * @param _context
          */
-        GameController.prototype.shutdownGameplay = function () {
-            if (this._m_inGameplay) {
-                this._m_inGameplay = !this._m_inGameplay;
-            }
+        GameController.prototype.on = function (_event, _fn, _context) {
+            this._m_events.addListener(_event, new mxListener_1.MxListener(_fn, _context));
+            return;
+        };
+        /**
+         * Trigger the timeout event.
+         */
+        GameController.prototype.timeout = function () {
+            this._m_events.call('timeout');
             return;
         };
         /**
@@ -1214,7 +1193,7 @@ define("game/managers/gameManager/components/gameController", ["require", "expor
             return;
         };
         return GameController;
-    }(mxComponent_4.MxComponent));
+    }(mxComponent_2.MxComponent));
     exports.GameController = GameController;
 });
 define("utilities/fs/csv_row", ["require", "exports", "utilities/gameObjects/mxUObject", "utilities/fs/csv_file", "utilities/asserts"], function (require, exports, mxUObject_3, csv_file_1, asserts_4) {
@@ -1465,7 +1444,7 @@ define("utilities/fs/csv_file", ["require", "exports", "utilities/fs/csv_row", "
     }(mxUObject_4.MxUObject));
     exports.CSVFile = CSVFile;
 });
-define("game/managers/gameManager/components/dataController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "utilities/fs/csv_file", "utilities/fs/csv_row"], function (require, exports, mxComponent_5, gameCommons_7, csv_file_2, csv_row_2) {
+define("game/managers/gameManager/components/dataController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "utilities/fs/csv_file", "utilities/fs/csv_row"], function (require, exports, mxComponent_3, gameCommons_5, csv_file_2, csv_row_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var DataController = /** @class */ (function (_super) {
@@ -1474,17 +1453,17 @@ define("game/managers/gameManager/components/dataController", ["require", "expor
         /* Public                                           */
         /****************************************************/
         function DataController() {
-            var _this = _super.call(this, gameCommons_7.COMPONENT_ID.kDataController) || this;
+            var _this = _super.call(this, gameCommons_5.COMPONENT_ID.kDataController) || this;
             _this._string_map = new Map();
             return _this;
         }
         DataController.prototype.init = function (_actor) {
-            this._gameController = _actor.getComponent(gameCommons_7.COMPONENT_ID.kGameController);
+            this._gameController = _actor.getComponent(gameCommons_5.COMPONENT_ID.kGameController);
             return;
         };
         DataController.prototype.initLanguage = function (_game) {
             var csv_file = csv_file_2.CSVFile.Create(_game.cache.text.get('game_text'), true, '\t');
-            var text_column_index = (this._gameController.getLocalization() == gameCommons_7.LOCALIZATION.KSpanish ? 1 : 2);
+            var text_column_index = (this._gameController.getLocalization() == gameCommons_5.LOCALIZATION.KSpanish ? 1 : 2);
             var num_rows = csv_file.getNumberRows();
             var row = null;
             for (var index = 0; index < num_rows; ++index) {
@@ -1516,10 +1495,10 @@ define("game/managers/gameManager/components/dataController", ["require", "expor
             return;
         };
         return DataController;
-    }(mxComponent_5.MxComponent));
+    }(mxComponent_3.MxComponent));
     exports.DataController = DataController;
 });
-define("scenes/preloader", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons"], function (require, exports, masterManager_2, gameCommons_8) {
+define("scenes/preloader", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons"], function (require, exports, masterManager_1, gameCommons_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Preloader = /** @class */ (function (_super) {
@@ -1578,9 +1557,9 @@ define("scenes/preloader", ["require", "exports", "game/managers/masteManager/ma
             // Sets the column that has the text.
             // 1 : Spanish
             // 2 : English    
-            var master = masterManager_2.MasterManager.GetInstance();
-            var gameManger = master.get_child(gameCommons_8.MANAGER_ID.kGameManager);
-            var dataController = gameManger.getComponent(gameCommons_8.COMPONENT_ID.kDataController);
+            var master = masterManager_1.MasterManager.GetInstance();
+            var gameManger = master.get_child(gameCommons_6.MANAGER_ID.kGameManager);
+            var dataController = gameManger.getComponent(gameCommons_6.COMPONENT_ID.kDataController);
             dataController.initLanguage(this.game);
             this.scene.start('welcomePage');
             return;
@@ -1589,7 +1568,7 @@ define("scenes/preloader", ["require", "exports", "game/managers/masteManager/ma
     }(Phaser.Scene));
     exports.Preloader = Preloader;
 });
-define("game/managers/gameManager/gameManager", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/gameManager/components/gameController", "game/managers/gameManager/components/chronoController", "game/managers/gameManager/components/dataController"], function (require, exports, gameCommons_9, mxActor_2, gameController_1, chronoController_1, dataController_1) {
+define("game/managers/gameManager/gameManager", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/gameManager/components/gameController", "game/managers/gameManager/components/dataController"], function (require, exports, gameCommons_7, mxActor_2, gameController_1, dataController_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -1607,11 +1586,10 @@ define("game/managers/gameManager/gameManager", ["require", "exports", "game/gam
         /* Public                                           */
         /****************************************************/
         GameManager.Create = function () {
-            var manager = mxActor_2.MxActor.Create(gameCommons_9.MANAGER_ID.kGameManager);
+            var manager = mxActor_2.MxActor.Create(gameCommons_7.MANAGER_ID.kGameManager);
             ///////////////////////////////////
             // Components
             manager.addComponent(new gameController_1.GameController());
-            manager.addComponent(new chronoController_1.ChronoController());
             manager.addComponent(new dataController_1.DataController());
             return manager;
         };
@@ -1619,7 +1597,30 @@ define("game/managers/gameManager/gameManager", ["require", "exports", "game/gam
     }());
     exports.GameManager = GameManager;
 });
-define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/managers/gameManager/gameManager", "game/managers/masteManager/components/MasterController", "game/gameCommons"], function (require, exports, mxComponent_6, mxActor_3, masterManager_3, gameManager_1, MasterController_1, gameCommons_10) {
+define("game/managers/masteManager/components/MasterController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_4, gameCommons_8) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var MasterController = /** @class */ (function (_super) {
+        __extends(MasterController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function MasterController() {
+            var _this = _super.call(this, gameCommons_8.COMPONENT_ID.kMasterController) || this;
+            return _this;
+        }
+        MasterController.prototype.init = function (_actor) {
+            this.m_dt = 0.0;
+            return;
+        };
+        MasterController.prototype.update = function (_actor) {
+            return;
+        };
+        return MasterController;
+    }(mxComponent_4.MxComponent));
+    exports.MasterController = MasterController;
+});
+define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/managers/gameManager/gameManager", "game/managers/masteManager/components/MasterController", "game/gameCommons"], function (require, exports, mxComponent_5, mxActor_3, masterManager_2, gameManager_1, MasterController_1, gameCommons_9) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -1643,11 +1644,11 @@ define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", 
             // Fit the game canvas to parent container
             this.game.scale.scaleMode = Phaser.Scale.ScaleModes.FIT;
             // Prepare modules
-            mxComponent_6.MxComponent.Prepare();
+            mxComponent_5.MxComponent.Prepare();
             mxActor_3.MxActor.Prepare();
             // Master Manager
-            masterManager_3.MasterManager.Prepare();
-            var master = masterManager_3.MasterManager.GetInstance();
+            masterManager_2.MasterManager.Prepare();
+            var master = masterManager_2.MasterManager.GetInstance();
             // Master Manager Components
             master.addComponent(new MasterController_1.MasterController());
             // Master Manager Children
@@ -1655,8 +1656,8 @@ define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", 
             master.addChild(gameManager);
             master.init();
             // default language.
-            var gameController = gameManager.getComponent(gameCommons_10.COMPONENT_ID.kGameController);
-            gameController.setLocalization(gameCommons_10.LOCALIZATION.KSpanish);
+            var gameController = gameManager.getComponent(gameCommons_9.COMPONENT_ID.kGameController);
+            gameController.setLocalization(gameCommons_9.LOCALIZATION.KSpanish);
             // next scene
             this.scene.start('preloader');
             return;
@@ -1665,7 +1666,7 @@ define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", 
     }(Phaser.Scene));
     exports.Boot = Boot;
 });
-define("game/components/nineSliceComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_7, gameCommons_11) {
+define("game/components/nineSliceComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_6, gameCommons_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var NineSliceComponent = /** @class */ (function (_super) {
@@ -1674,7 +1675,7 @@ define("game/components/nineSliceComponent", ["require", "exports", "utilities/c
         /* Public                                           */
         /****************************************************/
         function NineSliceComponent() {
-            var _this = _super.call(this, gameCommons_11.COMPONENT_ID.kNineSlice) || this;
+            var _this = _super.call(this, gameCommons_10.COMPONENT_ID.kNineSlice) || this;
             _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
             return _this;
         }
@@ -1698,12 +1699,12 @@ define("game/components/nineSliceComponent", ["require", "exports", "utilities/c
             return;
         };
         NineSliceComponent.prototype.receive = function (_id, _data) {
-            if (_id == gameCommons_11.MESSAGE_ID.kOnAgentActive) {
+            if (_id == gameCommons_10.MESSAGE_ID.kOnAgentActive) {
                 this.setVisible(true);
                 this.setActive(true);
                 return;
             }
-            else if (_id == gameCommons_11.MESSAGE_ID.kOnAgentDesactive) {
+            else if (_id == gameCommons_10.MESSAGE_ID.kOnAgentDesactive) {
                 this.setVisible(false);
                 this.setActive(false);
                 return;
@@ -1786,10 +1787,10 @@ define("game/components/nineSliceComponent", ["require", "exports", "utilities/c
             return;
         };
         return NineSliceComponent;
-    }(mxComponent_7.MxComponent));
+    }(mxComponent_6.MxComponent));
     exports.NineSliceComponent = NineSliceComponent;
 });
-define("game/components/textComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_8, gameCommons_12) {
+define("game/components/textComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_7, gameCommons_11) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var TextComponent = /** @class */ (function (_super) {
@@ -1798,7 +1799,7 @@ define("game/components/textComponent", ["require", "exports", "utilities/compon
         /* Public                                           */
         /****************************************************/
         function TextComponent() {
-            var _this = _super.call(this, gameCommons_12.COMPONENT_ID.kText) || this;
+            var _this = _super.call(this, gameCommons_11.COMPONENT_ID.kText) || this;
             _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
             return _this;
         }
@@ -1815,12 +1816,12 @@ define("game/components/textComponent", ["require", "exports", "utilities/compon
             return;
         };
         TextComponent.prototype.receive = function (_id, _data) {
-            if (_id == gameCommons_12.MESSAGE_ID.kOnAgentActive) {
+            if (_id == gameCommons_11.MESSAGE_ID.kOnAgentActive) {
                 this.setVisible(true);
                 this.setActive(true);
                 return;
             }
-            else if (_id == gameCommons_12.MESSAGE_ID.kOnAgentDesactive) {
+            else if (_id == gameCommons_11.MESSAGE_ID.kOnAgentDesactive) {
                 this.setVisible(false);
                 this.setActive(false);
                 return;
@@ -1946,10 +1947,10 @@ define("game/components/textComponent", ["require", "exports", "utilities/compon
             return;
         };
         return TextComponent;
-    }(mxComponent_8.MxComponent));
+    }(mxComponent_7.MxComponent));
     exports.TextComponent = TextComponent;
 });
-define("game/components/bitmapTextComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_9, gameCommons_13) {
+define("game/components/bitmapTextComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_8, gameCommons_12) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var BitmapTextComponent = /** @class */ (function (_super) {
@@ -1958,7 +1959,7 @@ define("game/components/bitmapTextComponent", ["require", "exports", "utilities/
         /* Public                                           */
         /****************************************************/
         function BitmapTextComponent() {
-            var _this = _super.call(this, gameCommons_13.COMPONENT_ID.kBitmapText) || this;
+            var _this = _super.call(this, gameCommons_12.COMPONENT_ID.kBitmapText) || this;
             _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
             return _this;
         }
@@ -1975,12 +1976,12 @@ define("game/components/bitmapTextComponent", ["require", "exports", "utilities/
             return;
         };
         BitmapTextComponent.prototype.receive = function (_id, _data) {
-            if (_id == gameCommons_13.MESSAGE_ID.kOnAgentActive) {
+            if (_id == gameCommons_12.MESSAGE_ID.kOnAgentActive) {
                 this.setVisible(true);
                 this.setActive(true);
                 return;
             }
-            else if (_id == gameCommons_13.MESSAGE_ID.kOnAgentDesactive) {
+            else if (_id == gameCommons_12.MESSAGE_ID.kOnAgentDesactive) {
                 this.setVisible(false);
                 this.setActive(false);
                 return;
@@ -2000,6 +2001,10 @@ define("game/components/bitmapTextComponent", ["require", "exports", "utilities/
          */
         BitmapTextComponent.prototype.setTint = function (_color) {
             this._m_bitmap_text.setTint(_color);
+            return;
+        };
+        BitmapTextComponent.prototype.setScale = function (_x, _y) {
+            this._m_bitmap_text.setScale(_x, _y);
             return;
         };
         BitmapTextComponent.prototype.setAlpha = function (_alpha) {
@@ -2102,10 +2107,10 @@ define("game/components/bitmapTextComponent", ["require", "exports", "utilities/
             return;
         };
         return BitmapTextComponent;
-    }(mxComponent_9.MxComponent));
+    }(mxComponent_8.MxComponent));
     exports.BitmapTextComponent = BitmapTextComponent;
 });
-define("game/ui/cloudPopup/components/popupController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_10, gameCommons_14) {
+define("game/ui/cloudPopup/components/popupController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_9, gameCommons_13) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var PopupController = /** @class */ (function (_super) {
@@ -2114,13 +2119,13 @@ define("game/ui/cloudPopup/components/popupController", ["require", "exports", "
         /* Public                                           */
         /****************************************************/
         function PopupController() {
-            var _this = _super.call(this, gameCommons_14.COMPONENT_ID.kPopupController) || this;
+            var _this = _super.call(this, gameCommons_13.COMPONENT_ID.kPopupController) || this;
             return _this;
         }
         PopupController.prototype.init = function (_actor) {
             // get components.
-            this._m_nineSliceComponent = _actor.getComponent(gameCommons_14.COMPONENT_ID.kNineSlice);
-            this._m_textComponent = _actor.getComponent(gameCommons_14.COMPONENT_ID.kBitmapText);
+            this._m_nineSliceComponent = _actor.getComponent(gameCommons_13.COMPONENT_ID.kNineSlice);
+            this._m_textComponent = _actor.getComponent(gameCommons_13.COMPONENT_ID.kBitmapText);
             return;
         };
         PopupController.prototype.prepare = function (_scene) {
@@ -2202,7 +2207,7 @@ define("game/ui/cloudPopup/components/popupController", ["require", "exports", "
             return _value;
         };
         return PopupController;
-    }(mxComponent_10.MxComponent));
+    }(mxComponent_9.MxComponent));
     exports.PopupController = PopupController;
 });
 define("game/ui/text/uiBitmapText", ["require", "exports", "game/components/bitmapTextComponent"], function (require, exports, bitmapTextComponent_1) {
@@ -2224,50 +2229,7 @@ define("game/ui/text/uiBitmapText", ["require", "exports", "game/components/bitm
     }());
     exports.UIBitmapText = UIBitmapText;
 });
-define("game/ui/cloudPopup/Popup", ["require", "exports", "utilities/component/mxActor", "game/components/nineSliceComponent", "game/ui/cloudPopup/components/popupController", "game/ui/text/uiBitmapText"], function (require, exports, mxActor_4, nineSliceComponent_1, popupController_1, uiBitmapText_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    /**
-     * Popup Factories
-     */
-    var Popup = /** @class */ (function () {
-        function Popup() {
-        }
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        /**
-         * Creates a cloudpoup.
-         *
-         * @param _scene Phaser.Scene
-         * @param _id Actor's id.
-         */
-        Popup.CreateCloud = function (_scene, _id) {
-            var actor = mxActor_4.MxActor.Create(_id);
-            ///////////////////////////////////
-            // Create Components
-            var popupController = new popupController_1.PopupController();
-            actor.addComponent(popupController);
-            var nineSliceComponent = new nineSliceComponent_1.NineSliceComponent();
-            actor.addComponent(nineSliceComponent);
-            nineSliceComponent.prepare(_scene, 'landpage', 'msg_cloud.png', [140, 128, 5, 128]);
-            var textComponent = uiBitmapText_1.UIBitmapText.AddStandard(_scene, '', actor);
-            textComponent.setFontSize(50);
-            textComponent.setOrigin(0.5, 0.5);
-            textComponent.setTint(0x0a0136);
-            textComponent.setCenterAlign();
-            textComponent._m_local_position.setTo(0, -100);
-            actor.init();
-            ///////////////////////////////////
-            // Prepare Components
-            popupController.prepare(_scene);
-            return actor;
-        };
-        return Popup;
-    }());
-    exports.Popup = Popup;
-});
-define("game/components/spriteComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_11, gameCommons_15) {
+define("game/components/spriteComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_10, gameCommons_14) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SpriteComponent = /** @class */ (function (_super) {
@@ -2276,7 +2238,7 @@ define("game/components/spriteComponent", ["require", "exports", "utilities/comp
         /* Public                                           */
         /****************************************************/
         function SpriteComponent() {
-            var _this = _super.call(this, gameCommons_15.COMPONENT_ID.kSprite) || this;
+            var _this = _super.call(this, gameCommons_14.COMPONENT_ID.kSprite) || this;
             _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
             return _this;
         }
@@ -2286,12 +2248,12 @@ define("game/components/spriteComponent", ["require", "exports", "utilities/comp
             return;
         };
         SpriteComponent.prototype.receive = function (_id, _data) {
-            if (_id == gameCommons_15.MESSAGE_ID.kOnAgentActive) {
+            if (_id == gameCommons_14.MESSAGE_ID.kOnAgentActive) {
                 this.setVisible(true);
                 this.setActive(true);
                 return;
             }
-            else if (_id == gameCommons_15.MESSAGE_ID.kOnAgentDesactive) {
+            else if (_id == gameCommons_14.MESSAGE_ID.kOnAgentDesactive) {
                 this.setVisible(false);
                 this.setActive(false);
                 return;
@@ -2402,8 +2364,142 @@ define("game/components/spriteComponent", ["require", "exports", "utilities/comp
             return;
         };
         return SpriteComponent;
-    }(mxComponent_11.MxComponent));
+    }(mxComponent_10.MxComponent));
     exports.SpriteComponent = SpriteComponent;
+});
+define("game/ui/cloudPopup/components/alertPopupController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, mxComponent_11, gameCommons_15, masterManager_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var AlertPopupController = /** @class */ (function (_super) {
+        __extends(AlertPopupController, _super);
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        function AlertPopupController() {
+            var _this = _super.call(this, gameCommons_15.COMPONENT_ID.kAlertPopupController) || this;
+            return _this;
+        }
+        AlertPopupController.prototype.init = function (_actor) {
+            ///////////////////////////////////
+            // Setup listeners
+            var master = masterManager_3.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_15.MANAGER_ID.kGameManager);
+            var gameController = gameManager.getComponent(gameCommons_15.COMPONENT_ID.kGameController);
+            gameController.on('timeout', this.open, this);
+            ///////////////////////////////////
+            // Get components
+            this._m_spriteComponent = _actor.getComponent(gameCommons_15.COMPONENT_ID.kSprite);
+            this._m_textComponent = _actor.getComponent(gameCommons_15.COMPONENT_ID.kBitmapText);
+            this.m_isOpen = true;
+            this.reset();
+            return;
+        };
+        AlertPopupController.prototype.prepare = function (_scene) {
+            this._m_scene = _scene;
+            return;
+        };
+        AlertPopupController.prototype.reset = function () {
+            if (this.m_isOpen) {
+                this.m_isOpen = !this.m_isOpen;
+                this._m_spriteComponent.setScale(0.0, 1.0);
+                this._m_spriteComponent.setVisible(false);
+                this._m_textComponent.setScale(0.0, 0.0);
+                this._m_textComponent.setVisible(false);
+            }
+            return;
+        };
+        AlertPopupController.prototype.open = function () {
+            if (!this.m_isOpen) {
+                this.m_isOpen = !this.m_isOpen;
+                this._m_spriteComponent.setVisible(true);
+                var sprite = this._m_spriteComponent.getSprite();
+                this._m_spriteTween = this._m_scene.tweens.add({
+                    targets: sprite,
+                    scaleX: 5.5,
+                    duration: 200,
+                    ease: 'Linear'
+                });
+                this._m_textComponent.setVisible(true);
+                var text = this._m_textComponent.getBitmapTextObject();
+                this._m_scene.tweens.add({
+                    targets: text,
+                    scaleY: 1.0,
+                    scaleX: 1.0,
+                    duration: 400,
+                    ease: 'Bounce'
+                });
+            }
+            return;
+        };
+        AlertPopupController.prototype.destroy = function () {
+            return;
+        };
+        return AlertPopupController;
+    }(mxComponent_11.MxComponent));
+    exports.AlertPopupController = AlertPopupController;
+});
+define("game/ui/cloudPopup/Popup", ["require", "exports", "utilities/component/mxActor", "game/components/nineSliceComponent", "game/ui/cloudPopup/components/popupController", "game/components/bitmapTextComponent", "game/ui/text/uiBitmapText", "game/components/spriteComponent", "game/ui/cloudPopup/components/alertPopupController", "game/managers/masteManager/masterManager", "game/gameCommons"], function (require, exports, mxActor_4, nineSliceComponent_1, popupController_1, bitmapTextComponent_2, uiBitmapText_1, spriteComponent_1, alertPopupController_1, masterManager_4, gameCommons_16) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Popup Factories
+     */
+    var Popup = /** @class */ (function () {
+        function Popup() {
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        /**
+         * Creates a cloudpoup.
+         *
+         * @param _scene Phaser.Scene
+         * @param _id Actor's id.
+         */
+        Popup.CreateCloud = function (_scene, _id) {
+            var actor = mxActor_4.MxActor.Create(_id);
+            ///////////////////////////////////
+            // Create Components
+            var popupController = new popupController_1.PopupController();
+            actor.addComponent(popupController);
+            var nineSliceComponent = new nineSliceComponent_1.NineSliceComponent();
+            actor.addComponent(nineSliceComponent);
+            nineSliceComponent.prepare(_scene, 'landpage', 'msg_cloud.png', [140, 128, 5, 128]);
+            var textComponent = uiBitmapText_1.UIBitmapText.AddStandard(_scene, '', actor);
+            textComponent.setFontSize(50);
+            textComponent.setOrigin(0.5, 0.5);
+            textComponent.setTint(0x0a0136);
+            textComponent.setCenterAlign();
+            textComponent._m_local_position.setTo(0, -100);
+            actor.init();
+            ///////////////////////////////////
+            // Prepare Components
+            popupController.prepare(_scene);
+            return actor;
+        };
+        Popup.CreateTimeAlert = function (_id, _scene) {
+            var master = masterManager_4.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_16.MANAGER_ID.kGameManager);
+            var dataController = gameManager.getComponent(gameCommons_16.COMPONENT_ID.kDataController);
+            var alert = mxActor_4.MxActor.Create(_id);
+            var alertBackground = new spriteComponent_1.SpriteComponent();
+            alertBackground.setSprite(_scene.add.sprite(0, 0, 'landpage', '200square.png'));
+            alert.addComponent(alertBackground);
+            var alertText = new bitmapTextComponent_2.BitmapTextComponent();
+            alertText.prepare(_scene, 'avant_garde_bk', dataController.getString('timeout'), 100);
+            alertText._m_local_position.y = -20;
+            alertText.setOrigin(0.5, 0.5);
+            alertText.setTint(0xfa0114);
+            alert.addComponent(alertText);
+            var alertController = new alertPopupController_1.AlertPopupController();
+            alertController.prepare(_scene);
+            alert.addComponent(alertController);
+            alert.init();
+            return alert;
+        };
+        return Popup;
+    }());
+    exports.Popup = Popup;
 });
 define("game/ui/text/uiText", ["require", "exports", "game/components/textComponent"], function (require, exports, textComponent_1) {
     "use strict";
@@ -2435,7 +2531,7 @@ define("game/ui/text/uiText", ["require", "exports", "game/components/textCompon
     }());
     exports.UIText = UIText;
 });
-define("game/ui/buttons/imgButton", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, mxActor_5, spriteComponent_1, uiBitmapText_2) {
+define("game/ui/buttons/imgButton", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, mxActor_5, spriteComponent_2, uiBitmapText_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -2460,7 +2556,7 @@ define("game/ui/buttons/imgButton", ["require", "exports", "utilities/component/
             actor.setRelativePosition(_x, _y);
             ///////////////////////////////////
             // Create Components
-            var spriteComponent = new spriteComponent_1.SpriteComponent();
+            var spriteComponent = new spriteComponent_2.SpriteComponent();
             actor.addComponent(spriteComponent);
             actor.init();
             ///////////////////////////////////
@@ -2475,7 +2571,7 @@ define("game/ui/buttons/imgButton", ["require", "exports", "utilities/component/
             actor.setRelativePosition(_x, _y);
             ///////////////////////////////////
             // Create Components
-            var spriteComponent = new spriteComponent_1.SpriteComponent();
+            var spriteComponent = new spriteComponent_2.SpriteComponent();
             actor.addComponent(spriteComponent);
             actor.init();
             ///////////////////////////////////
@@ -2494,7 +2590,7 @@ define("game/ui/buttons/imgButton", ["require", "exports", "utilities/component/
     }());
     exports.Button = Button;
 });
-define("game/ui/carousel/components/carousleController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, mxComponent_12, gameCommons_16, masterManager_4) {
+define("game/ui/carousel/components/carousleController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, mxComponent_12, gameCommons_17, masterManager_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var CarouselController = /** @class */ (function (_super) {
@@ -2503,36 +2599,36 @@ define("game/ui/carousel/components/carousleController", ["require", "exports", 
         /* Public                                           */
         /****************************************************/
         function CarouselController() {
-            var _this = _super.call(this, gameCommons_16.COMPONENT_ID.kCarouselController) || this;
+            var _this = _super.call(this, gameCommons_17.COMPONENT_ID.kCarouselController) || this;
             return _this;
         }
         CarouselController.prototype.init = function (_actor) {
             ///////////////////////////////////
             // Game Controller
-            var master = masterManager_4.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_16.MANAGER_ID.kGameManager);
-            this._gameController = gameManager.getComponent(gameCommons_16.COMPONENT_ID.kGameController);
+            var master = masterManager_5.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_17.MANAGER_ID.kGameManager);
+            this._gameController = gameManager.getComponent(gameCommons_17.COMPONENT_ID.kGameController);
             ///////////////////////////////////
             // DataController
-            this._dataController = gameManager.getComponent(gameCommons_16.COMPONENT_ID.kDataController);
+            this._dataController = gameManager.getComponent(gameCommons_17.COMPONENT_ID.kDataController);
             ///////////////////////////////////
             // Left Button
-            var leftButton = _actor.get_child(gameCommons_16.CAROUSEL_CHILD_ID.kLeftButton);
-            var leftButton_sprite = leftButton.getComponent(gameCommons_16.COMPONENT_ID.kSprite);
+            var leftButton = _actor.get_child(gameCommons_17.CAROUSEL_CHILD_ID.kLeftButton);
+            var leftButton_sprite = leftButton.getComponent(gameCommons_17.COMPONENT_ID.kSprite);
             leftButton_sprite.on('pointerdown', this._onClick_leftButton, this);
             ///////////////////////////////////
             // Right Button
-            var rightButton = _actor.get_child(gameCommons_16.CAROUSEL_CHILD_ID.kRightButton);
-            var rightButton_sprite = rightButton.getComponent(gameCommons_16.COMPONENT_ID.kSprite);
+            var rightButton = _actor.get_child(gameCommons_17.CAROUSEL_CHILD_ID.kRightButton);
+            var rightButton_sprite = rightButton.getComponent(gameCommons_17.COMPONENT_ID.kSprite);
             rightButton_sprite.on('pointerdown', this._onClick_rightButton, this);
             ///////////////////////////////////
             // ClockName Text
-            var clockName = _actor.get_child(gameCommons_16.CAROUSEL_CHILD_ID.kClockName);
-            this._clockName_text = clockName.getComponent(gameCommons_16.COMPONENT_ID.kBitmapText);
+            var clockName = _actor.get_child(gameCommons_17.CAROUSEL_CHILD_ID.kClockName);
+            this._clockName_text = clockName.getComponent(gameCommons_17.COMPONENT_ID.kBitmapText);
             ///////////////////////////////////
             // Preview SpriteComponent
-            var preview = _actor.get_child(gameCommons_16.CAROUSEL_CHILD_ID.kPreview);
-            this._carouselSprite = preview.getComponent(gameCommons_16.COMPONENT_ID.kSprite);
+            var preview = _actor.get_child(gameCommons_17.CAROUSEL_CHILD_ID.kPreview);
+            this._carouselSprite = preview.getComponent(gameCommons_17.COMPONENT_ID.kSprite);
             this._activeIndex = 0;
             this._setActiveItem(this._activeIndex);
             return;
@@ -2543,14 +2639,14 @@ define("game/ui/carousel/components/carousleController", ["require", "exports", 
         CarouselController.prototype._onClick_leftButton = function () {
             --this._activeIndex;
             if (this._activeIndex < 0) {
-                this._activeIndex = gameCommons_16.CLOCK_STYLE.kCount - 1;
+                this._activeIndex = gameCommons_17.CLOCK_STYLE.kCount - 1;
             }
             this._setActiveItem(this._activeIndex);
             return;
         };
         CarouselController.prototype._onClick_rightButton = function () {
             ++this._activeIndex;
-            if (this._activeIndex >= gameCommons_16.CLOCK_STYLE.kCount) {
+            if (this._activeIndex >= gameCommons_17.CLOCK_STYLE.kCount) {
                 this._activeIndex = 0;
             }
             this._setActiveItem(this._activeIndex);
@@ -2569,7 +2665,7 @@ define("game/ui/carousel/components/carousleController", ["require", "exports", 
     }(mxComponent_12.MxComponent));
     exports.CarouselController = CarouselController;
 });
-define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgButton", "utilities/component/mxActor", "game/gameCommons", "game/components/spriteComponent", "game/ui/carousel/components/carousleController", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager"], function (require, exports, imgButton_1, mxActor_6, gameCommons_17, spriteComponent_2, carousleController_1, uiBitmapText_3, masterManager_5) {
+define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgButton", "utilities/component/mxActor", "game/gameCommons", "game/components/spriteComponent", "game/ui/carousel/components/carousleController", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager"], function (require, exports, imgButton_1, mxActor_6, gameCommons_18, spriteComponent_3, carousleController_1, uiBitmapText_3, masterManager_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var Carousel = /** @class */ (function () {
@@ -2577,16 +2673,16 @@ define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgB
         }
         Carousel.Create = function (_scene, _id) {
             // Get Data Manager.
-            var master = masterManager_5.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_17.MANAGER_ID.kGameManager);
-            var dataController = gameManager.getComponent(gameCommons_17.COMPONENT_ID.kDataController);
+            var master = masterManager_6.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_18.MANAGER_ID.kGameManager);
+            var dataController = gameManager.getComponent(gameCommons_18.COMPONENT_ID.kDataController);
             var carousel = mxActor_6.MxActor.Create(_id);
             /****************************************************/
             /* Children                                         */
             /****************************************************/
             ///////////////////////////////////
             // Title
-            var label = mxActor_6.MxActor.Create(gameCommons_17.CAROUSEL_CHILD_ID.kTitle);
+            var label = mxActor_6.MxActor.Create(gameCommons_18.CAROUSEL_CHILD_ID.kTitle);
             var labelText = uiBitmapText_3.UIBitmapText.AddStandard(_scene, dataController.getString('choose_clock'), label);
             labelText.setOrigin(0.5, 0.5);
             labelText.setFontSize(60);
@@ -2595,34 +2691,34 @@ define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgB
             carousel.addChild(label);
             ///////////////////////////////////
             // Preview Background
-            var previewBackground = mxActor_6.MxActor.Create(gameCommons_17.CAROUSEL_CHILD_ID.kPreviewBackground, carousel);
-            var backgroundImg = new spriteComponent_2.SpriteComponent();
+            var previewBackground = mxActor_6.MxActor.Create(gameCommons_18.CAROUSEL_CHILD_ID.kPreviewBackground, carousel);
+            var backgroundImg = new spriteComponent_3.SpriteComponent();
             backgroundImg.setSprite(_scene.add.sprite(0, 0, 'landpage', 'clock_background.png'));
             previewBackground.addComponent(backgroundImg);
             ///////////////////////////////////
             // Preview
-            var preview = mxActor_6.MxActor.Create(gameCommons_17.CAROUSEL_CHILD_ID.kPreview);
-            var preview_sprite = new spriteComponent_2.SpriteComponent();
+            var preview = mxActor_6.MxActor.Create(gameCommons_18.CAROUSEL_CHILD_ID.kPreview);
+            var preview_sprite = new spriteComponent_3.SpriteComponent();
             preview_sprite.setSprite(_scene.add.sprite(0, 0, 'landpage', 'clock_idx_0.png'));
             preview.addComponent(preview_sprite);
             preview.init();
             carousel.addChild(preview);
             ///////////////////////////////////
             // Left Button
-            var leftButton = imgButton_1.Button.CreateImageButton(_scene, gameCommons_17.CAROUSEL_CHILD_ID.kLeftButton, -350, 0, 'landpage', 'arrow_button.png', function () { }, this);
-            var leftButton_sprite = leftButton.getComponent(gameCommons_17.COMPONENT_ID.kSprite);
+            var leftButton = imgButton_1.Button.CreateImageButton(_scene, gameCommons_18.CAROUSEL_CHILD_ID.kLeftButton, -350, 0, 'landpage', 'arrow_button.png', function () { }, this);
+            var leftButton_sprite = leftButton.getComponent(gameCommons_18.COMPONENT_ID.kSprite);
             leftButton_sprite.setScale(-1.0, 1.0);
             leftButton_sprite.setTint(0x7763ad);
             carousel.addChild(leftButton);
             ///////////////////////////////////
             // Right Button
-            var rightButton = imgButton_1.Button.CreateImageButton(_scene, gameCommons_17.CAROUSEL_CHILD_ID.kRightButton, 350, 0, 'landpage', 'arrow_button.png', function () { }, this);
-            var rightButton_sprite = rightButton.getComponent(gameCommons_17.COMPONENT_ID.kSprite);
+            var rightButton = imgButton_1.Button.CreateImageButton(_scene, gameCommons_18.CAROUSEL_CHILD_ID.kRightButton, 350, 0, 'landpage', 'arrow_button.png', function () { }, this);
+            var rightButton_sprite = rightButton.getComponent(gameCommons_18.COMPONENT_ID.kSprite);
             rightButton_sprite.setTint(0x7763ad);
             carousel.addChild(rightButton);
             ///////////////////////////////////
             // Clock Name
-            var clock_name = mxActor_6.MxActor.Create(gameCommons_17.CAROUSEL_CHILD_ID.kClockName);
+            var clock_name = mxActor_6.MxActor.Create(gameCommons_18.CAROUSEL_CHILD_ID.kClockName);
             var clock_name_text = uiBitmapText_3.UIBitmapText.AddStandard(_scene, '', clock_name);
             clock_name_text.setOrigin(0.5, 0.5);
             clock_name.init();
@@ -2640,7 +2736,7 @@ define("game/ui/carousel/carousel", ["require", "exports", "game/ui/buttons/imgB
     }());
     exports.Carousel = Carousel;
 });
-define("game/components/shaderComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_13, gameCommons_18) {
+define("game/components/shaderComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_13, gameCommons_19) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ShaderComponent = /** @class */ (function (_super) {
@@ -2649,7 +2745,7 @@ define("game/components/shaderComponent", ["require", "exports", "utilities/comp
         /* Public                                           */
         /****************************************************/
         function ShaderComponent() {
-            var _this = _super.call(this, gameCommons_18.COMPONENT_ID.kShaderComponent) || this;
+            var _this = _super.call(this, gameCommons_19.COMPONENT_ID.kShaderComponent) || this;
             _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
             return _this;
         }
@@ -2659,12 +2755,12 @@ define("game/components/shaderComponent", ["require", "exports", "utilities/comp
             return;
         };
         ShaderComponent.prototype.receive = function (_id, _data) {
-            if (_id == gameCommons_18.MESSAGE_ID.kOnAgentActive) {
+            if (_id == gameCommons_19.MESSAGE_ID.kOnAgentActive) {
                 this.setVisible(true);
                 this.setActive(true);
                 return;
             }
-            else if (_id == gameCommons_18.MESSAGE_ID.kOnAgentDesactive) {
+            else if (_id == gameCommons_19.MESSAGE_ID.kOnAgentDesactive) {
                 this.setVisible(false);
                 this.setActive(false);
                 return;
@@ -2806,7 +2902,7 @@ define("utilities/shaders/mxShader", ["require", "exports"], function (require, 
     }());
     exports.MxShader = MxShader;
 });
-define("game/ui/shaders/components/backgroundController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, mxComponent_14, gameCommons_19, masterManager_6) {
+define("game/ui/shaders/components/backgroundController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, mxComponent_14, gameCommons_20, masterManager_7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var BackgroundController = /** @class */ (function (_super) {
@@ -2815,13 +2911,13 @@ define("game/ui/shaders/components/backgroundController", ["require", "exports",
         /* Public                                           */
         /****************************************************/
         function BackgroundController() {
-            var _this = _super.call(this, gameCommons_19.COMPONENT_ID.kBackgroundShaderComponent) || this;
+            var _this = _super.call(this, gameCommons_20.COMPONENT_ID.kBackgroundShaderComponent) || this;
             return _this;
         }
         BackgroundController.prototype.init = function (_actor) {
-            var master = masterManager_6.MasterManager.GetInstance();
-            this._m_masterController = master.getComponent(gameCommons_19.COMPONENT_ID.kMasterController);
-            this._m_shaderComponent = _actor.getComponent(gameCommons_19.COMPONENT_ID.kShaderComponent);
+            var master = masterManager_7.MasterManager.GetInstance();
+            this._m_masterController = master.getComponent(gameCommons_20.COMPONENT_ID.kMasterController);
+            this._m_shaderComponent = _actor.getComponent(gameCommons_20.COMPONENT_ID.kShaderComponent);
             ///////////////////////////////////
             // Color11 A
             this._m_color11_a = new Float32Array(4);
@@ -2962,7 +3058,7 @@ define("game/ui/shaders/shadersFactory", ["require", "exports", "utilities/compo
     }());
     exports.ShaderFactory = ShaderFactory;
 });
-define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/cloudPopup/Popup", "game/ui/carousel/carousel", "game/ui/buttons/imgButton", "game/ui/shaders/shadersFactory"], function (require, exports, masterManager_7, gameCommons_20, Popup_1, carousel_1, imgButton_2, shadersFactory_1) {
+define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/cloudPopup/Popup", "game/ui/carousel/carousel", "game/ui/buttons/imgButton", "game/ui/shaders/shadersFactory"], function (require, exports, masterManager_8, gameCommons_21, Popup_1, carousel_1, imgButton_2, shadersFactory_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -2980,17 +3076,17 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
             // gameCommons
             var half_width = this.game.canvas.width * 0.5;
             // MasterManager
-            var master = masterManager_7.MasterManager.GetInstance();
+            var master = masterManager_8.MasterManager.GetInstance();
             // MasterController
-            this._m_masterController = master.getComponent(gameCommons_20.COMPONENT_ID.kMasterController);
+            this._m_masterController = master.getComponent(gameCommons_21.COMPONENT_ID.kMasterController);
             // GameManager.
-            var gameManager = master.get_child(gameCommons_20.MANAGER_ID.kGameManager);
+            var gameManager = master.get_child(gameCommons_21.MANAGER_ID.kGameManager);
             // GameController
             this._m_gameController
-                = gameManager.getComponent(gameCommons_20.COMPONENT_ID.kGameController);
+                = gameManager.getComponent(gameCommons_21.COMPONENT_ID.kGameController);
             // DataController
             this._m_dataController
-                = gameManager.getComponent(gameCommons_20.COMPONENT_ID.kDataController);
+                = gameManager.getComponent(gameCommons_21.COMPONENT_ID.kDataController);
             /****************************************************/
             /* Background                                       */
             /****************************************************/
@@ -3022,10 +3118,10 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
                     this._onClick_minute_button(a_times[index] * 60);
                 }, this_1);
                 this_1._m_a_preferenceButtons.push(button);
-                nineSliceComponent = button.getComponent(gameCommons_20.COMPONENT_ID.kSprite);
+                nineSliceComponent = button.getComponent(gameCommons_21.COMPONENT_ID.kSprite);
                 nineSliceComponent.setTint(a_buttonColors[index]);
                 but_pos.y += nineSliceComponent.getHeight() + 20;
-                prefButtonText = button.getComponent(gameCommons_20.COMPONENT_ID.kBitmapText);
+                prefButtonText = button.getComponent(gameCommons_21.COMPONENT_ID.kBitmapText);
                 prefButtonText.setFontSize(55);
                 prefButtonText.setTint(0xffffff);
             };
@@ -3038,18 +3134,18 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
             /* Play Button                                      */
             /****************************************************/
             this._m_play_button = imgButton_2.Button.CreateStandard(this, 0, half_width, this.game.canvas.height * 0.47, 'landpage', 'button.png', this._m_dataController.getString('ready'), this._onClick_play, this);
-            var playButtonText = this._m_play_button.getComponent(gameCommons_20.COMPONENT_ID.kBitmapText);
+            var playButtonText = this._m_play_button.getComponent(gameCommons_21.COMPONENT_ID.kBitmapText);
             playButtonText.setTint(0xffffff);
             playButtonText.setFontSize(65);
-            var playButtonSprite = this._m_play_button.getComponent(gameCommons_20.COMPONENT_ID.kSprite);
+            var playButtonSprite = this._m_play_button.getComponent(gameCommons_21.COMPONENT_ID.kSprite);
             playButtonSprite.setTint(0x31a13b);
             /****************************************************/
             /* Next Tip Button                                  */
             /****************************************************/
             this._m_nextTipButton = imgButton_2.Button.CreateStandard(this, 0, half_width, this.game.canvas.height * 0.93, 'landpage', 'button_small_bg.png', this._m_dataController.getString('other_tip'), this._nextTip, this);
-            var tipButtonText = this._m_nextTipButton.getComponent(gameCommons_20.COMPONENT_ID.kBitmapText);
+            var tipButtonText = this._m_nextTipButton.getComponent(gameCommons_21.COMPONENT_ID.kBitmapText);
             tipButtonText.setTint(0xffffff);
-            var tipButtonSprite = this._m_nextTipButton.getComponent(gameCommons_20.COMPONENT_ID.kSprite);
+            var tipButtonSprite = this._m_nextTipButton.getComponent(gameCommons_21.COMPONENT_ID.kSprite);
             tipButtonSprite.setTint(0xff5709);
             /****************************************************/
             /* Carousel                                         */
@@ -3121,7 +3217,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
             return;
         };
         MainMenu.prototype._nextTip = function () {
-            var popupController = this._m_cloud_popup.getComponent(gameCommons_20.COMPONENT_ID.kPopupController);
+            var popupController = this._m_cloud_popup.getComponent(gameCommons_21.COMPONENT_ID.kPopupController);
             popupController.setText(this._m_dataController.getString('menu_tip_0' + this._m_tip_num));
             popupController.close();
             popupController.open();
@@ -3154,7 +3250,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
     }(Phaser.Scene));
     exports.MainMenu = MainMenu;
 });
-define("game/ui/clocks/components/clockController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, mxComponent_15, gameCommons_21, masterManager_8) {
+define("game/ui/clocks/components/clockController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "game/managers/masteManager/masterManager"], function (require, exports, mxComponent_15, gameCommons_22, masterManager_9) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var ClockController = /** @class */ (function (_super) {
@@ -3163,18 +3259,18 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
         /* Public                                           */
         /****************************************************/
         function ClockController() {
-            var _this = _super.call(this, gameCommons_21.COMPONENT_ID.kClockController) || this;
+            var _this = _super.call(this, gameCommons_22.COMPONENT_ID.kClockController) || this;
             _this.m_isPaused = true;
             _this._m_totalSeconds = 0.0;
             _this.m_current_time = 0.0;
             return _this;
         }
         ClockController.prototype.init = function (_actor) {
-            var master = masterManager_8.MasterManager.GetInstance();
-            this._m_masterController = master.getComponent(gameCommons_21.COMPONENT_ID.kMasterController);
-            var gameManager = master.get_child(gameCommons_21.MANAGER_ID.kGameManager);
-            var gameController = gameManager.getComponent(gameCommons_21.COMPONENT_ID.kGameController);
-            this._m_totalSeconds = gameController._m_user_preferences.chrono_value;
+            var master = masterManager_9.MasterManager.GetInstance();
+            this._m_masterController = master.getComponent(gameCommons_22.COMPONENT_ID.kMasterController);
+            var gameManager = master.get_child(gameCommons_22.MANAGER_ID.kGameManager);
+            this._m_gameController = gameManager.getComponent(gameCommons_22.COMPONENT_ID.kGameController);
+            this._m_totalSeconds = this._m_gameController._m_user_preferences.chrono_value;
             this.m_current_time = this._m_totalSeconds;
             this._m_actor = _actor;
             return;
@@ -3183,30 +3279,31 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
             if (!this.m_isPaused) {
                 this.m_current_time -= this._m_masterController.m_dt;
                 if (this.m_current_time <= 0.0) {
-                    this._m_actor.sendMessage(gameCommons_21.MESSAGE_ID.kTimeOut, null);
+                    this._m_actor.sendMessage(gameCommons_22.MESSAGE_ID.kTimeOut, null);
                     this.m_current_time = 0.0;
                     this.m_isPaused = !this.m_isPaused;
+                    this._m_gameController.timeout();
                 }
             }
             return;
         };
         ClockController.prototype.pause = function () {
             if (!this.m_isPaused) {
-                this._m_actor.sendMessage(gameCommons_21.MESSAGE_ID.kClockPaused, null);
+                this._m_actor.sendMessage(gameCommons_22.MESSAGE_ID.kClockPaused, null);
                 this.m_isPaused = !this.m_isPaused;
             }
             return;
         };
         ClockController.prototype.resume = function () {
             if (this.m_isPaused) {
-                this._m_actor.sendMessage(gameCommons_21.MESSAGE_ID.kClockResumed, null);
+                this._m_actor.sendMessage(gameCommons_22.MESSAGE_ID.kClockResumed, null);
                 this.m_isPaused = !this.m_isPaused;
             }
             return;
         };
         ClockController.prototype.reset = function () {
             this.m_current_time = this._m_totalSeconds;
-            this._m_actor.sendMessage(gameCommons_21.MESSAGE_ID.kClockReset, null);
+            this._m_actor.sendMessage(gameCommons_22.MESSAGE_ID.kClockReset, null);
             this.pause();
             return;
         };
@@ -3276,7 +3373,7 @@ define("utilities/date_time", ["require", "exports", "utilities/asserts"], funct
     }
     exports.GetMMSS = GetMMSS;
 });
-define("game/ui/clocks/components/digitalController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "utilities/date_time"], function (require, exports, mxComponent_16, gameCommons_22, date_time_1) {
+define("game/ui/clocks/components/digitalController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons", "utilities/date_time"], function (require, exports, mxComponent_16, gameCommons_23, date_time_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var DigitalController = /** @class */ (function (_super) {
@@ -3285,12 +3382,12 @@ define("game/ui/clocks/components/digitalController", ["require", "exports", "ut
         /* Public                                           */
         /****************************************************/
         function DigitalController() {
-            var _this = _super.call(this, gameCommons_22.COMPONENT_ID.kDigitalClockController) || this;
+            var _this = _super.call(this, gameCommons_23.COMPONENT_ID.kDigitalClockController) || this;
             return _this;
         }
         DigitalController.prototype.init = function (_actor) {
-            this._m_textComponent = _actor.getComponent(gameCommons_22.COMPONENT_ID.kBitmapText);
-            this._m_clockController = _actor.getComponent(gameCommons_22.COMPONENT_ID.kClockController);
+            this._m_textComponent = _actor.getComponent(gameCommons_23.COMPONENT_ID.kBitmapText);
+            this._m_clockController = _actor.getComponent(gameCommons_23.COMPONENT_ID.kClockController);
             return;
         };
         DigitalController.prototype.update = function (_actor) {
@@ -3306,7 +3403,7 @@ define("game/ui/clocks/components/digitalController", ["require", "exports", "ut
     }(mxComponent_16.MxComponent));
     exports.DigitalController = DigitalController;
 });
-define("game/components/graphicsComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_17, gameCommons_23) {
+define("game/components/graphicsComponent", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_17, gameCommons_24) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var GraphicsComponent = /** @class */ (function (_super) {
@@ -3315,7 +3412,7 @@ define("game/components/graphicsComponent", ["require", "exports", "utilities/co
         /* Public                                           */
         /****************************************************/
         function GraphicsComponent() {
-            var _this = _super.call(this, gameCommons_23.COMPONENT_ID.kGraphicsComponent) || this;
+            var _this = _super.call(this, gameCommons_24.COMPONENT_ID.kGraphicsComponent) || this;
             _this._m_local_position = new Phaser.Geom.Point(0.0, 0.0);
             return _this;
         }
@@ -3329,12 +3426,12 @@ define("game/components/graphicsComponent", ["require", "exports", "utilities/co
             return;
         };
         GraphicsComponent.prototype.receive = function (_id, _data) {
-            if (_id == gameCommons_23.MESSAGE_ID.kOnAgentActive) {
+            if (_id == gameCommons_24.MESSAGE_ID.kOnAgentActive) {
                 this.setVisible(true);
                 this.setActive(true);
                 return;
             }
-            else if (_id == gameCommons_23.MESSAGE_ID.kOnAgentDesactive) {
+            else if (_id == gameCommons_24.MESSAGE_ID.kOnAgentDesactive) {
                 this.setVisible(false);
                 this.setActive(false);
                 return;
@@ -3420,7 +3517,7 @@ define("game/components/graphicsComponent", ["require", "exports", "utilities/co
     }(mxComponent_17.MxComponent));
     exports.GraphicsComponent = GraphicsComponent;
 });
-define("game/ui/clocks/components/analogClockController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_18, gameCommons_24) {
+define("game/ui/clocks/components/analogClockController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_18, gameCommons_25) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var AnalogClockController = /** @class */ (function (_super) {
@@ -3429,15 +3526,15 @@ define("game/ui/clocks/components/analogClockController", ["require", "exports",
         /* Public                                           */
         /****************************************************/
         function AnalogClockController() {
-            var _this = _super.call(this, gameCommons_24.COMPONENT_ID.kAnalogClockController) || this;
+            var _this = _super.call(this, gameCommons_25.COMPONENT_ID.kAnalogClockController) || this;
             return _this;
         }
         AnalogClockController.prototype.init = function (_actor) {
             this._m_startAngle = -Math.PI * 0.5;
             this._m_maxAngle = Math.PI * 1.5;
-            var graphicsComponent = _actor.getComponent(gameCommons_24.COMPONENT_ID.kGraphicsComponent);
+            var graphicsComponent = _actor.getComponent(gameCommons_25.COMPONENT_ID.kGraphicsComponent);
             this._m_graphics = graphicsComponent.getGraphic();
-            this._m_clockController = _actor.getComponent(gameCommons_24.COMPONENT_ID.kClockController);
+            this._m_clockController = _actor.getComponent(gameCommons_25.COMPONENT_ID.kClockController);
             return;
         };
         AnalogClockController.prototype.update = function (_actor) {
@@ -3455,7 +3552,7 @@ define("game/ui/clocks/components/analogClockController", ["require", "exports",
     }(mxComponent_18.MxComponent));
     exports.AnalogClockController = AnalogClockController;
 });
-define("game/ui/clocks/components/sandClockController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_19, gameCommons_25) {
+define("game/ui/clocks/components/sandClockController", ["require", "exports", "utilities/component/mxComponent", "game/gameCommons"], function (require, exports, mxComponent_19, gameCommons_26) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var SandClockController = /** @class */ (function (_super) {
@@ -3464,26 +3561,26 @@ define("game/ui/clocks/components/sandClockController", ["require", "exports", "
         /* Public                                           */
         /****************************************************/
         function SandClockController() {
-            var _this = _super.call(this, gameCommons_25.COMPONENT_ID.kSandClockController) || this;
+            var _this = _super.call(this, gameCommons_26.COMPONENT_ID.kSandClockController) || this;
             return _this;
         }
         SandClockController.prototype.init = function (_actor) {
             ///////////////////////////////////
             // Upper Texture
-            this._m_upperTexture = _actor.get_child(gameCommons_25.SAND_CLOCK_PART_ID.kLowerTexture);
-            var upperTextureSprite = this._m_upperTexture.getComponent(gameCommons_25.COMPONENT_ID.kSprite);
+            this._m_upperTexture = _actor.get_child(gameCommons_26.SAND_CLOCK_PART_ID.kLowerTexture);
+            var upperTextureSprite = this._m_upperTexture.getComponent(gameCommons_26.COMPONENT_ID.kSprite);
             this._m_upperInitPoistion = new Phaser.Math.Vector2(this._m_upperTexture._m_relative_position.x, this._m_upperTexture._m_relative_position.y);
             this._m_upperTraslation = new Phaser.Math.Vector2(0, upperTextureSprite.getHeight());
             ///////////////////////////////////
             // Lower Texture
-            this._m_lowerTexture = _actor.get_child(gameCommons_25.SAND_CLOCK_PART_ID.kUpperTexture);
-            var lowerTextureSprite = this._m_lowerTexture.getComponent(gameCommons_25.COMPONENT_ID.kSprite);
+            this._m_lowerTexture = _actor.get_child(gameCommons_26.SAND_CLOCK_PART_ID.kUpperTexture);
+            var lowerTextureSprite = this._m_lowerTexture.getComponent(gameCommons_26.COMPONENT_ID.kSprite);
             this._m_lowerTexture.setRelativePosition(this._m_lowerTexture._m_relative_position.x, this._m_lowerTexture._m_relative_position.y + lowerTextureSprite.getHeight());
             this._m_lowerInitPosition = new Phaser.Math.Vector2(this._m_lowerTexture._m_relative_position.x, this._m_lowerTexture._m_relative_position.y);
             this._m_lowerTraslation = new Phaser.Math.Vector2(0, -lowerTextureSprite.getHeight());
             ///////////////////////////////////
             // CLock Controller
-            this._m_clockController = _actor.getComponent(gameCommons_25.COMPONENT_ID.kClockController);
+            this._m_clockController = _actor.getComponent(gameCommons_26.COMPONENT_ID.kClockController);
             return;
         };
         SandClockController.prototype.update = function (_actor) {
@@ -3500,7 +3597,7 @@ define("game/ui/clocks/components/sandClockController", ["require", "exports", "
     }(mxComponent_19.MxComponent));
     exports.SandClockController = SandClockController;
 });
-define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxActor", "game/ui/clocks/components/clockController", "game/components/spriteComponent", "game/components/bitmapTextComponent", "game/ui/clocks/components/digitalController", "game/components/graphicsComponent", "game/ui/clocks/components/analogClockController", "game/gameCommons", "game/ui/clocks/components/sandClockController"], function (require, exports, mxActor_8, clockController_1, spriteComponent_3, bitmapTextComponent_2, digitalController_1, graphicsComponent_1, analogClockController_1, gameCommons_26, sandClockController_1) {
+define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxActor", "game/ui/clocks/components/clockController", "game/components/spriteComponent", "game/components/bitmapTextComponent", "game/ui/clocks/components/digitalController", "game/components/graphicsComponent", "game/ui/clocks/components/analogClockController", "game/gameCommons", "game/ui/clocks/components/sandClockController"], function (require, exports, mxActor_8, clockController_1, spriteComponent_4, bitmapTextComponent_3, digitalController_1, graphicsComponent_1, analogClockController_1, gameCommons_27, sandClockController_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
@@ -3522,37 +3619,37 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
             var clock = mxActor_8.MxActor.Create(_id);
             ///////////////////////////////////
             // Clock Texture
-            var clockTexture = mxActor_8.MxActor.Create(gameCommons_26.SAND_CLOCK_PART_ID.kClockTexture, clock);
-            var clockTextureSprite = new spriteComponent_3.SpriteComponent();
+            var clockTexture = mxActor_8.MxActor.Create(gameCommons_27.SAND_CLOCK_PART_ID.kClockTexture, clock);
+            var clockTextureSprite = new spriteComponent_4.SpriteComponent();
             clockTextureSprite.setSprite(_scene.add.sprite(0, 0, 'landpage_2', 'sand_clock_background.png'));
             clockTexture.addComponent(clockTextureSprite);
             ///////////////////////////////////
             // Upper Sand
-            var upperMask = mxActor_8.MxActor.Create(gameCommons_26.SAND_CLOCK_PART_ID.kUpperMask, clock);
+            var upperMask = mxActor_8.MxActor.Create(gameCommons_27.SAND_CLOCK_PART_ID.kUpperMask, clock);
             upperMask.setRelativePosition(0, -175);
-            var upperMaskSprite = new spriteComponent_3.SpriteComponent();
+            var upperMaskSprite = new spriteComponent_4.SpriteComponent();
             upperMaskSprite.setSprite(_scene.add.sprite(0, 0, 'sand_clock_mask'));
             upperMaskSprite.setVisible(false);
             upperMask.addComponent(upperMaskSprite);
-            var upperTexture = mxActor_8.MxActor.Create(gameCommons_26.SAND_CLOCK_PART_ID.kUpperTexture, clock);
+            var upperTexture = mxActor_8.MxActor.Create(gameCommons_27.SAND_CLOCK_PART_ID.kUpperTexture, clock);
             upperTexture.setRelativePosition(0, -175);
-            var upperTextureSprite = new spriteComponent_3.SpriteComponent();
-            upperTextureSprite.setSprite(_scene.add.sprite(0, 0, 'sand_clock_mask', 'sand_clock_fill.png'));
+            var upperTextureSprite = new spriteComponent_4.SpriteComponent();
+            upperTextureSprite.setSprite(_scene.add.sprite(0, 0, 'landpage_2', 'sand_clock_fill.png'));
             upperTexture.addComponent(upperTextureSprite);
             var upperBitmapMask = upperMaskSprite.createMask();
             upperTextureSprite.setMask(upperBitmapMask);
             ///////////////////////////////////
             // Lower Sand
-            var lowerMask = mxActor_8.MxActor.Create(gameCommons_26.SAND_CLOCK_PART_ID.kLowerMask, clock);
+            var lowerMask = mxActor_8.MxActor.Create(gameCommons_27.SAND_CLOCK_PART_ID.kLowerMask, clock);
             lowerMask.setRelativePosition(0, 175);
-            var lowerMaskSprite = new spriteComponent_3.SpriteComponent();
+            var lowerMaskSprite = new spriteComponent_4.SpriteComponent();
             lowerMaskSprite.setSprite(_scene.add.sprite(0, 0, 'sand_clock_mask'));
             lowerMaskSprite.setAngle(180);
             lowerMaskSprite.setVisible(false);
             lowerMask.addComponent(lowerMaskSprite);
-            var lowerTexture = mxActor_8.MxActor.Create(gameCommons_26.SAND_CLOCK_PART_ID.kLowerTexture, clock);
+            var lowerTexture = mxActor_8.MxActor.Create(gameCommons_27.SAND_CLOCK_PART_ID.kLowerTexture, clock);
             lowerTexture.setRelativePosition(0, 175);
-            var lowerTextureSprite = new spriteComponent_3.SpriteComponent();
+            var lowerTextureSprite = new spriteComponent_4.SpriteComponent();
             lowerTextureSprite.setSprite(_scene.add.sprite(0, 0, 'landpage_2', 'sand_clock_fill.png'));
             lowerTextureSprite.setAngle(180);
             lowerTexture.addComponent(lowerTextureSprite);
@@ -3571,10 +3668,10 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
          */
         Clock.CreateDigital = function (_scene, _id) {
             var clock = mxActor_8.MxActor.Create(_id);
-            var spriteComponent = new spriteComponent_3.SpriteComponent();
+            var spriteComponent = new spriteComponent_4.SpriteComponent();
             spriteComponent.setSprite(_scene.add.sprite(0, 0, 'landpage', 'digital_clock.png'));
             clock.addComponent(spriteComponent);
-            var clockText = new bitmapTextComponent_2.BitmapTextComponent();
+            var clockText = new bitmapTextComponent_3.BitmapTextComponent();
             clockText.prepare(_scene, 'digital_dream', '03:00', 160);
             clockText.setOrigin(0.5, 0.5);
             clockText.setCenterAlign();
@@ -3597,7 +3694,7 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
             ///////////////////////////////////
             // Background Object
             var backgroundObject = mxActor_8.MxActor.Create(1, clock);
-            var backgroundSprite = new spriteComponent_3.SpriteComponent();
+            var backgroundSprite = new spriteComponent_4.SpriteComponent();
             backgroundSprite.setSprite(_scene.add.sprite(0, 0, 'landpage_2', 'analog_clock_background.png'));
             backgroundObject.addComponent(backgroundSprite);
             ///////////////////////////////////
@@ -3610,7 +3707,7 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
             ///////////////////////////////////
             // Foreground Object
             var foregroundObject = mxActor_8.MxActor.Create(2, clock);
-            var foregroundSprite = new spriteComponent_3.SpriteComponent();
+            var foregroundSprite = new spriteComponent_4.SpriteComponent();
             foregroundSprite.setSprite(_scene.add.sprite(0, 0, 'landpage_2', 'analog_clock_front.png'));
             foregroundObject.addComponent(foregroundSprite);
             clock.init();
@@ -3620,7 +3717,7 @@ define("game/ui/clocks/clock", ["require", "exports", "utilities/component/mxAct
     }());
     exports.Clock = Clock;
 });
-define("scenes/levels/game_level", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/buttons/imgButton", "game/ui/clocks/clock", "game/ui/shaders/shadersFactory"], function (require, exports, masterManager_9, gameCommons_27, imgButton_3, clock_1, shadersFactory_2) {
+define("scenes/levels/game_level", ["require", "exports", "game/managers/masteManager/masterManager", "game/gameCommons", "game/ui/buttons/imgButton", "game/ui/clocks/clock", "game/ui/shaders/shadersFactory", "game/ui/cloudPopup/Popup"], function (require, exports, masterManager_10, gameCommons_28, imgButton_3, clock_1, shadersFactory_2, Popup_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var MainGame = /** @class */ (function (_super) {
@@ -3633,13 +3730,13 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
         /****************************************************/
         MainGame.prototype.create = function () {
             // Get Controllers
-            var master = masterManager_9.MasterManager.GetInstance();
-            this._m_masterController = master.getComponent(gameCommons_27.COMPONENT_ID.kMasterController);
-            var gameManager = master.get_child(gameCommons_27.MANAGER_ID.kGameManager);
+            var master = masterManager_10.MasterManager.GetInstance();
+            this._m_masterController = master.getComponent(gameCommons_28.COMPONENT_ID.kMasterController);
+            var gameManager = master.get_child(gameCommons_28.MANAGER_ID.kGameManager);
             this._m_dataController
-                = gameManager.getComponent(gameCommons_27.COMPONENT_ID.kDataController);
+                = gameManager.getComponent(gameCommons_28.COMPONENT_ID.kDataController);
             this._m_gameController
-                = gameManager.getComponent(gameCommons_27.COMPONENT_ID.kGameController);
+                = gameManager.getComponent(gameCommons_28.COMPONENT_ID.kGameController);
             /****************************************************/
             /* Background                                       */
             /****************************************************/
@@ -3652,38 +3749,38 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
             /****************************************************/
             var halfWidth = this.game.canvas.width * 0.5;
             this._m_mainMenuButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 200, 'landpage', 'button.png', this._m_dataController.getString('back_to_menu'), this._onClick_mainMenu, this);
-            var mainMenuButtonSprite = this._m_mainMenuButton.getComponent(gameCommons_27.COMPONENT_ID.kSprite);
+            var mainMenuButtonSprite = this._m_mainMenuButton.getComponent(gameCommons_28.COMPONENT_ID.kSprite);
             mainMenuButtonSprite.setTint(0xface01);
-            var mainMenuButtonText = this._m_mainMenuButton.getComponent(gameCommons_27.COMPONENT_ID.kBitmapText);
+            var mainMenuButtonText = this._m_mainMenuButton.getComponent(gameCommons_28.COMPONENT_ID.kBitmapText);
             mainMenuButtonText.setTint(0x0a0136);
             /****************************************************/
             /* Pause Button                                     */
             /****************************************************/
             this._m_pauseButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1600, 'landpage', 'button.png', this._m_dataController.getString('pause'), this._on_click_pause_resume, this);
             this._m_pauseButtonTexture
-                = this._m_pauseButton.getComponent(gameCommons_27.COMPONENT_ID.kSprite);
+                = this._m_pauseButton.getComponent(gameCommons_28.COMPONENT_ID.kSprite);
             this._m_pauseButtonText
-                = this._m_pauseButton.getComponent(gameCommons_27.COMPONENT_ID.kBitmapText);
+                = this._m_pauseButton.getComponent(gameCommons_28.COMPONENT_ID.kBitmapText);
             this._m_pauseButtonText.setTint(0xffffff);
             /****************************************************/
             /* Reset Button                                     */
             /****************************************************/
             this._m_resetButton = imgButton_3.Button.CreateStandard(this, 0, halfWidth, 1800, 'landpage', 'button.png', this._m_dataController.getString('reset'), this._onClick_Reset, this);
-            var resetButtonSprite = this._m_resetButton.getComponent(gameCommons_27.COMPONENT_ID.kSprite);
+            var resetButtonSprite = this._m_resetButton.getComponent(gameCommons_28.COMPONENT_ID.kSprite);
             resetButtonSprite.setTint(0xff5709);
-            var resetButtonText = this._m_resetButton.getComponent(gameCommons_27.COMPONENT_ID.kBitmapText);
+            var resetButtonText = this._m_resetButton.getComponent(gameCommons_28.COMPONENT_ID.kBitmapText);
             resetButtonText.setTint(0xffffff);
             /****************************************************/
             /* Clock                                            */
             /****************************************************/
             switch (this._m_gameController._m_user_preferences.getClockStyle()) {
-                case gameCommons_27.CLOCK_STYLE.kSand:
+                case gameCommons_28.CLOCK_STYLE.kSand:
                     this._m_clock = clock_1.Clock.CreateSand(this, 0);
                     break;
-                case gameCommons_27.CLOCK_STYLE.kDigital:
+                case gameCommons_28.CLOCK_STYLE.kDigital:
                     this._m_clock = clock_1.Clock.CreateDigital(this, 0);
                     break;
-                case gameCommons_27.CLOCK_STYLE.kAnalog:
+                case gameCommons_28.CLOCK_STYLE.kAnalog:
                     this._m_clock = clock_1.Clock.CreateAnalog(this, 0);
                     break;
                 default:
@@ -3691,7 +3788,14 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
                     break;
             }
             this._m_clock.setRelativePosition(halfWidth, this.game.canvas.height * 0.5);
-            this._m_clockController = this._m_clock.getComponent(gameCommons_27.COMPONENT_ID.kClockController);
+            this._m_clockController = this._m_clock.getComponent(gameCommons_28.COMPONENT_ID.kClockController);
+            /****************************************************/
+            /* Alert Popup                                      */
+            /****************************************************/
+            this._m_alertPopup = Popup_2.Popup.CreateTimeAlert(0, this);
+            this._m_alerPopupController
+                = this._m_alertPopup.getComponent(gameCommons_28.COMPONENT_ID.kAlertPopupController);
+            this._m_alertPopup.setRelativePosition(halfWidth, this.game.canvas.height * 0.5);
             this._onClick_Reset();
             return;
         };
@@ -3702,6 +3806,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
             this._m_pauseButton.update();
             this._m_mainMenuButton.update();
             this._m_resetButton.update();
+            this._m_alertPopup.update();
             return;
         };
         MainGame.prototype.destroy = function () {
@@ -3710,6 +3815,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
             this._m_pauseButton.destroy();
             this._m_mainMenuButton.destroy();
             this._m_resetButton.destroy();
+            this._m_alertPopup.destroy();
             return;
         };
         /****************************************************/
@@ -3746,6 +3852,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
             this._m_clockController.reset();
             this._m_pauseButtonText.setText(this._m_dataController.getString('start'));
             this._m_pauseButtonTexture.setTint(0x31a13b);
+            this._m_alerPopupController.reset();
             return;
         };
         MainGame.prototype._createParticleEmitter = function () {
@@ -3770,7 +3877,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
     }(Phaser.Scene));
     exports.MainGame = MainGame;
 });
-define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, gameCommons_28, mxActor_9, masterManager_10, spriteComponent_4, uiBitmapText_4) {
+define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "utilities/component/mxActor", "game/managers/masteManager/masterManager", "game/components/spriteComponent", "game/ui/text/uiBitmapText"], function (require, exports, gameCommons_29, mxActor_9, masterManager_11, spriteComponent_5, uiBitmapText_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var LocalizationScene = /** @class */ (function (_super) {
@@ -3791,19 +3898,19 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             /* Title                                            */
             /****************************************************/
             this._m_language_icon = mxActor_9.MxActor.Create(0);
-            var language_sprite = new spriteComponent_4.SpriteComponent();
+            var language_sprite = new spriteComponent_5.SpriteComponent();
             language_sprite.setSprite(this.add.sprite(0, 0, 'landpage', 'language_button.png'));
             language_sprite.setTint(0x0c0138);
             this._m_language_icon.addComponent(language_sprite);
             this._m_language_icon.init();
             this._m_language_icon.setRelativePosition(half_width, 200);
             this._m_laguage_title = mxActor_9.MxActor.Create(0, this._m_language_icon);
-            var master = masterManager_10.MasterManager.GetInstance();
-            var gameManager = master.get_child(gameCommons_28.MANAGER_ID.kGameManager);
+            var master = masterManager_11.MasterManager.GetInstance();
+            var gameManager = master.get_child(gameCommons_29.MANAGER_ID.kGameManager);
             this._m_dataController
-                = gameManager.getComponent(gameCommons_28.COMPONENT_ID.kDataController);
+                = gameManager.getComponent(gameCommons_29.COMPONENT_ID.kDataController);
             this._m_gameController
-                = gameManager.getComponent(gameCommons_28.COMPONENT_ID.kGameController);
+                = gameManager.getComponent(gameCommons_29.COMPONENT_ID.kGameController);
             var languageTitleText = uiBitmapText_4.UIBitmapText.AddStandard(this, this._m_dataController.getString('choose_language'), this._m_laguage_title);
             languageTitleText.setTint(0x0c0138);
             languageTitleText.setCenterAlign();
@@ -3814,7 +3921,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             /* English Button                                   */
             /****************************************************/
             this._m_english_button = mxActor_9.MxActor.Create(0);
-            var enlgishButtonSprite = new spriteComponent_4.SpriteComponent();
+            var enlgishButtonSprite = new spriteComponent_5.SpriteComponent();
             enlgishButtonSprite.setSprite(this.add.sprite(0, 0, 'landpage', 'english_map.png'));
             enlgishButtonSprite.setOrigin(0.5, 0.0);
             enlgishButtonSprite.setInteractive();
@@ -3833,7 +3940,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
             /* Latam Button                                     */
             /****************************************************/
             this._m_spanish_button = mxActor_9.MxActor.Create(0);
-            var spanishButtonSprite = new spriteComponent_4.SpriteComponent();
+            var spanishButtonSprite = new spriteComponent_5.SpriteComponent();
             spanishButtonSprite.setSprite(this.add.sprite(0, 0, 'landpage', 'spanish_map.png'));
             spanishButtonSprite.setOrigin(0.5, 0.0);
             spanishButtonSprite.setInteractive();
@@ -3869,14 +3976,14 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
         /* Private                                          */
         /****************************************************/
         LocalizationScene.prototype._onClick_english = function () {
-            this._m_gameController.setLocalization(gameCommons_28.LOCALIZATION.kEnglish);
+            this._m_gameController.setLocalization(gameCommons_29.LOCALIZATION.kEnglish);
             this._m_dataController.initLanguage(this.game);
             this.destroy();
             this.scene.start('welcomePage');
             return;
         };
         LocalizationScene.prototype._onClick_spanish = function () {
-            this._m_gameController.setLocalization(gameCommons_28.LOCALIZATION.KSpanish);
+            this._m_gameController.setLocalization(gameCommons_29.LOCALIZATION.KSpanish);
             this._m_dataController.initLanguage(this.game);
             this.destroy();
             this.scene.start('welcomePage');
@@ -3886,7 +3993,7 @@ define("scenes/menus/localization", ["require", "exports", "game/gameCommons", "
     }(Phaser.Scene));
     exports.LocalizationScene = LocalizationScene;
 });
-define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/buttons/imgButton", "game/gameCommons", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager", "game/ui/shaders/shadersFactory"], function (require, exports, mxActor_10, spriteComponent_5, imgButton_4, gameCommons_29, uiBitmapText_5, masterManager_11, shadersFactory_3) {
+define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/mxActor", "game/components/spriteComponent", "game/ui/buttons/imgButton", "game/gameCommons", "game/ui/text/uiBitmapText", "game/managers/masteManager/masterManager", "game/ui/shaders/shadersFactory"], function (require, exports, mxActor_10, spriteComponent_6, imgButton_4, gameCommons_30, uiBitmapText_5, masterManager_12, shadersFactory_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var WelcomePage = /** @class */ (function (_super) {
@@ -3911,7 +4018,7 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /* Language Button                                  */
             /****************************************************/
             this._m_language_button = imgButton_4.Button.CreateImageButton(this, 0, 60, 60, 'landpage', 'language_button.png', this._onClick_language, this);
-            var _m_language_sprite = this._m_language_button.getComponent(gameCommons_29.COMPONENT_ID.kSprite);
+            var _m_language_sprite = this._m_language_button.getComponent(gameCommons_30.COMPONENT_ID.kSprite);
             _m_language_sprite.setTint(0xface01);
             _m_language_sprite.setOrigin(0.0, 0.0);
             /****************************************************/
@@ -3927,7 +4034,7 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /* Welcome Phrase                                   */
             /****************************************************/
             this._m_welcome_title = mxActor_10.MxActor.Create(0);
-            var welcome_sprite = new spriteComponent_5.SpriteComponent();
+            var welcome_sprite = new spriteComponent_6.SpriteComponent();
             welcome_sprite.setSprite(this.add.sprite(0, 0, 'landpage', 'welcome_phrase_0.png'));
             this._m_welcome_title.addComponent(welcome_sprite);
             this._m_welcome_title.init();
@@ -3935,16 +4042,16 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
             /****************************************************/
             /* Start Button                                     */
             /****************************************************/
-            var master = masterManager_11.MasterManager.GetInstance();
-            this._m_masterController = master.getComponent(gameCommons_29.COMPONENT_ID.kMasterController);
-            var gameManager = master.get_child(gameCommons_29.MANAGER_ID.kGameManager);
-            var dataController = gameManager.getComponent(gameCommons_29.COMPONENT_ID.kDataController);
+            var master = masterManager_12.MasterManager.GetInstance();
+            this._m_masterController = master.getComponent(gameCommons_30.COMPONENT_ID.kMasterController);
+            var gameManager = master.get_child(gameCommons_30.MANAGER_ID.kGameManager);
+            var dataController = gameManager.getComponent(gameCommons_30.COMPONENT_ID.kDataController);
             this._m_start_button = imgButton_4.Button.CreateStandard(this, 0, screenHalfWidth, screenHeight * 0.4, 'landpage', 'button.png', dataController.getString('start_to_play'), this._onClick_start, this);
             /****************************************************/
             /* Cat                                              */
             /****************************************************/
             this._m_cat = mxActor_10.MxActor.Create(0);
-            var cat_spriteComponent = new spriteComponent_5.SpriteComponent();
+            var cat_spriteComponent = new spriteComponent_6.SpriteComponent();
             cat_spriteComponent.setSprite(this.add.sprite(0, 0, 'landpage', 'cat.png'));
             this._m_cat.addComponent(cat_spriteComponent);
             this._m_cat.init();
@@ -4100,47 +4207,6 @@ define("game/ui/buttons/nineButton", ["require", "exports", "utilities/component
         return NineButton;
     }());
     exports.NineButton = NineButton;
-});
-define("game/ui/timeOutPop/timeOutPop", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var TimeOutPop = /** @class */ (function () {
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function TimeOutPop(_scene, _x, _y) {
-        }
-        TimeOutPop.prototype.open = function () {
-            if (!this.m_isOpen) {
-                this.m_group.setVisible(true);
-                var rnd = 1 + (Math.floor(Math.random() * 5));
-                if (rnd > 4) {
-                    rnd = 4;
-                }
-                //this.m_msg.text = this.m_data_mng.getString('time_out_' + rnd);
-                this.m_isOpen = !this.m_isOpen;
-            }
-            return;
-        };
-        TimeOutPop.prototype.close = function () {
-            if (this.m_isOpen) {
-                this.m_group.setVisible(false);
-                this.m_isOpen = !this.m_isOpen;
-            }
-            return;
-        };
-        TimeOutPop.prototype.isOpen = function () {
-            return this.m_isOpen;
-        };
-        /**
-        * Safely destroys the object.
-        */
-        TimeOutPop.prototype.destroy = function () {
-            return;
-        };
-        return TimeOutPop;
-    }());
-    exports.TimeOutPop = TimeOutPop;
 });
 define("utilities/fsm_state", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -4351,95 +4417,6 @@ define("utilities/interpolation/interpolation", ["require", "exports"], function
         return Interpolation;
     }());
     exports.Interpolation = Interpolation;
-});
-define("utilities/listeners/mxListener", ["require", "exports", "utilities/asserts"], function (require, exports, asserts_8) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxListener = /** @class */ (function () {
-        function MxListener(_listener, _context) {
-            asserts_8.AssertFunction(_listener);
-            this.m_listener = _listener;
-            if (_context) {
-                this.m_context = _context;
-            }
-            return;
-        }
-        MxListener.prototype.call = function () {
-            if (this.m_context) {
-                this.m_listener.call(this.m_context);
-            }
-            else {
-                this.m_listener();
-            }
-            return;
-        };
-        MxListener.prototype.destroy = function () {
-            this.m_listener = null;
-            this.m_context = null;
-            return;
-        };
-        return MxListener;
-    }());
-    exports.MxListener = MxListener;
-});
-define("utilities/listeners/mxListenerManager", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    var MxListenerManager = /** @class */ (function () {
-        /****************************************************/
-        /* Public                                           */
-        /****************************************************/
-        function MxListenerManager() {
-            this.m_listener_map = new Map();
-            return;
-        }
-        MxListenerManager.prototype.call = function (_event) {
-            if (this.m_listener_map.has(_event)) {
-                var event_1 = this.m_listener_map.get(_event);
-                var size = event_1.length;
-                for (var index = 0; index < size; ++index) {
-                    event_1[index].call();
-                }
-            }
-            return;
-        };
-        MxListenerManager.prototype.addEvent = function (_event) {
-            if (!this.m_listener_map.has(_event)) {
-                this.m_listener_map.set(_event, new Array());
-            }
-            return;
-        };
-        MxListenerManager.prototype.addListener = function (_event, _listener) {
-            if (this.m_listener_map.has(_event)) {
-                var event_2 = this.m_listener_map.get(_event);
-                event_2.push(_listener);
-            }
-            return;
-        };
-        MxListenerManager.prototype.clearEvent = function (_event) {
-            if (this.m_listener_map.has(_event)) {
-                var event_3 = this.m_listener_map.get(_event);
-                while (event_3.length) {
-                    var listener = event_3.pop();
-                    listener.destroy();
-                }
-            }
-            return;
-        };
-        /**
-        * Safely destroys the object.
-        */
-        MxListenerManager.prototype.destroy = function () {
-            this.m_listener_map.forEach(function (_a_listeners, _key) {
-                this.clearEvent(_key);
-                return;
-            }, this);
-            this.m_listener_map.clear();
-            return;
-        };
-        return MxListenerManager;
-    }());
-    exports.MxListenerManager = MxListenerManager;
 });
 define("utilities/noise/perlinNoise", ["require", "exports", "utilities/interpolation/interpolation"], function (require, exports, interpolation_1) {
     "use strict";

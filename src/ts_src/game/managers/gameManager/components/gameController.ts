@@ -1,8 +1,9 @@
 import { MxComponent } from "../../../../utilities/component/mxComponent";
 import { COMPONENT_ID, MANAGER_ID, LOCALIZATION } from "../../../gameCommons";
 import { MxActor } from "../../../../utilities/component/mxActor";
-import { ChronoController } from "./chronoController";
 import { UserPreferences } from "../../userPreferences/userPreferences";
+import { MxListenerManager } from "../../../../utilities/listeners/mxListenerManager";
+import { MxListener } from "../../../../utilities/listeners/mxListener";
 
 export class GameController extends MxComponent
 {
@@ -17,72 +18,59 @@ export class GameController extends MxComponent
   }
 
   init(_actor : MxActor)
-  : void { 
-    this._m_chronoController = _actor.getComponent<ChronoController>
-    (
-      COMPONENT_ID.kChronoController
-    );
-    
-    if(MxComponent.IsNull(this._m_chronoController)) {
-      throw new Error('ChronoController not founded!.');
-    }
-
+  : void 
+  {
     this._m_user_preferences = new UserPreferences();
+    
+    this._m_events = new MxListenerManager();    
+    this._m_events.addEvent('timeout');
     return;
   }
 
   update(_actor : MxActor)
-  : void {
+  : void 
+  {
     return;
   }
 
   destroy()
-  : void {
+  : void 
+  {
     this._m_user_preferences.destroy();
     return;
-  }  
-
-  
-  initGamePlay()
-  : void {
-    if(!this._m_inGameplay) {
-      
-    } 
-    return;
   }
 
   /**
-  * Reset the Gameplay
-  */
-  public resetGameplay()
-  : void {
-    if(this._m_inGameplay) {
-      this._m_chronoController.reset
-      (
-        this._m_user_preferences.chrono_value,
-        this._m_user_preferences.chrono_value * 0.1
-      );
-    }
-    return;
-  }
-
-  /**
-   * Shutdown Gameplay
+   * Events: 'timeout'
+   * 
+   * @param _event 
+   * @param _fn 
+   * @param _context 
    */
-  public shutdownGameplay()
-  : void {
-      if(this._m_inGameplay) {
-          this._m_inGameplay = !this._m_inGameplay;
-      }
-      return;
+  on(_event : string , _fn : ()=>void, _context : any)
+  : void
+  {
+    this._m_events.addListener(_event, new MxListener(_fn, _context));
+    return;
+  }
+
+  /**
+   * Trigger the timeout event.
+   */
+  timeout()
+  : void
+  {
+    this._m_events.call('timeout');
+    return;
   }
 
   /**
    * Gets this game's localization identifer.
    */
-  public getLocalization()
-  : LOCALIZATION {
-      return this._m_user_preferences.getLocalization();
+  getLocalization()
+  : LOCALIZATION 
+  {
+    return this._m_user_preferences.getLocalization();
   }
 
   /**
@@ -90,11 +78,14 @@ export class GameController extends MxComponent
    * 
    * @param _localization Localization identifier.
    */
-  public setLocalization(_localization : LOCALIZATION)
-  : void {
-      this._m_user_preferences.setLocalization(_localization);
-      return;
+  setLocalization(_localization : LOCALIZATION)
+  : void 
+  {
+    this._m_user_preferences.setLocalization(_localization);
+    return;
   }
+
+  
 
   /****************************************************/
   /* Private                                          */
@@ -106,13 +97,7 @@ export class GameController extends MxComponent
   _m_user_preferences : UserPreferences; 
 
   /**
-    * This flag indicate if we are at the game scene.
-  */
-  _m_inGameplay : boolean;
-
-  /**
-   * Reference to the chronocontroller.
+   * 
    */
-  _m_chronoController : ChronoController;
-
+  _m_events : MxListenerManager;
 }

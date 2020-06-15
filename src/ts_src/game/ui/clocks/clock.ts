@@ -85,7 +85,7 @@ export class Clock
       _scene.add.sprite
       (
         0,0,
-        'sand_clock_mask',
+        'landpage_2',
         'sand_clock_fill.png'
       )
     )

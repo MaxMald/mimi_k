@@ -32,12 +32,12 @@ export class ClockController extends MxComponent
     
     let gameManager : MxActor = master.get_child(MANAGER_ID.kGameManager);
 
-    let gameController : GameController = gameManager.getComponent<GameController>
+    this._m_gameController = gameManager.getComponent<GameController>
     (
       COMPONENT_ID.kGameController
     );
 
-    this._m_totalSeconds = gameController._m_user_preferences.chrono_value;
+    this._m_totalSeconds = this._m_gameController._m_user_preferences.chrono_value;
     this.m_current_time = this._m_totalSeconds;
     this._m_actor = _actor;
     return;
@@ -50,8 +50,10 @@ export class ClockController extends MxComponent
       this.m_current_time -= this._m_masterController.m_dt;
       if(this.m_current_time <= 0.0) {
         this._m_actor.sendMessage(MESSAGE_ID.kTimeOut, null);
-        this.m_current_time = 0.0;
+        this.m_current_time = 0.0;        
         this.m_isPaused = !this.m_isPaused;
+
+        this._m_gameController.timeout();
       }
     }
     return;
@@ -109,6 +111,11 @@ export class ClockController extends MxComponent
    * 
    */
   _m_masterController : MasterController;
+
+  /**
+   * 
+   */
+  _m_gameController : GameController;
 
   /**
    * Actor that this component belongs.

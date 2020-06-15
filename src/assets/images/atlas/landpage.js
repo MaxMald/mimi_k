@@ -1,7 +1,12 @@
 {
 "frames": {
+	"200square.png": {
+		"frame": {"x":1325, "y":845, "w":200, "h":200},
+		"spriteSourceSize": {"x":0,"y":0,"w":200,"h":200},
+		"sourceSize": {"w":200,"h":200}
+	},
 	"arrow_button.png": {
-		"frame": {"x":1360, "y":296, "w":91, "h":159},
+		"frame": {"x":1370, "y":1246, "w":91, "h":159},
 		"spriteSourceSize": {"x":0,"y":0,"w":91,"h":159},
 		"sourceSize": {"w":91,"h":159}
 	},
@@ -46,12 +51,12 @@
 		"sourceSize": {"w":724,"h":406}
 	},
 	"english_map.png": {
-		"frame": {"x":0, "y":1311, "w":684, "h":429},
+		"frame": {"x":685, "y":1311, "w":684, "h":429},
 		"spriteSourceSize": {"x":0,"y":0,"w":684,"h":429},
 		"sourceSize": {"w":684,"h":429}
 	},
 	"language_button.png": {
-		"frame": {"x":1325, "y":845, "w":143, "h":106},
+		"frame": {"x":1360, "y":296, "w":143, "h":106},
 		"spriteSourceSize": {"x":0,"y":0,"w":143,"h":106},
 		"sourceSize": {"w":143,"h":106}
 	},
@@ -71,7 +76,7 @@
 		"sourceSize": {"w":46,"h":40}
 	},
 	"spanish_map.png": {
-		"frame": {"x":685, "y":1311, "w":684, "h":429},
+		"frame": {"x":0, "y":1311, "w":684, "h":429},
 		"spriteSourceSize": {"x":0,"y":0,"w":684,"h":429},
 		"sourceSize": {"w":684,"h":429}
 	},

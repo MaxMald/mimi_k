@@ -10,6 +10,8 @@ import { ClockController } from "../../game/ui/clocks/components/clockController
 import { Clock } from "../../game/ui/clocks/clock";
 import { MasterController } from "../../game/managers/masteManager/components/MasterController";
 import { ShaderFactory } from "../../game/ui/shaders/shadersFactory";
+import { AlertPopupController } from "../../game/ui/cloudPopup/components/alertPopupController";
+import { Popup } from "../../game/ui/cloudPopup/Popup";
 
 export class MainGame extends Phaser.Scene
 {
@@ -160,8 +162,24 @@ export class MainGame extends Phaser.Scene
     this._m_clockController = this._m_clock.getComponent<ClockController>
     (
       COMPONENT_ID.kClockController
-    );
+    );    
+    
+    /****************************************************/
+    /* Alert Popup                                      */
+    /****************************************************/
 
+    this._m_alertPopup = Popup.CreateTimeAlert(0, this);
+    this._m_alerPopupController 
+      = this._m_alertPopup.getComponent<AlertPopupController>
+      (
+        COMPONENT_ID.kAlertPopupController
+      );
+    this._m_alertPopup.setRelativePosition
+    (
+      halfWidth, 
+      this.game.canvas.height * 0.5
+    );
+    
     this._onClick_Reset();
     return;
   }
@@ -176,6 +194,7 @@ export class MainGame extends Phaser.Scene
     this._m_pauseButton.update();
     this._m_mainMenuButton.update();
     this._m_resetButton.update();
+    this._m_alertPopup.update();
     return;
   }
 
@@ -187,6 +206,7 @@ export class MainGame extends Phaser.Scene
     this._m_pauseButton.destroy();
     this._m_mainMenuButton.destroy();
     this._m_resetButton.destroy();
+    this._m_alertPopup.destroy();
     return;
   }
 
@@ -236,6 +256,8 @@ export class MainGame extends Phaser.Scene
     
     this._m_pauseButtonText.setText(this._m_dataController.getString('start'));
     this._m_pauseButtonTexture.setTint(0x31a13b);
+
+    this._m_alerPopupController.reset();
     return;
   }
 
@@ -307,6 +329,16 @@ export class MainGame extends Phaser.Scene
    * 
    */
   _m_pauseButton : MxActor;
+
+  /**
+   * 
+   */
+  _m_alertPopup : MxActor;
+
+  /**
+   * 
+   */
+  _m_alerPopupController : AlertPopupController;
 
   /**
    * 

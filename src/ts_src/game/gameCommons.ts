@@ -61,7 +61,8 @@ export const COMPONENT_ID = Object.freeze
     kAnalogClockController : 15 as 15,
     kSandClockController : 16 as 16,
     kShaderComponent : 17 as 17,
-    kBackgroundShaderComponent : 18 as 18
+    kBackgroundShaderComponent : 18 as 18,
+    kAlertPopupController : 19 as 19
 });
 
 ///////////////////////////////////

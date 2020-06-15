@@ -1,7 +1,6 @@
 import { MANAGER_ID } from "../../gameCommons";
 import { MxActor } from "../../../utilities/component/mxActor";
 import { GameController } from "./components/gameController";
-import { ChronoController } from "./components/chronoController";
 import { DataController } from "./components/dataController";
 
 /**
@@ -26,7 +25,6 @@ export class GameManager
     // Components
 
     manager.addComponent(new GameController());
-    manager.addComponent(new ChronoController());
     manager.addComponent(new DataController());
 
     return manager;

@@ -86,6 +86,13 @@ export class BitmapTextComponent extends MxComponent
     return;
   }
 
+  setScale(_x : number, _y : number)
+  : void
+  {
+    this._m_bitmap_text.setScale(_x, _y);
+    return;
+  }
+
   setAlpha(_alpha : number)
   : void
   {
