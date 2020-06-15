@@ -1,0 +1,23 @@
+{
+  "name": "mimi_k",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "typescript": "^3.8.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaxMald/mimi_k.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MaxMald/mimi_k/issues"
+  },
+  "homepage": "https://github.com/MaxMald/mimi_k#readme"
+}
