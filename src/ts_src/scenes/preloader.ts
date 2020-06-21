@@ -41,12 +41,15 @@ export class Preloader extends Phaser.Scene
     ///////////////////////////////////
     // Audio
 
-    this.load.audio
+    this.load.audioSprite
     (
-      'alert', 
+      'mimik_sounds',
+      'src/assets/sounds/audiosprite/mimik_sounds.json',
       [
-        'src/assets/sounds/alert.mp3',
-        'src/assets/sounds/alert.ogg'
+        'src/assets/sounds/audiosprite/mimik_sounds.ogg',        
+        'src/assets/sounds/audiosprite/mimik_sounds.m4a',
+        'src/assets/sounds/audiosprite/mimik_sounds.mp3',
+        'src/assets/sounds/audiosprite/mimik_sounds.ac3',
       ]
     );
 

@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "audiosprite": "^0.7.2",
     "typescript": "^3.8.3"
   },
   "devDependencies": {},

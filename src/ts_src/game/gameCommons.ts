@@ -63,7 +63,7 @@ export const COMPONENT_ID = Object.freeze
     kShaderComponent : 17 as 17,
     kBackgroundShaderComponent : 18 as 18,
     kAlertPopupController : 19 as 19,
-    kAudioClipsManager : 20 as 20
+    kBaseSoundManager : 20 as 20
 });
 
 ///////////////////////////////////

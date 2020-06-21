@@ -1,0 +1,70 @@
+{
+  "resources": [
+    "mimik_sounds.ogg",
+    "mimik_sounds.m4a",
+    "mimik_sounds.mp3",
+    "mimik_sounds.ac3"
+  ],
+  "spritemap": {
+    "carrusel_button": {
+      "start": 0,
+      "end": 0.20043083900226757,
+      "loop": false
+    },
+    "final_alert": {
+      "start": 2,
+      "end": 5.061111111111111,
+      "loop": false
+    },
+    "landpage_snd": {
+      "start": 7,
+      "end": 29.439183673469387,
+      "loop": false
+    },
+    "last_second_alert": {
+      "start": 31,
+      "end": 32.93278911564626,
+      "loop": false
+    },
+    "metta_intro": {
+      "start": 34,
+      "end": 38.90244897959184,
+      "loop": false
+    },
+    "pause_button": {
+      "start": 40,
+      "end": 40.118956916099776,
+      "loop": false
+    },
+    "reset_button": {
+      "start": 42,
+      "end": 42.14390022675737,
+      "loop": false
+    },
+    "snd_music_loop": {
+      "start": 44,
+      "end": 59.986507936507934,
+      "loop": false
+    },
+    "tictoc_analogo": {
+      "start": 61,
+      "end": 62.015850340136055,
+      "loop": false
+    },
+    "tictoc_arena": {
+      "start": 64,
+      "end": 65.22065759637188,
+      "loop": false
+    },
+    "tictoc_digital": {
+      "start": 67,
+      "end": 68.00018140589569,
+      "loop": false
+    },
+    "tip_button": {
+      "start": 70,
+      "end": 71.34637188208617,
+      "loop": false
+    }
+  }
+}
