@@ -50,9 +50,8 @@ export class ClockController extends MxComponent
       this.m_current_time -= this._m_masterController.m_dt;
       if(this.m_current_time <= 0.0) {
         this._m_actor.sendMessage(MESSAGE_ID.kTimeOut, null);
-        this.m_current_time = 0.0;        
+        this.m_current_time = 0.0;
         this.m_isPaused = !this.m_isPaused;
-
         this._m_gameController.timeout();
       }
     }

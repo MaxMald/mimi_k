@@ -39,6 +39,18 @@ export class Preloader extends Phaser.Scene
     );
 
     ///////////////////////////////////
+    // Audio
+
+    this.load.audio
+    (
+      'alert', 
+      [
+        'src/assets/sounds/alert.mp3',
+        'src/assets/sounds/alert.ogg'
+      ]
+    );
+
+    ///////////////////////////////////
     // Fonts
 
     this.load.bitmapFont

@@ -7,6 +7,7 @@ import { GraphicsComponent } from "../../components/graphicsComponent";
 import { AnalogClockController } from "./components/analogClockController";
 import { SAND_CLOCK_PART_ID } from "../../gameCommons";
 import { SandClockController } from "./components/sandClockController";
+import { AudioClipsManager } from "../../components/audioClipsManager";
 
 /**
  * Clock factories.
@@ -139,6 +140,13 @@ export class Clock
 
     let lowerBitmapMask : Phaser.Display.Masks.BitmapMask = lowerMaskSprite.createMask();
     lowerTextureSprite.setMask(lowerBitmapMask);
+
+    let audioClipManager : AudioClipsManager = new AudioClipsManager();
+    audioClipManager.prepare(_scene.sound);
+
+    audioClipManager.add('alert');
+
+    clock.addComponent(audioClipManager);
     
     clock.addComponent(new ClockController());
     clock.addComponent(new SandClockController());
@@ -186,6 +194,13 @@ export class Clock
 
     clock.addComponent(clockText);
 
+    let audioClipManager : AudioClipsManager = new AudioClipsManager();
+    audioClipManager.prepare(_scene.sound);
+
+    audioClipManager.add('alert');
+
+    clock.addComponent(audioClipManager);
+
     clock.addComponent(new ClockController());
     clock.addComponent(new DigitalController());
     clock.init();
@@ -232,6 +247,13 @@ export class Clock
     clock.addComponent(graphicsComponent);
     clock.addComponent(new ClockController());
     clock.addComponent(new AnalogClockController());
+
+    let audioClipManager : AudioClipsManager = new AudioClipsManager();
+    audioClipManager.prepare(_scene.sound);
+
+    audioClipManager.add('alert');
+
+    clock.addComponent(audioClipManager);
 
     ///////////////////////////////////
     // Foreground Object

@@ -18,6 +18,7 @@ export class BitmapTextComponent extends MxComponent
   init(_actor : MxActor)
   : void 
   {
+    
     return;
   }
 

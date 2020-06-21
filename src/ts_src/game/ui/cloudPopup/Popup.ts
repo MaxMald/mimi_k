@@ -1,6 +1,5 @@
 import { MxActor } from "../../../utilities/component/mxActor";
 import { NineSliceComponent } from "../../components/nineSliceComponent";
-import { TextComponent } from "../../components/textComponent";
 import { PopupController } from "./components/popupController";
 import { BitmapTextComponent } from "../../components/bitmapTextComponent";
 import { UIBitmapText } from "../text/uiBitmapText";
