@@ -1,5 +1,7 @@
 type EnumLiteralsOf<T extends object> = T[keyof T];
 
+export type MxSound = Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound;
+
 ///////////////////////////////////
 // Manager ID
 
@@ -63,7 +65,9 @@ export const COMPONENT_ID = Object.freeze
     kShaderComponent : 17 as 17,
     kBackgroundShaderComponent : 18 as 18,
     kAlertPopupController : 19 as 19,
-    kBaseSoundManager : 20 as 20
+    kBaseSoundManager : 20 as 20,
+    kCarouselSound : 21 as 21,
+    kClockSound : 22 as 22
 });
 
 ///////////////////////////////////
@@ -79,7 +83,10 @@ export const MESSAGE_ID = Object.freeze
     kClockResumed : 4 as 4,
     kClockReset : 5 as 5,
     kPlaySound : 6 as 6,
-    kTimeOut : 7 as 7
+    kTimeOut : 7 as 7,
+    kButtonDown : 8 as 8,
+    kClockTimeOut : 7 as 7,
+    kClockTenSecondsAlert : 8 as 8
 });
 
 ///////////////////////////////////
@@ -110,3 +117,40 @@ export const SAND_CLOCK_PART_ID = Object.freeze
     kLowerTexture : 3 as 3,
     kClockTexture : 4 as 4
 });
+
+///////////////////////////////////
+// Game Sounds
+
+export class MimiKSounds
+{
+  /****************************************************/
+  /* Public                                           */
+  /****************************************************/
+
+  static kMimiKAudioSprite : string = "mimik_sounds";
+  
+  // Se escucha muy bajito.
+  static kTicTocSand : string = "tictoc_arena";
+
+  static kTicTocDigital : string = "tictoc_digital";
+
+  static kTicTocAnalog : string = "tictoc_analogo";
+
+  static kButtonTip : string = "tip_button";
+
+  static kButtonReset : string = "reset_button";
+
+  static kButtonPause : string = "pause_button";
+
+  static kButtonCarousel : string = "carrusel_button";
+
+  static kMettaIntro : string = "metta_intro";
+
+  static kAlertLastSecond : string = "last_second_alert";
+
+  static kAlertFinal : string = "final_alert";
+
+  static kBackgroundVoice : string = "landpage_snd";
+
+  static kBackgroundInstrumental : string = "snd_music_loop";
+}

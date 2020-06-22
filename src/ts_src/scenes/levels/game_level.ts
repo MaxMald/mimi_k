@@ -2,7 +2,7 @@ import { MxActor } from "../../utilities/component/mxActor";
 import { DataController } from "../../game/managers/gameManager/components/dataController";
 import { GameController } from "../../game/managers/gameManager/components/gameController";
 import { MasterManager } from "../../game/managers/masteManager/masterManager";
-import { MANAGER_ID, COMPONENT_ID, CLOCK_STYLE } from "../../game/gameCommons";
+import { MANAGER_ID, COMPONENT_ID, CLOCK_STYLE, MimiKSounds } from "../../game/gameCommons";
 import { Button } from "../../game/ui/buttons/imgButton";
 import { SpriteComponent } from "../../game/components/spriteComponent";
 import { BitmapTextComponent } from "../../game/components/bitmapTextComponent";
@@ -232,6 +232,14 @@ export class MainGame extends Phaser.Scene
       this._m_pauseButtonText.setText(this._m_dataController.getString('resume'));
       this._m_pauseButtonTexture.setTint(0x31a13b);
     }
+
+    // Play Audio
+    this.sound.playAudioSprite
+    (
+      MimiKSounds.kMimiKAudioSprite, 
+      MimiKSounds.kButtonPause
+    );
+
     return;
   }
 
@@ -241,6 +249,13 @@ export class MainGame extends Phaser.Scene
   _onClick_mainMenu()
   : void
   {
+    // Play Audio
+    this.sound.playAudioSprite
+    (
+      MimiKSounds.kMimiKAudioSprite, 
+      MimiKSounds.kButtonPause
+    );
+
     this.destroy();
     this.scene.start('mainMenu');
     return;
@@ -252,6 +267,13 @@ export class MainGame extends Phaser.Scene
   _onClick_Reset()
   : void
   {
+    // Play Audio
+    this.sound.playAudioSprite
+    (
+      MimiKSounds.kMimiKAudioSprite, 
+      MimiKSounds.kButtonReset
+    );
+
     this._m_clockController.reset();  
     
     this._m_pauseButtonText.setText(this._m_dataController.getString('start'));

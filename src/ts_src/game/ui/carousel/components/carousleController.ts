@@ -1,5 +1,5 @@
 import { MxComponent } from "../../../../utilities/component/mxComponent";
-import { COMPONENT_ID, CAROUSEL_CHILD_ID, MANAGER_ID, CLOCK_STYLE } from "../../../gameCommons";
+import { COMPONENT_ID, CAROUSEL_CHILD_ID, MANAGER_ID, CLOCK_STYLE, MESSAGE_ID } from "../../../gameCommons";
 import { MxActor } from "../../../../utilities/component/mxActor";
 import { SpriteComponent } from "../../../components/spriteComponent";
 import { GameController } from "../../../managers/gameManager/components/gameController";
@@ -22,6 +22,8 @@ export class CarouselController extends MxComponent
   init(_actor : MxActor)
   : void
   {
+    this._m_actor = _actor;
+
     ///////////////////////////////////
     // Game Controller
 
@@ -118,6 +120,9 @@ export class CarouselController extends MxComponent
   _setActiveItem(_idx : number)
   : void 
   {
+    // Send Button Down Message.
+    this._m_actor.sendMessage(MESSAGE_ID.kButtonDown, null);
+
     // Set clock name.
     this._clockName_text.setText(this._dataController.getString('clock_name_' + _idx));
     
@@ -140,4 +145,6 @@ export class CarouselController extends MxComponent
   _clockName_text : BitmapTextComponent;
 
   _carouselSprite : SpriteComponent;
+
+  _m_actor : MxActor;
 }

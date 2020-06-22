@@ -143,7 +143,7 @@ export class WelcomePage extends Phaser.Scene
       screenHeight - cat_spriteComponent.getHeight() * 0.5
     );
 
-    
+    this._m_masterController.playIntro(this);
     return;
   }
 
@@ -183,6 +183,7 @@ export class WelcomePage extends Phaser.Scene
   : void
   {
     this.destroy();
+    this._m_masterController.stopIntro();
     this.scene.start('mainMenu');
     return;
   }

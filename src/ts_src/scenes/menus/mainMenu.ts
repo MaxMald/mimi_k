@@ -1,7 +1,7 @@
 import { GameController } from "../../game/managers/gameManager/components/gameController";
 import { MxActor } from "../../utilities/component/mxActor";
 import { MasterManager } from "../../game/managers/masteManager/masterManager";
-import { COMPONENT_ID, MANAGER_ID, CLOCK_STYLE } from "../../game/gameCommons";
+import { COMPONENT_ID, MANAGER_ID, MimiKSounds } from "../../game/gameCommons";
 import { DataController } from "../../game/managers/gameManager/components/dataController";
 import { Popup } from "../../game/ui/cloudPopup/Popup";
 import { PopupController } from "../../game/ui/cloudPopup/components/popupController";
@@ -181,6 +181,19 @@ export class MainMenu extends Phaser.Scene
       this.game.canvas.width * 0.5,
       this.game.canvas.height * 0.22
     );   
+
+    /****************************************************/
+    /* Background Sound                                 */
+    /****************************************************/
+
+    // Play Audio
+    this.sound.playAudioSprite
+    (
+      MimiKSounds.kMimiKAudioSprite, 
+      MimiKSounds.kBackgroundInstrumental,
+      { loop : true }
+    );
+
     return;
   }
 
@@ -215,6 +228,7 @@ export class MainMenu extends Phaser.Scene
   : void 
   {
     this._m_backgroundShader.destroy();
+    this._m_backgroundShader = null;
     
     this._m_nextTipButton.destroy();
     this._m_nextTipButton = null;
@@ -235,6 +249,8 @@ export class MainMenu extends Phaser.Scene
     this._m_a_preferenceButtons = null;
     this._m_dataController = null;
     this._m_gameController = null;
+
+    this.sound.removeByKey(MimiKSounds.kMimiKAudioSprite);
     return;
   }
     
@@ -246,6 +262,13 @@ export class MainMenu extends Phaser.Scene
   : void 
   {
     this._m_gameController._m_user_preferences.chrono_value = _time;  
+    
+    // Play Audio
+    this.sound.playAudioSprite
+    (
+      MimiKSounds.kMimiKAudioSprite, 
+      MimiKSounds.kButtonPause
+    );
     
     this.destroy();
     this.scene.start('mainGame');
@@ -281,6 +304,13 @@ export class MainMenu extends Phaser.Scene
   _onClick_play()
   : void 
   {
+    // Play Audio
+    this.sound.playAudioSprite
+    (
+      MimiKSounds.kMimiKAudioSprite, 
+      MimiKSounds.kButtonPause
+    );
+
     this._open_prefs();
     this._m_play_button.mxDesactive();
     return;
@@ -298,6 +328,13 @@ export class MainMenu extends Phaser.Scene
     );
     popupController.close();
     popupController.open();
+
+    // Play Audio
+    this.sound.playAudioSprite
+    (
+      MimiKSounds.kMimiKAudioSprite, 
+      MimiKSounds.kButtonTip
+    );
       
     // iterate over tips.
     this._m_tip_num++;

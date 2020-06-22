@@ -7,7 +7,8 @@ import { GraphicsComponent } from "../../components/graphicsComponent";
 import { AnalogClockController } from "./components/analogClockController";
 import { SAND_CLOCK_PART_ID } from "../../gameCommons";
 import { SandClockController } from "./components/sandClockController";
-import { AudioClipsManager } from "../../components/audioClipsManager";
+import { BaseSoundManagerComponent } from "../../components/baseSoundManagerComponent";
+import { ClockSound } from "./components/clockSound";
 
 /**
  * Clock factories.
@@ -141,14 +142,15 @@ export class Clock
     let lowerBitmapMask : Phaser.Display.Masks.BitmapMask = lowerMaskSprite.createMask();
     lowerTextureSprite.setMask(lowerBitmapMask);
 
-    let audioClipManager : AudioClipsManager = new AudioClipsManager();
-    audioClipManager.prepare(_scene.sound);
+    let clockController : ClockController = new ClockController();
+    clockController.prepare(_scene);
+    clock.addComponent(clockController);
 
-    audioClipManager.add('alert');
-
-    clock.addComponent(audioClipManager);
+    let clockSound : ClockSound = new ClockSound();
+    clockSound.prepare(_scene);
+    clock.addComponent(clockSound);
     
-    clock.addComponent(new ClockController());
+
     clock.addComponent(new SandClockController());
     
     clock.init();
@@ -194,14 +196,14 @@ export class Clock
 
     clock.addComponent(clockText);
 
-    let audioClipManager : AudioClipsManager = new AudioClipsManager();
-    audioClipManager.prepare(_scene.sound);
+    let clockController : ClockController = new ClockController();
+    clockController.prepare(_scene);
+    clock.addComponent(clockController);
 
-    audioClipManager.add('alert');
+    let clockSound : ClockSound = new ClockSound();
+    clockSound.prepare(_scene);
+    clock.addComponent(clockSound);
 
-    clock.addComponent(audioClipManager);
-
-    clock.addComponent(new ClockController());
     clock.addComponent(new DigitalController());
     clock.init();
     return clock;
@@ -245,15 +247,16 @@ export class Clock
     graphicsComponent.prepare(_scene);
 
     clock.addComponent(graphicsComponent);
-    clock.addComponent(new ClockController());
-    clock.addComponent(new AnalogClockController());
 
-    let audioClipManager : AudioClipsManager = new AudioClipsManager();
-    audioClipManager.prepare(_scene.sound);
+    let clockController : ClockController = new ClockController();
+    clockController.prepare(_scene);
+    clock.addComponent(clockController);
 
-    audioClipManager.add('alert');
-
-    clock.addComponent(audioClipManager);
+    let clockSound : ClockSound = new ClockSound();
+    clockSound.prepare(_scene);
+    clock.addComponent(clockSound);
+    
+    clock.addComponent(new AnalogClockController());    
 
     ///////////////////////////////////
     // Foreground Object

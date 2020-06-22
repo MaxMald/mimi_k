@@ -1,30 +1,30 @@
 ID	Español	English
 bienvenido	¡Bienvenido!	Welcome!
 ready	¿Listos?	Ready?
-timeout	¡Se acabó el tiempo!	--
-other_tip	¿otro tip?	--
+timeout	¡Se acabó el tiempo!	Time Out!
+other_tip	¿otro tip?	next tip
 reset	Reiniciar	Reset
 resume	Continuar	Continue
 start	Iniciar	Start
 pause	Pausa	Pause
-back_to_menu	Regresar al menú	--
+back_to_menu	Regresar al menú	Back to Main Menu
 english	Inglés	English
 spanish	Español	Spanish
-choose_language	Elige tu idioma	--
-start_to_play	Empieza a jugar	--
+choose_language	Elige tu idioma	Choose your language
+start_to_play	Empieza a jugar	Start
 minutes	minuto(s)	minute(s)
-menu_tip_00	¿Estás listo para interpretar tus micadas?	--
-menu_tip_01	Entre más creativa tu Mimi-k... ¡Mejor para tu equipo!	--
-menu_tip_02	Consejo: si tu equipo tarda en adivinar, pasa a la siguiente Mimi-k, ¡no pierdas el tiempo!	--
-menu_tip_03	El tiempo presiona pero no te preocupes, tú... ¡Impresiona!	--
-menu_tip_04	Te retamos a que interpretes las Mimi-k más difíciles de tu tarjeta	--
-menu_tip_05	Recuerda que no puedes hablar ni usar ningún objeto	--
-choose_clock	Elige un reloj	--
-clock_name_0	Reloj de Arena	--
-clock_name_1	Reloj Digital	--
-clock_name_2	Reloj Análogo	--
-time_out_0	¡Tiempo fuera!	--
-time_out_1	¡Se acabó el tiempo!	--
-time_out_2	El tiempo se acabó y tu Mimi-k no duró	--
-time_out_3	El tiempo se te ha acabado pero las risas no se han terminado	--
-time_out_4	¡Tu turno ha terminado y muchas risas has contagiado!	--
+menu_tip_00	¿Estás listo para interpretar tus micadas?	Keep calm and play Mimi-K
+menu_tip_01	Entre más creativa tu Mimi-k... ¡Mejor para tu equipo!	Creativity involves breaking out of expected patterns in order to look at things in a different way.
+menu_tip_02	Consejo: si tu equipo tarda en adivinar, pasa a la siguiente Mimi-k, ¡no pierdas el tiempo!	If your team has trouble guessing, move on to the next word, don't waste your time!
+menu_tip_03	El tiempo presiona pero no te preocupes, tú... ¡Impresiona!	Time can be pressing, but you should focus on doing your best
+menu_tip_04	Te retamos a que interpretes las Mimi-k más difíciles de tu tarjeta	The one who laughs last... laughs the best
+menu_tip_05	Recuerda que no puedes hablar ni usar ningún objeto	Remember that you cannot speak or use any object
+choose_clock	Elige un reloj	Choose a clock
+clock_name_0	Reloj de Arena	Sand Clock
+clock_name_1	Reloj Digital	Digital Clock
+clock_name_2	Reloj Análogo	Analog Clock
+time_out_0	¡Tiempo fuera!	Time Out!
+time_out_1	¡Se acabó el tiempo!	Time Out!
+time_out_2	El tiempo se acabó y tu Mimi-k no duró	Time Out!
+time_out_3	El tiempo se te ha acabado pero las risas no se han terminado	Time Out!
+time_out_4	¡Tu turno ha terminado y muchas risas has contagiado!	Time Out!

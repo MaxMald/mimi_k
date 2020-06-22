@@ -17,6 +17,14 @@ export class BaseSoundManagerComponent extends MxComponent
   : void
   {
     this._m_baseSoundManager = _baseSoundManager;
+    
+    if(this._m_map_audioSprite != null) {
+      this._m_map_audioSprite.clear();
+    }
+    else {
+      this._m_map_audioSprite 
+        = new Map<string, Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound>(); 
+    }
     return;
   }
 
@@ -30,9 +38,12 @@ export class BaseSoundManagerComponent extends MxComponent
   addAudiosprite(_sound : string, _config ?: Phaser.Types.Sound.SoundConfig )
   : void
   {
+    let audio : Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound =
     this._m_baseSoundManager.addAudioSprite(_sound, _config);
     return;
   }
+
+
 
   play
   (
@@ -71,4 +82,9 @@ export class BaseSoundManagerComponent extends MxComponent
    * 
    */
   _m_baseSoundManager : Phaser.Sound.BaseSoundManager; 
+
+  /**
+   * 
+   */
+  _m_map_audioSprite : Map<string, Phaser.Sound.HTML5AudioSound | Phaser.Sound.WebAudioSound>;
 }

@@ -8,6 +8,7 @@ import { BitmapTextComponent } from "../../components/bitmapTextComponent";
 import { UIBitmapText } from "../text/uiBitmapText";
 import { MasterManager } from "../../managers/masteManager/masterManager";
 import { DataController } from "../../managers/gameManager/components/dataController";
+import { CarouselSound } from "./components/carouselSound";
 
 export class Carousel
 {  
@@ -154,6 +155,12 @@ export class Carousel
     let carouselController : CarouselController = new CarouselController();
     carousel.addComponent(carouselController);
     carouselController.init(carousel);
+
+    let carouselSound : CarouselSound = new CarouselSound();
+    carouselSound.prepare(_scene.sound);
+    carouselSound.init(carousel);
+
+    carousel.addComponent(carouselSound);
 
     return carousel;
   }

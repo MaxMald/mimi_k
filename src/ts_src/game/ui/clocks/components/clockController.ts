@@ -1,5 +1,5 @@
 import { MxComponent } from "../../../../utilities/component/mxComponent";
-import { COMPONENT_ID, MANAGER_ID, MESSAGE_ID } from "../../../gameCommons";
+import { COMPONENT_ID, MANAGER_ID, MESSAGE_ID, MimiKSounds, CLOCK_STYLE, MxSound } from "../../../gameCommons";
 import { MxActor } from "../../../../utilities/component/mxActor";
 import { MasterManager } from "../../../managers/masteManager/masterManager";
 import { GameController } from "../../../managers/gameManager/components/gameController";
@@ -21,6 +21,12 @@ export class ClockController extends MxComponent
     return;
   }
 
+  prepare(_scene : Phaser.Scene)
+  : void
+  {
+    return;
+  }
+
   init(_actor : MxActor)
   : void
   {
@@ -36,10 +42,11 @@ export class ClockController extends MxComponent
     (
       COMPONENT_ID.kGameController
     );
-
+    
     this._m_totalSeconds = this._m_gameController._m_user_preferences.chrono_value;
     this.m_current_time = this._m_totalSeconds;
     this._m_actor = _actor;
+    this.reset();
     return;
   }
 
@@ -48,11 +55,14 @@ export class ClockController extends MxComponent
   {
     if(!this.m_isPaused) {
       this.m_current_time -= this._m_masterController.m_dt;
-      if(this.m_current_time <= 0.0) {
-        this._m_actor.sendMessage(MESSAGE_ID.kTimeOut, null);
+
+      if(this.m_current_time <= 0.0) {        
         this.m_current_time = 0.0;
-        this.m_isPaused = !this.m_isPaused;
-        this._m_gameController.timeout();
+        this.timeOut();
+      }
+      else if(this.m_current_time < 10 && !this._m_areFinalSeconds) {   
+        this._m_areFinalSeconds = !this._m_areFinalSeconds;     
+        this._m_actor.sendMessage(MESSAGE_ID.kClockTenSecondsAlert, null);        
       }
     }
     return;
@@ -61,9 +71,9 @@ export class ClockController extends MxComponent
   pause()
   : void
   {
-    if(!this.m_isPaused) {
-      this._m_actor.sendMessage(MESSAGE_ID.kClockPaused, null);
+    if(!this.m_isPaused) {      
       this.m_isPaused = !this.m_isPaused;
+      this._m_actor.sendMessage(MESSAGE_ID.kClockPaused, null);
     }    
     return;
   }
@@ -71,9 +81,13 @@ export class ClockController extends MxComponent
   resume()
   : void
   {
-    if(this.m_isPaused) {
-      this._m_actor.sendMessage(MESSAGE_ID.kClockResumed, null);
+    if(this._m_isTimeOut) {
+      return;
+    }
+
+    if(this.m_isPaused) {      
       this.m_isPaused = !this.m_isPaused;
+      this._m_actor.sendMessage(MESSAGE_ID.kClockResumed, null);
     }    
     return;
   }
@@ -81,9 +95,23 @@ export class ClockController extends MxComponent
   reset()
   : void
   {
-    this.m_current_time = this._m_totalSeconds;
+    this.m_current_time = this._m_totalSeconds;    
+    this._m_isTimeOut = false;
+    this._m_areFinalSeconds = false;
     this._m_actor.sendMessage(MESSAGE_ID.kClockReset, null);
     this.pause();
+    return;
+  }
+
+  timeOut()
+  : void
+  {
+    if(!this._m_isTimeOut) {
+      this._m_isTimeOut = !this._m_isTimeOut;
+      this.pause();
+      this._m_gameController.timeout();
+      this._m_actor.sendMessage(MESSAGE_ID.kTimeOut, null);
+    }   
     return;
   }
 
@@ -100,6 +128,11 @@ export class ClockController extends MxComponent
   /****************************************************/
   /* Protected                                        */
   /****************************************************/
+
+  /**
+   * 
+   */
+  _m_isTimeOut : boolean;
   
   /**
    * Total seconds for the match.
@@ -117,7 +150,12 @@ export class ClockController extends MxComponent
   _m_gameController : GameController;
 
   /**
+   * 
+   */
+  _m_areFinalSeconds : boolean;
+
+  /**
    * Actor that this component belongs.
    */
-  _m_actor : MxActor;
+  _m_actor : MxActor;  
 }
