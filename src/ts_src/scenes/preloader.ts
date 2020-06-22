@@ -153,6 +153,37 @@ export class Preloader extends Phaser.Scene
       = gameManger.getComponent<DataController>(COMPONENT_ID.kDataController);
     dataController.initLanguage(this.game);
 
+    ///////////////////////////////////
+    // Press Start to Play
+
+    let start_button : Phaser.GameObjects.Text = this.add.text
+    (
+      this.game.canvas.width * 0.5, 
+      this.game.canvas.height * 0.65, 
+      'Presiona Aquí\nPress Here', 
+      { fontFamily: 'Arial', fontSize: 64, color: '#face01' }
+    );
+    start_button.setAlign('center');
+    start_button.setOrigin(0.5, 0.5);
+
+    this.add.tween
+    ({
+      targets : start_button,
+      alpha : {from : 0, to: 1},
+      ease: 'Linear',
+      duration: 1000,
+      repeat: -1,
+      yoyo : true
+    });
+
+    start_button.setInteractive();
+    start_button.on('pointerdown', this._nextScene, this);    
+    return;
+  }
+
+  _nextScene()
+  : void
+  {
     this.scene.start('welcomePage');
     return;
   }
