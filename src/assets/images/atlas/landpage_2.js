@@ -20,23 +20,28 @@
 		"spriteSourceSize": {"x":0,"y":0,"w":949,"h":838},
 		"sourceSize": {"w":949,"h":838}
 	},
+	"metta_logo.png": {
+		"frame": {"x":0, "y":1678, "w":656, "h":254},
+		"spriteSourceSize": {"x":0,"y":0,"w":656,"h":254},
+		"sourceSize": {"w":656,"h":254}
+	},
 	"sand_clock_background.png": {
 		"frame": {"x":1603, "y":738, "w":442, "h":686},
 		"spriteSourceSize": {"x":0,"y":0,"w":442,"h":686},
 		"sourceSize": {"w":442,"h":686}
 	},
 	"sand_clock_fill.png": {
-		"frame": {"x":295, "y":1678, "w":294, "h":212},
+		"frame": {"x":657, "y":1678, "w":294, "h":212},
 		"spriteSourceSize": {"x":0,"y":0,"w":294,"h":212},
 		"sourceSize": {"w":294,"h":212}
 	},
 	"sand_clock_line.png": {
-		"frame": {"x":590, "y":1678, "w":25, "h":354},
+		"frame": {"x":952, "y":1638, "w":25, "h":354},
 		"spriteSourceSize": {"x":0,"y":0,"w":25,"h":354},
 		"sourceSize": {"w":25,"h":354}
 	},
 	"sand_clock_mask.png": {
-		"frame": {"x":0, "y":1678, "w":294, "h":212},
+		"frame": {"x":950, "y":1425, "w":294, "h":212},
 		"spriteSourceSize": {"x":0,"y":0,"w":294,"h":212},
 		"sourceSize": {"w":294,"h":212}
 	}
@@ -44,7 +49,7 @@
 },
 "meta": {
 	"image": "landpage_2.png",
-	"size": {"w": 2046, "h": 2033},
+	"size": {"w": 2046, "h": 1993},
 	"scale": "1"
 }
 }

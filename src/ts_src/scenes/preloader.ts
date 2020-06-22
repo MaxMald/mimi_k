@@ -184,7 +184,7 @@ export class Preloader extends Phaser.Scene
   _nextScene()
   : void
   {
-    this.scene.start('welcomePage');
+    this.scene.start('brandPage');
     return;
   }
 }

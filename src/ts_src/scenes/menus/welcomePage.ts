@@ -20,6 +20,12 @@ export class WelcomePage extends Phaser.Scene
   {
     let screenHalfWidth : number = this.game.canvas.width * 0.5;
     let screenHeight : number = this.game.canvas.height;
+
+    // Remove generated texture from the previous scene.
+    if(this.game.textures.exists('_mx_ui_box'))
+    {
+      this.game.textures.remove('_mx_ui_box');
+    }    
     
     /****************************************************/
     /* Background                                       */

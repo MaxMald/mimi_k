@@ -1618,7 +1618,7 @@ define("scenes/preloader", ["require", "exports", "game/managers/masteManager/ma
             return;
         };
         Preloader.prototype._nextScene = function () {
-            this.scene.start('welcomePage');
+            this.scene.start('brandPage');
             return;
         };
         return Preloader;
@@ -4317,6 +4317,10 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
         WelcomePage.prototype.create = function () {
             var screenHalfWidth = this.game.canvas.width * 0.5;
             var screenHeight = this.game.canvas.height;
+            // Remove generated texture from the previous scene.
+            if (this.game.textures.exists('_mx_ui_box')) {
+                this.game.textures.remove('_mx_ui_box');
+            }
             /****************************************************/
             /* Background                                       */
             /****************************************************/
@@ -4430,7 +4434,85 @@ define("scenes/menus/welcomePage", ["require", "exports", "utilities/component/m
     }(Phaser.Scene));
     exports.WelcomePage = WelcomePage;
 });
-define("game_init", ["require", "exports", "scenes/preloader", "scenes/boot", "scenes/menus/mainMenu", "scenes/levels/game_level", "phaser3-nineslice", "scenes/menus/localization", "scenes/menus/welcomePage"], function (require, exports, preloader_1, boot_1, mainMenu_1, game_level_1, phaser3_nineslice_1, localization_1, welcomePage_1) {
+define("scenes/menus/brandPage", ["require", "exports", "game/gameCommons"], function (require, exports, gameCommons_34) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var BrandPage = /** @class */ (function (_super) {
+        __extends(BrandPage, _super);
+        function BrandPage() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        /****************************************************/
+        /* Public                                           */
+        /****************************************************/
+        BrandPage.prototype.create = function () {
+            this.cameras.main.setBackgroundColor(0xed1c24);
+            ///////////////////////////////////
+            // Play Audio
+            this.sound.playAudioSprite(gameCommons_34.MimiKSounds.kMimiKAudioSprite, gameCommons_34.MimiKSounds.kMettaIntro, {
+                volume: 0.5
+            });
+            ///////////////////////////////////
+            // Metta Logo
+            this._metta_logo = this.add.sprite(this.game.canvas.width * 0.5, this.game.canvas.height * 0.5, 'landpage_2', 'metta_logo.png');
+            this._metta_logo.setScale(0.0, 0.0);
+            var metta_logo_tween = this.add.tween({
+                targets: this._metta_logo,
+                scale: { from: 0.0, to: 1.0 },
+                ease: "Bounce",
+                duration: 1000,
+                delay: 500
+            });
+            metta_logo_tween.on('complete', this._fadeIn_Complete, this);
+            ///////////////////////////////////
+            // Foreground
+            var texture;
+            texture = this.add.graphics();
+            texture.fillStyle(0x0a0136);
+            texture.fillRect(0, 0, 1080, 1920);
+            texture.generateTexture('_mx_ui_box', 1080, 1920);
+            texture.destroy();
+            this._foreground = this.add.sprite(this.game.canvas.width * 0.5, this.game.canvas.height * 0.5, '_mx_ui_box');
+            this.add.tween({
+                targets: this._foreground,
+                alpha: { from: 1.0, to: 0.0 },
+                ease: "Linear",
+                duration: 500,
+            });
+            return;
+        };
+        /****************************************************/
+        /* Private                                          */
+        /****************************************************/
+        BrandPage.prototype._fadeIn_Complete = function () {
+            var metta_logo_tween = this.add.tween({
+                targets: this._foreground,
+                alpha: { from: 0.0, to: 1.0 },
+                ease: "Linear",
+                duration: 500,
+                delay: 3500
+            });
+            metta_logo_tween.on('complete', this._fadeOut_Complete, this);
+            return;
+        };
+        BrandPage.prototype._fadeOut_Complete = function () {
+            var metta_logo_tween = this.add.tween({
+                targets: this._foreground,
+                alpha: { from: 1.0, to: 1.0 },
+                ease: "Linear",
+                duration: 500
+            });
+            metta_logo_tween.on('complete', this._next_scene, this);
+            return;
+        };
+        BrandPage.prototype._next_scene = function () {
+            this.scene.start('welcomePage');
+        };
+        return BrandPage;
+    }(Phaser.Scene));
+    exports.BrandPage = BrandPage;
+});
+define("game_init", ["require", "exports", "scenes/preloader", "scenes/boot", "scenes/menus/mainMenu", "scenes/levels/game_level", "phaser3-nineslice", "scenes/menus/localization", "scenes/menus/welcomePage", "scenes/menus/brandPage"], function (require, exports, preloader_1, boot_1, mainMenu_1, game_level_1, phaser3_nineslice_1, localization_1, welcomePage_1, brandPage_1) {
     "use strict";
     var GameInit = /** @class */ (function () {
         function GameInit() {
@@ -4464,6 +4546,7 @@ define("game_init", ["require", "exports", "scenes/preloader", "scenes/boot", "s
             this.m_game.scene.add('localization', localization_1.LocalizationScene);
             this.m_game.scene.add('mainGame', game_level_1.MainGame);
             this.m_game.scene.add('welcomePage', welcomePage_1.WelcomePage);
+            this.m_game.scene.add('brandPage', brandPage_1.BrandPage);
             ///////////////////////////////////
             // Start BOOT        
             this.m_game.scene.start('boot');
