@@ -6,8 +6,9 @@ import { UIBitmapText } from "../text/uiBitmapText";
 import { SpriteComponent } from "../../components/spriteComponent";
 import { AlertPopupController } from "./components/alertPopupController";
 import { MasterManager } from "../../managers/masteManager/masterManager";
-import { COMPONENT_ID, MANAGER_ID } from "../../gameCommons";
+import { COMPONENT_ID, MANAGER_ID, LOCALIZATION } from "../../gameCommons";
 import { DataController } from "../../managers/gameManager/components/dataController";
+import { GameController } from "../../managers/gameManager/components/gameController";
 
 /**
  * Popup Factories
@@ -73,7 +74,17 @@ export class Popup
     (
       COMPONENT_ID.kDataController
     );
+    let gameController : GameController = gameManager.getComponent<GameController>
+    (
+      COMPONENT_ID.kGameController
+    );
 
+    let alert_sprite : string = 
+    (
+      gameController._m_user_preferences.m_localization == LOCALIZATION.KSpanish  
+      ? 'cat_timeout_esp.png' 
+      : 'cat_timeout_en.png' 
+    );
     let alert : MxActor = MxActor.Create(_id);
 
     let alertBackground : SpriteComponent = new SpriteComponent();
@@ -82,25 +93,11 @@ export class Popup
       _scene.add.sprite
       (
         0,0,
-        'landpage',
-        '200square.png'
+        'landpage_2',
+        alert_sprite
       )
     );
     alert.addComponent(alertBackground);
-
-    let alertText : BitmapTextComponent = new BitmapTextComponent();
-    alertText.prepare
-    (
-      _scene,
-      'avant_garde_bk',
-      dataController.getString('timeout'),
-      100
-    );
-    alertText._m_local_position.y = -20;
-    alertText.setOrigin(0.5, 0.5);
-    alertText.setTint(0xfa0114);
-
-    alert.addComponent(alertText);
 
     let alertController : AlertPopupController = new AlertPopupController();
     alertController.prepare(_scene);

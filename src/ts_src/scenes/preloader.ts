@@ -91,11 +91,11 @@ export class Preloader extends Phaser.Scene
 
     this.load.glsl
     (
-        {
-            key : 'background',
-            shaderType : 'fragment',
-            url : 'src/assets/shaders/background.frag' 
-        }
+      {
+        key : 'background',
+        shaderType : 'fragment',
+        url : 'src/assets/shaders/background.frag' 
+      }
     );
                   
     /****************************************************/
@@ -161,7 +161,7 @@ export class Preloader extends Phaser.Scene
       this.game.canvas.width * 0.5, 
       this.game.canvas.height * 0.65, 
       'Presiona Aquí\nPress Here', 
-      { fontFamily: 'Arial', fontSize: 64, color: '#face01' }
+      { fontFamily: 'Arial', fontSize: 75, color: '#face01' }
     );
     start_button.setAlign('center');
     start_button.setOrigin(0.5, 0.5);

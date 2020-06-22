@@ -41,11 +41,6 @@ export class AlertPopupController extends MxComponent
       COMPONENT_ID.kSprite
     );
 
-    this._m_textComponent = _actor.getComponent<BitmapTextComponent>
-    (
-      COMPONENT_ID.kBitmapText
-    );
-
     this.m_isOpen = true;
     this.reset();
     return;
@@ -64,11 +59,8 @@ export class AlertPopupController extends MxComponent
     if(this.m_isOpen) {
       this.m_isOpen = !this.m_isOpen;
 
-      this._m_spriteComponent.setScale(0.0, 1.0);
+      this._m_spriteComponent.setScale(0.0, 0.0);
       this._m_spriteComponent.setVisible(false);
-
-      this._m_textComponent.setScale(0.0, 0.0);
-      this._m_textComponent.setVisible(false);
     }
     return;
   }
@@ -85,20 +77,8 @@ export class AlertPopupController extends MxComponent
       this._m_spriteTween = this._m_scene.tweens.add
       ({
         targets: sprite,
-        scaleX : 5.5,
+        scale : 1.0,
         duration: 200,
-        ease: 'Linear'
-      });
-
-      this._m_textComponent.setVisible(true);
-
-      let text : Phaser.GameObjects.BitmapText = this._m_textComponent.getBitmapTextObject();
-      this._m_scene.tweens.add
-      ({
-        targets: text,
-        scaleY : 1.0,
-        scaleX : 1.0,
-        duration: 500,
         ease: 'Bounce'
       });
     }
@@ -125,12 +105,7 @@ export class AlertPopupController extends MxComponent
   /**
    * 
    */
-  _m_spriteComponent : SpriteComponent;
-
-  /**
-   * 
-   */
-  _m_textComponent : BitmapTextComponent;
+  _m_spriteComponent : SpriteComponent; 
 
   /**
    * 
