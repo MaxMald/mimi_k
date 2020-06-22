@@ -14,6 +14,13 @@ export class MasterController extends MxComponent
         return;
     }
 
+    prepare(_game : Phaser.Game)
+    : void
+    {
+        this._m_game = _game;
+        return;
+    }
+
     init(_actor : MxActor)
     : void 
     {
@@ -78,4 +85,6 @@ export class MasterController extends MxComponent
     _m_snd_intro : Phaser.Sound.BaseSound;
 
     _m_soundBaseManager : Phaser.Sound.BaseSoundManager;
+
+    _m_game : Phaser.Game;
 }

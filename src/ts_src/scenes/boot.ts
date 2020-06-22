@@ -45,7 +45,9 @@ export class Boot extends Phaser.Scene
     let master = MasterManager.GetInstance();
     
     // Master Manager Components
-    master.addComponent(new MasterController());
+    let masterController : MasterController = new MasterController();
+    masterController.prepare(this.game);
+    master.addComponent(masterController);
 
     // Master Manager Children
     let gameManager : MxActor = GameManager.Create();    

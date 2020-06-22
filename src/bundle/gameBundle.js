@@ -1713,6 +1713,10 @@ define("game/managers/masteManager/components/MasterController", ["require", "ex
             var _this = _super.call(this, gameCommons_9.COMPONENT_ID.kMasterController) || this;
             return _this;
         }
+        MasterController.prototype.prepare = function (_game) {
+            this._m_game = _game;
+            return;
+        };
         MasterController.prototype.init = function (_actor) {
             this._m_introPlayed = false;
             this.m_dt = 0.0;
@@ -1773,7 +1777,9 @@ define("scenes/boot", ["require", "exports", "utilities/component/mxComponent", 
             masterManager_2.MasterManager.Prepare();
             var master = masterManager_2.MasterManager.GetInstance();
             // Master Manager Components
-            master.addComponent(new MasterController_1.MasterController());
+            var masterController = new MasterController_1.MasterController();
+            masterController.prepare(this.game);
+            master.addComponent(masterController);
             // Master Manager Children
             var gameManager = gameManager_1.GameManager.Create();
             master.addChild(gameManager);
@@ -3455,6 +3461,7 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
             return _this;
         }
         ClockController.prototype.prepare = function (_scene) {
+            this._m_scene = _scene;
             return;
         };
         ClockController.prototype.init = function (_actor) {
@@ -3463,6 +3470,10 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
             var gameManager = master.get_child(gameCommons_24.MANAGER_ID.kGameManager);
             this._m_gameController = gameManager.getComponent(gameCommons_24.COMPONENT_ID.kGameController);
             this._m_totalSeconds = this._m_gameController._m_user_preferences.chrono_value;
+            this._m_timer = this._m_scene.time.addEvent({
+                delay: this._m_totalSeconds * 1000.0,
+                paused: true
+            });
             this.m_current_time = this._m_totalSeconds;
             this._m_actor = _actor;
             this.reset();
@@ -3470,7 +3481,8 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
         };
         ClockController.prototype.update = function (_actor) {
             if (!this.m_isPaused) {
-                this.m_current_time -= this._m_masterController.m_dt;
+                this.m_current_time
+                    = this._m_totalSeconds - (this._m_timer.getProgress() * this._m_totalSeconds);
                 if (this.m_current_time <= 0.0) {
                     this.m_current_time = 0.0;
                     this.timeOut();
@@ -3483,9 +3495,10 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
             return;
         };
         ClockController.prototype.pause = function () {
+            this.m_isPaused = true;
+            this._m_timer.paused = true;
+            this._m_actor.sendMessage(gameCommons_24.MESSAGE_ID.kClockPaused, null);
             if (!this.m_isPaused) {
-                this.m_isPaused = !this.m_isPaused;
-                this._m_actor.sendMessage(gameCommons_24.MESSAGE_ID.kClockPaused, null);
             }
             return;
         };
@@ -3493,9 +3506,10 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
             if (this._m_isTimeOut) {
                 return;
             }
+            this.m_isPaused = false;
+            this._m_timer.paused = false;
+            this._m_actor.sendMessage(gameCommons_24.MESSAGE_ID.kClockResumed, null);
             if (this.m_isPaused) {
-                this.m_isPaused = !this.m_isPaused;
-                this._m_actor.sendMessage(gameCommons_24.MESSAGE_ID.kClockResumed, null);
             }
             return;
         };
@@ -3503,6 +3517,11 @@ define("game/ui/clocks/components/clockController", ["require", "exports", "util
             this.m_current_time = this._m_totalSeconds;
             this._m_isTimeOut = false;
             this._m_areFinalSeconds = false;
+            this._m_timer.destroy();
+            this._m_timer = this._m_scene.time.addEvent({
+                delay: this._m_totalSeconds * 1000.0,
+                paused: true
+            });
             this._m_actor.sendMessage(gameCommons_24.MESSAGE_ID.kClockReset, null);
             this.pause();
             return;

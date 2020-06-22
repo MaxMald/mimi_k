@@ -24,6 +24,7 @@ export class ClockController extends MxComponent
   prepare(_scene : Phaser.Scene)
   : void
   {
+    this._m_scene = _scene;
     return;
   }
 
@@ -44,6 +45,12 @@ export class ClockController extends MxComponent
     );
     
     this._m_totalSeconds = this._m_gameController._m_user_preferences.chrono_value;
+    this._m_timer = this._m_scene.time.addEvent
+    ({
+      delay : this._m_totalSeconds * 1000.0,
+      paused : true
+    })
+
     this.m_current_time = this._m_totalSeconds;
     this._m_actor = _actor;
     this.reset();
@@ -54,7 +61,9 @@ export class ClockController extends MxComponent
   : void
   {
     if(!this.m_isPaused) {
-      this.m_current_time -= this._m_masterController.m_dt;
+      
+      this.m_current_time 
+        = this._m_totalSeconds - (this._m_timer.getProgress() * this._m_totalSeconds);
 
       if(this.m_current_time <= 0.0) {        
         this.m_current_time = 0.0;
@@ -71,9 +80,12 @@ export class ClockController extends MxComponent
   pause()
   : void
   {
-    if(!this.m_isPaused) {      
-      this.m_isPaused = !this.m_isPaused;
+    this.m_isPaused = true;
+      this._m_timer.paused = true;
       this._m_actor.sendMessage(MESSAGE_ID.kClockPaused, null);
+
+    if(!this.m_isPaused) {      
+      
     }    
     return;
   }
@@ -85,9 +97,12 @@ export class ClockController extends MxComponent
       return;
     }
 
-    if(this.m_isPaused) {      
-      this.m_isPaused = !this.m_isPaused;
+    this.m_isPaused = false;
+      this._m_timer.paused = false;
       this._m_actor.sendMessage(MESSAGE_ID.kClockResumed, null);
+
+    if(this.m_isPaused) {      
+      
     }    
     return;
   }
@@ -98,6 +113,15 @@ export class ClockController extends MxComponent
     this.m_current_time = this._m_totalSeconds;    
     this._m_isTimeOut = false;
     this._m_areFinalSeconds = false;
+    
+    this._m_timer.destroy();
+    this._m_timer = this._m_scene.time.addEvent
+    (
+      {
+        delay : this._m_totalSeconds * 1000.0,
+        paused : true
+      }
+    );
     this._m_actor.sendMessage(MESSAGE_ID.kClockReset, null);
     this.pause();
     return;
@@ -128,6 +152,16 @@ export class ClockController extends MxComponent
   /****************************************************/
   /* Protected                                        */
   /****************************************************/
+
+  /**
+   * 
+   */
+  _m_scene : Phaser.Scene;
+
+  /**
+   * 
+   */
+  _m_timer : Phaser.Time.TimerEvent;
 
   /**
    * 
