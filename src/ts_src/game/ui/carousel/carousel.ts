@@ -1,7 +1,6 @@
 import { Button } from "../buttons/imgButton";
 import { MxActor } from "../../../utilities/component/mxActor";
 import { CAROUSEL_CHILD_ID, COMPONENT_ID, MANAGER_ID } from "../../gameCommons";
-import { TextComponent } from "../../components/textComponent";
 import { SpriteComponent } from "../../components/spriteComponent";
 import { CarouselController } from "./components/carousleController";
 import { BitmapTextComponent } from "../../components/bitmapTextComponent";

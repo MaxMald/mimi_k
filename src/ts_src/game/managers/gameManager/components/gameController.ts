@@ -85,7 +85,10 @@ export class GameController extends MxComponent
     return;
   }
 
-  
+  /**
+   * Reference to the primary active scene.
+   */
+  m_active_scene : Phaser.Scene;
 
   /****************************************************/
   /* Private                                          */

@@ -1725,7 +1725,7 @@ define("game/managers/masteManager/components/MasterController", ["require", "ex
             this._m_introPlayed = !this._m_introPlayed;
             this._m_soundBaseManager = _scene.sound;
             this._m_snd_intro = _scene.sound.addAudioSprite(gameCommons_9.MimiKSounds.kMimiKAudioSprite);
-            this._m_snd_intro.play(gameCommons_9.MimiKSounds.kBackgroundVoice);
+            this._m_snd_intro.play(gameCommons_9.MimiKSounds.kBackgroundVoice, { volume: 0.75 });
             this._m_snd_intro.once('complete', function (sound) {
                 this._m_soundBaseManager.playAudioSprite(gameCommons_9.MimiKSounds.kMimiKAudioSprite, gameCommons_9.MimiKSounds.kBackgroundInstrumental, { loop: true });
             }, this);
@@ -2726,11 +2726,27 @@ define("game/ui/carousel/components/carousleController", ["require", "exports", 
             var leftButton = _actor.get_child(gameCommons_18.CAROUSEL_CHILD_ID.kLeftButton);
             var leftButton_sprite = leftButton.getComponent(gameCommons_18.COMPONENT_ID.kSprite);
             leftButton_sprite.on('pointerdown', this._onClick_leftButton, this);
+            this._gameController.m_active_scene.add.tween({
+                targets: leftButton_sprite.getSprite(),
+                alpha: { from: 0.25, to: 1.0 },
+                yoyo: true,
+                repeat: -1,
+                duration: 1000,
+                ease: "Linear"
+            });
             ///////////////////////////////////
             // Right Button
             var rightButton = _actor.get_child(gameCommons_18.CAROUSEL_CHILD_ID.kRightButton);
             var rightButton_sprite = rightButton.getComponent(gameCommons_18.COMPONENT_ID.kSprite);
             rightButton_sprite.on('pointerdown', this._onClick_rightButton, this);
+            this._gameController.m_active_scene.add.tween({
+                targets: rightButton_sprite.getSprite(),
+                alpha: { from: 0.25, to: 1.0 },
+                yoyo: true,
+                repeat: -1,
+                duration: 1000,
+                ease: "Linear"
+            });
             ///////////////////////////////////
             // ClockName Text
             var clockName = _actor.get_child(gameCommons_18.CAROUSEL_CHILD_ID.kClockName);
@@ -2739,6 +2755,14 @@ define("game/ui/carousel/components/carousleController", ["require", "exports", 
             // Preview SpriteComponent
             var preview = _actor.get_child(gameCommons_18.CAROUSEL_CHILD_ID.kPreview);
             this._carouselSprite = preview.getComponent(gameCommons_18.COMPONENT_ID.kSprite);
+            this._gameController.m_active_scene.add.tween({
+                targets: this._carouselSprite.getSprite(),
+                scale: { from: 0.85, to: 1.0 },
+                yoyo: true,
+                repeat: -1,
+                duration: 750,
+                ease: "Cubic"
+            });
             this._activeIndex = 0;
             this._setActiveItem(this._activeIndex);
             return;
@@ -3232,6 +3256,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
             // GameController
             this._m_gameController
                 = gameManager.getComponent(gameCommons_23.COMPONENT_ID.kGameController);
+            this._m_gameController.m_active_scene = this;
             // DataController
             this._m_dataController
                 = gameManager.getComponent(gameCommons_23.COMPONENT_ID.kDataController);
@@ -3341,6 +3366,7 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
             }
             this._m_a_preferenceButtons = null;
             this._m_dataController = null;
+            this._m_gameController.m_active_scene = null;
             this._m_gameController = null;
             this.sound.removeByKey(gameCommons_23.MimiKSounds.kMimiKAudioSprite);
             return;
@@ -3381,7 +3407,9 @@ define("scenes/menus/mainMenu", ["require", "exports", "game/managers/masteManag
             popupController.close();
             popupController.open();
             // Play Audio
-            this.sound.playAudioSprite(gameCommons_23.MimiKSounds.kMimiKAudioSprite, gameCommons_23.MimiKSounds.kButtonTip);
+            this.sound.playAudioSprite(gameCommons_23.MimiKSounds.kMimiKAudioSprite, gameCommons_23.MimiKSounds.kButtonTip, {
+                volume: 0.25
+            });
             // iterate over tips.
             this._m_tip_num++;
             if (this._m_tip_num > 5) {
@@ -4011,6 +4039,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
                 = gameManager.getComponent(gameCommons_31.COMPONENT_ID.kDataController);
             this._m_gameController
                 = gameManager.getComponent(gameCommons_31.COMPONENT_ID.kGameController);
+            this._m_gameController.m_active_scene = this;
             /****************************************************/
             /* Background                                       */
             /****************************************************/
@@ -4090,6 +4119,7 @@ define("scenes/levels/game_level", ["require", "exports", "game/managers/masteMa
             this._m_mainMenuButton.destroy();
             this._m_resetButton.destroy();
             this._m_alertPopup.destroy();
+            this._m_gameController.m_active_scene = null;
             return;
         };
         /****************************************************/

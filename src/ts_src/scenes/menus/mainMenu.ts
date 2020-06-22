@@ -42,6 +42,8 @@ export class MainMenu extends Phaser.Scene
     // GameController
     this._m_gameController
       = gameManager.getComponent<GameController>(COMPONENT_ID.kGameController);
+
+    this._m_gameController.m_active_scene = this;
             
     // DataController
     this._m_dataController
@@ -248,9 +250,12 @@ export class MainMenu extends Phaser.Scene
     
     this._m_a_preferenceButtons = null;
     this._m_dataController = null;
+
+    this._m_gameController.m_active_scene = null;
     this._m_gameController = null;
 
     this.sound.removeByKey(MimiKSounds.kMimiKAudioSprite);
+    
     return;
   }
     
@@ -333,7 +338,10 @@ export class MainMenu extends Phaser.Scene
     this.sound.playAudioSprite
     (
       MimiKSounds.kMimiKAudioSprite, 
-      MimiKSounds.kButtonTip
+      MimiKSounds.kButtonTip,
+      {
+        volume : 0.25
+      }
     );
       
     // iterate over tips.

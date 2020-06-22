@@ -32,7 +32,11 @@ export class MasterController extends MxComponent
         this._m_introPlayed = !this._m_introPlayed;
         this._m_soundBaseManager = _scene.sound;
         this._m_snd_intro = _scene.sound.addAudioSprite(MimiKSounds.kMimiKAudioSprite);
-        this._m_snd_intro.play(MimiKSounds.kBackgroundVoice);
+        this._m_snd_intro.play
+        (
+            MimiKSounds.kBackgroundVoice,
+            {volume : 0.75 } 
+        );
         this._m_snd_intro.once
         (
             'complete', 

@@ -37,7 +37,9 @@ export class MainGame extends Phaser.Scene
       = gameManager.getComponent<DataController>(COMPONENT_ID.kDataController);
 
     this._m_gameController
-      = gameManager.getComponent<GameController>(COMPONENT_ID.kGameController);     
+      = gameManager.getComponent<GameController>(COMPONENT_ID.kGameController);  
+      
+    this._m_gameController.m_active_scene = this;
 
     /****************************************************/
     /* Background                                       */
@@ -207,6 +209,7 @@ export class MainGame extends Phaser.Scene
     this._m_mainMenuButton.destroy();
     this._m_resetButton.destroy();
     this._m_alertPopup.destroy();
+    this._m_gameController.m_active_scene = null;
     return;
   }
 

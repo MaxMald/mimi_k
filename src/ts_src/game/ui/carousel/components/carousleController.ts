@@ -56,6 +56,16 @@ export class CarouselController extends MxComponent
       this._onClick_leftButton,
       this
     );
+    
+    this._gameController.m_active_scene.add.tween
+    ({
+      targets : leftButton_sprite.getSprite(),
+      alpha : {from : 0.25, to : 1.0},
+      yoyo : true,
+      repeat : -1,
+      duration : 1000,
+      ease : "Linear"
+    });
 
     ///////////////////////////////////
     // Right Button
@@ -71,6 +81,16 @@ export class CarouselController extends MxComponent
       this
     );
 
+    this._gameController.m_active_scene.add.tween
+    ({
+      targets : rightButton_sprite.getSprite(),
+      alpha : {from : 0.25, to : 1.0},
+      yoyo : true,
+      repeat : -1,
+      duration : 1000,
+      ease : "Linear"
+    });
+
     ///////////////////////////////////
     // ClockName Text
 
@@ -85,6 +105,16 @@ export class CarouselController extends MxComponent
 
     let preview : MxActor = _actor.get_child(CAROUSEL_CHILD_ID.kPreview);
     this._carouselSprite = preview.getComponent<SpriteComponent>(COMPONENT_ID.kSprite);
+
+    this._gameController.m_active_scene.add.tween
+    ({
+      targets : this._carouselSprite.getSprite(),
+      scale : {from : 0.85, to : 1.0},
+      yoyo : true,
+      repeat : -1,
+      duration : 750,
+      ease : "Cubic"
+    });
 
     this._activeIndex = 0;
     this._setActiveItem(this._activeIndex);
